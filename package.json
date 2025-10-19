@@ -1,0 +1,75 @@
+{
+  "name": "flui",
+  "version": "1.0.0",
+  "description": "Flui - Sistema CLI revolucionário de automação com agentes usando React e Ink",
+  "type": "module",
+  "bin": {
+    "flui": "./dist/cli.js"
+  },
+  "scripts": {
+    "dev": "tsx watch source/cli.tsx",
+    "build": "tsc && chmod +x dist/cli.js",
+    "start": "node dist/cli.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "lint": "eslint source/**/*.{ts,tsx}",
+    "format": "prettier --write source/**/*.{ts,tsx}"
+  },
+  "keywords": [
+    "cli",
+    "automation",
+    "agents",
+    "ai",
+    "mcp",
+    "workflow"
+  ],
+  "author": "Flui Team",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "chalk-template": "^1.1.2",
+    "conf": "^12.0.0",
+    "cors": "^2.8.5",
+    "csv-parse": "^5.6.0",
+    "date-fns": "^3.0.6",
+    "express": "^5.1.0",
+    "glob": "^10.3.10",
+    "ink": "^4.4.1",
+    "ink-markdown": "^1.0.4",
+    "ink-select-input": "^5.0.0",
+    "ink-spinner": "^5.0.0",
+    "ink-text-input": "^5.0.1",
+    "mammoth": "^1.11.0",
+    "nanoid": "^5.0.4",
+    "openai": "^4.20.1",
+    "pdf-parse": "^1.1.1",
+    "react": "^18.2.0",
+    "xlsx": "^0.18.5",
+    "yaml": "^2.3.4",
+    "zod": "^3.22.4",
+    "zustand": "^4.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "@types/react": "^18.2.45",
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "@vitest/ui": "^1.1.0",
+    "eslint": "^8.56.0",
+    "ink-testing-library": "^3.0.0",
+    "prettier": "^3.1.1",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
+ "vitest": "^1.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
