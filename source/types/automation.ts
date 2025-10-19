@@ -44,7 +44,9 @@ export const AutomationSchema = z.object({
   runCount: z.number().default(0),
 });
 
-export type Automation = z.infer<typeof AutomationSchema>;
+export type Automation = z.infer<typeof AutomationSchema> & {
+  runMode?: 'once' | 'continuous';
+};
 
 // ============= EXECUTION =============
 export const ExecutionStatusSchema = z.enum([

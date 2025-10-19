@@ -9,7 +9,7 @@ import { AgentsView } from '../views/AgentsView.js';
 import { MCPsView } from '../views/MCPsView.js';
 import { ModelsView } from '../views/ModelsView.js';
 import { ThemeSelectView } from '../views/ThemeSelectView.js';
-import { AutomationsView } from '../views/AutomationsView.js';
+import { EnhancedAutomationsView } from '../views/EnhancedAutomationsView.js';
 import { SessionsView } from '../views/SessionsView.js';
 import { executeCommand } from '../commands/index.js';
 import { sendStreamingMessageWithTools } from '../services/streamingTools.js';
@@ -148,7 +148,7 @@ export const EnhancedApp: React.FC = () => {
       {currentView === 'mcps' && <MCPsView />}
       {currentView === 'models' && <ModelsView />}
       {currentView === 'theme' && <ThemeSelectView />}
-      {currentView === 'automations' && <AutomationsView />}
+      {currentView === 'automations' && <EnhancedAutomationsView />}
       {currentView === 'sessions' && <SessionsView />}
     </Box>
   );
