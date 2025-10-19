@@ -9,8 +9,18 @@ export const StableTimeline: React.FC = () => {
   const theme = useStore((state) => state.theme);
   const colors = getTheme(theme);
 
+  // Deduplicar mensagens por ID
+  const uniqueMessages = useMemo(() => {
+    const seen = new Set();
+    return messages.filter((msg: Message) => {
+      if (seen.has(msg.id)) return false;
+      seen.add(msg.id);
+      return true;
+    });
+  }, [messages]);
+
   const renderedMessages = useMemo(() => {
-    return messages.map((msg: Message) => {
+    return uniqueMessages.map((msg: Message) => {
       if (msg.role === 'system') {
         return (
           <Box key={msg.id} paddingY={0}>
@@ -63,9 +73,9 @@ export const StableTimeline: React.FC = () => {
         </Box>
       );
     });
-  }, [messages, colors]);
+  }, [uniqueMessages, colors]);
 
-  if (messages.length === 0) {
+  if (uniqueMessages.length === 0) {
     return (
       <Box flexGrow={1} justifyContent="center" alignItems="center">
         <Text dimColor>Digite /help para começar</Text>
