@@ -12,6 +12,8 @@ export const ModelsView: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [manualMode, setManualMode] = useState(false);
+  const [manualInput, setManualInput] = useState('');
 
   useEffect(() => {
     const loadModels = async () => {
@@ -36,24 +38,51 @@ export const ModelsView: React.FC = () => {
 
   useInput((input, key) => {
     if (key.escape) {
-      setView('chat');
+      if (manualMode) {
+        setManualMode(false);
+        setManualInput('');
+      } else {
+        setView('chat');
+      }
+      return;
+    }
+
+    if (manualMode) {
+      if (key.return && manualInput.trim()) {
+        updateConfig({
+          llm: {
+            ...config!.llm,
+            model: manualInput.trim(),
+          },
+        });
+        setView('chat');
+      } else if (key.backspace || key.delete) {
+        setManualInput((prev) => prev.slice(0, -1));
+      } else if (input) {
+        setManualInput((prev) => prev + input);
+      }
       return;
     }
 
     if (!loading && models.length > 0) {
       if (key.upArrow) {
-        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : models.length - 1));
+        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : models.length));
       } else if (key.downArrow) {
-        setSelectedIndex((prev) => (prev < models.length - 1 ? prev + 1 : 0));
+        setSelectedIndex((prev) => (prev < models.length ? prev + 1 : 0));
       } else if (key.return) {
-        const selectedModel = models[selectedIndex];
-        updateConfig({
-          llm: {
-            ...config!.llm,
-            model: selectedModel,
-          },
-        });
-        setView('chat');
+        if (selectedIndex === models.length) {
+          // Opção "Inserir manualmente"
+          setManualMode(true);
+        } else {
+          const selectedModel = models[selectedIndex];
+          updateConfig({
+            llm: {
+              ...config!.llm,
+              model: selectedModel,
+            },
+          });
+          setView('chat');
+        }
       }
     }
   });
@@ -97,30 +126,58 @@ export const ModelsView: React.FC = () => {
           <Text dimColor>Nenhum modelo disponível.</Text>
         )}
 
-        {!loading && !error && models.length > 0 && (
+        {manualMode ? (
           <Box flexDirection="column">
             <Box marginBottom={1}>
-              <Text color={colors.info}>
-                Modelo atual: {config?.llm.model}
+              <Text color={colors.accent}>
+                ✏️ Inserir modelo manualmente:
               </Text>
             </Box>
-            {models.map((model, index) => (
-              <Box key={model} marginY={0}>
-                <Text color={index === selectedIndex ? colors.primary : colors.text}>
-                  {index === selectedIndex ? '▶ ' : '  '}
+            <Box>
+              <Text color={colors.text}>{manualInput}</Text>
+              <Text color={colors.primary}>█</Text>
+            </Box>
+            <Box marginTop={1}>
+              <Text dimColor>Digite o nome do modelo | Enter confirmar | Esc cancelar</Text>
+            </Box>
+          </Box>
+        ) : (
+          !loading && !error && models.length > 0 && (
+            <Box flexDirection="column">
+              <Box marginBottom={1}>
+                <Text color={colors.info}>
+                  Modelo atual: {config?.llm.model}
+                </Text>
+              </Box>
+              {models.map((model, index) => (
+                <Box key={model} marginY={0}>
+                  <Text color={index === selectedIndex ? colors.primary : colors.text}>
+                    {index === selectedIndex ? '▶ ' : '  '}
+                  </Text>
+                  <Text
+                    bold={index === selectedIndex}
+                    color={model === config?.llm.model ? colors.success : colors.secondary}
+                  >
+                    {model}
+                  </Text>
+                  {model === config?.llm.model && (
+                    <Text color={colors.success}> ✓</Text>
+                  )}
+                </Box>
+              ))}
+              <Box marginY={1} marginTop={2}>
+                <Text color={selectedIndex === models.length ? colors.primary : colors.accent}>
+                  {selectedIndex === models.length ? '▶ ' : '  '}
                 </Text>
                 <Text
-                  bold={index === selectedIndex}
-                  color={model === config?.llm.model ? colors.success : colors.secondary}
+                  bold={selectedIndex === models.length}
+                  color={colors.accent}
                 >
-                  {model}
+                  ✏️ Inserir modelo manualmente
                 </Text>
-                {model === config?.llm.model && (
-                  <Text color={colors.success}> ✓</Text>
-                )}
               </Box>
-            ))}
-          </Box>
+            </Box>
+          )
         )}
       </Box>
 
@@ -128,6 +185,8 @@ export const ModelsView: React.FC = () => {
         <Text dimColor>
           {loading || error
             ? 'Esc Voltar'
+            : manualMode
+            ? 'Digite o nome | Enter confirmar | Esc cancelar'
             : '↑↓ Navegar | Enter Selecionar | Esc Voltar'}
         </Text>
       </Box>

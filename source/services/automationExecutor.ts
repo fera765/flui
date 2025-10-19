@@ -9,6 +9,7 @@ import {
 import { Sandbox, createSandbox } from './sandbox.js';
 import { useStore } from '../store/store.js';
 import { sendStreamingMessage } from './streaming.js';
+import { createFileReader } from './fileReader.js';
 
 export class AutomationExecutor {
   private automation: Automation;
@@ -356,14 +357,44 @@ export class AutomationExecutor {
 
     const operation = node.config.operation || 'read';
     const filename = node.config.filename || 'output.txt';
+    const filePath = node.config.filePath; // Caminho absoluto opcional
 
     if (operation === 'read') {
-      const content = await this.sandbox.readFile(filename);
-      context[node.id] = { operation, filename, content };
+      if (filePath) {
+        // Ler arquivo externo usando FileReader
+        const fileReader = createFileReader();
+        const fileContent = await fileReader.readFile(filePath);
+        
+        context[node.id] = {
+          operation,
+          filename: filePath,
+          content: fileContent.content,
+          type: fileContent.type,
+          metadata: fileContent.metadata,
+        };
+      } else {
+        // Ler do sandbox
+        const content = await this.sandbox.readFile(filename);
+        context[node.id] = { operation, filename, content };
+      }
     } else if (operation === 'write') {
       const content = node.config.content || '';
       await this.sandbox.writeFile(filename, content);
       context[node.id] = { operation, filename, success: true };
+    } else if (operation === 'read_contacts') {
+      // Operação especializada para ler contatos
+      if (!filePath) {
+        throw new Error('filePath é obrigatório para read_contacts');
+      }
+      const fileReader = createFileReader();
+      const contacts = await fileReader.readContactsFromFile(filePath);
+      
+      context[node.id] = {
+        operation,
+        filename: filePath,
+        contacts,
+        count: contacts.length,
+      };
     }
   }
 

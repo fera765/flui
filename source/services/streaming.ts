@@ -111,3 +111,50 @@ export const listModelsStreaming = async (): Promise<string[]> => {
     throw new Error(`Erro ao listar modelos: ${error.message}`);
   }
 };
+
+export const testLLMConnection = async (): Promise<{ success: boolean; message: string; models?: string[] }> => {
+  const store = useStore.getState();
+  const config = store.config;
+
+  if (!config || !config.llm.apiKey) {
+    return {
+      success: false,
+      message: 'LLM não configurado. Configure em /settings',
+    };
+  }
+
+  if (!openaiClient) {
+    initializeStreamingLLM(config.llm.endpoint, config.llm.apiKey);
+  }
+
+  if (!openaiClient) {
+    return {
+      success: false,
+      message: 'Falha ao inicializar cliente LLM',
+    };
+  }
+
+  try {
+    // Testar listagem de modelos
+    const response = await openaiClient.models.list();
+    const models = response.data.map((model) => model.id);
+    
+    if (models.length === 0) {
+      return {
+        success: false,
+        message: 'Nenhum modelo disponível no endpoint',
+      };
+    }
+
+    return {
+      success: true,
+      message: `Conexão bem-sucedida! ${models.length} modelos disponíveis`,
+      models,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: `Erro de conexão: ${error.message}`,
+    };
+  }
+};
