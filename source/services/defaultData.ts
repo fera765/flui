@@ -46,6 +46,62 @@ Sempre busque a solução mais eficiente e escalável.`,
       mcpIds: [],
       enabled: true,
     },
+    {
+      name: 'MarketAnalyst',
+      description: 'Analista de mercado e tendências',
+      systemPrompt: `Você é um analista de mercado especializado. Você fornece:
+- Análise de tendências de mercado
+- Insights competitivos
+- Estratégias de precificação
+- Previsões e projeções
+- Recomendações estratégicas
+
+Sempre baseie suas análises em dados concretos e forneça recomendações acionáveis.`,
+      mcpIds: [],
+      enabled: true,
+    },
+    {
+      name: 'ContentWriter',
+      description: 'Redator de conteúdo profissional',
+      systemPrompt: `Você é um redator de conteúdo especializado. Você cria:
+- Artigos SEO otimizados
+- Copy persuasivo
+- Conteúdo educacional
+- Posts para redes sociais
+- Emails marketing
+
+Sempre adapte o tom e estilo ao público-alvo e objetivo do conteúdo.`,
+      mcpIds: [],
+      enabled: true,
+    },
+    {
+      name: 'ResearchAgent',
+      description: 'Agente de pesquisa e curadoria',
+      systemPrompt: `Você é um agente de pesquisa especializado. Você:
+- Realiza pesquisas profundas sobre tópicos
+- Coleta e organiza informações relevantes
+- Identifica fontes confiáveis
+- Cria outlines e estruturas
+- Sintetiza informações complexas
+
+Sempre cite fontes e organize informações de forma clara.`,
+      mcpIds: [],
+      enabled: true,
+    },
+    {
+      name: 'CommunicationAgent',
+      description: 'Especialista em comunicação',
+      systemPrompt: `Você é um especialista em comunicação. Você cria:
+- Emails profissionais e persuasivos
+- Apresentações impactantes
+- Comunicados oficiais
+- Mensagens para diferentes públicos
+- Estratégias de comunicação
+
+Sempre considere o contexto, público e objetivo da comunicação.`,
+      mcpIds: [],
+      enabled: true,
+    },
   ];
 };
 
@@ -108,6 +164,7 @@ export const getDefaultMCPs = (): Omit<MCP, 'id'>[] => {
           description: 'Buscar informações na web',
           parameters: {
             query: 'string',
+            maxResults: 'number',
           },
           handler: 'web.search',
         },
@@ -173,6 +230,95 @@ export const getDefaultMCPs = (): Omit<MCP, 'id'>[] => {
             data: 'object',
           },
           handler: 'database.insert',
+        },
+      ],
+      enabled: true,
+    },
+    {
+      name: 'AI Image MCP',
+      description: 'Geração de imagens com IA',
+      version: '1.0.0',
+      tools: [
+        {
+          id: 'ai-img-gen',
+          name: 'generateImages',
+          description: 'Gerar imagens com IA',
+          parameters: {
+            prompts: 'array',
+            style: 'string',
+            count: 'number',
+          },
+          handler: 'ai.generateImages',
+        },
+      ],
+      enabled: true,
+    },
+    {
+      name: 'Audio MCP',
+      description: 'Processamento de áudio',
+      version: '1.0.0',
+      tools: [
+        {
+          id: 'audio-tts',
+          name: 'textToSpeech',
+          description: 'Converter texto em áudio',
+          parameters: {
+            text: 'string',
+            voice: 'string',
+            speed: 'number',
+            output: 'string',
+          },
+          handler: 'audio.textToSpeech',
+        },
+      ],
+      enabled: true,
+    },
+    {
+      name: 'Email MCP',
+      description: 'Envio de emails',
+      version: '1.0.0',
+      tools: [
+        {
+          id: 'email-send',
+          name: 'sendEmail',
+          description: 'Enviar email',
+          parameters: {
+            to: 'string',
+            subject: 'string',
+            body: 'string',
+            attachments: 'array',
+          },
+          handler: 'email.send',
+        },
+        {
+          id: 'email-bulk',
+          name: 'sendBulkEmail',
+          description: 'Enviar email em massa',
+          parameters: {
+            to: 'array',
+            subject: 'string',
+            body: 'string',
+            attachments: 'array',
+          },
+          handler: 'email.sendBulk',
+        },
+      ],
+      enabled: true,
+    },
+    {
+      name: 'Document MCP',
+      description: 'Manipulação de documentos',
+      version: '1.0.0',
+      tools: [
+        {
+          id: 'doc-pdf',
+          name: 'convertToPDF',
+          description: 'Converter documento para PDF',
+          parameters: {
+            input: 'string',
+            output: 'string',
+          },
+          handler: 'document.convertToPDF',
         },
       ],
       enabled: true,

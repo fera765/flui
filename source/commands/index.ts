@@ -91,25 +91,9 @@ export const getCommands = (): Command[] => {
     {
       name: 'theme',
       description: 'Alterar tema da interface',
-      handler: async (args: string[]) => {
+      handler: async () => {
         const store = useStore.getState();
-        const themeName = args[0];
-        const validThemes = ['default', 'cyberpunk', 'minimal', 'ocean'];
-        
-        if (themeName && validThemes.includes(themeName)) {
-          store.setTheme(themeName as any);
-          store.addMessage({
-            role: 'system',
-            content: `✨ Tema alterado para: ${themeName}`,
-            status: 'completed',
-          });
-        } else {
-          store.addMessage({
-            role: 'system',
-            content: `🎨 Temas disponíveis: ${validThemes.join(', ')}`,
-            status: 'completed',
-          });
-        }
+        store.setView('theme');
       },
     },
     {

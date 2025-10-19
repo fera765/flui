@@ -38,7 +38,7 @@ export const getConfig = (): Config | null => {
 export const setConfig = (newConfig: Partial<Config>): void => {
   const current = getConfig() || {
     llm: {
-      endpoint: 'https://api.openai.com/v1',
+      endpoint: 'https://api.llm7.io/v1',
       apiKey: '',
       model: 'gpt-4-turbo-preview',
       temperature: 0.7,

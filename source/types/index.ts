@@ -143,4 +143,5 @@ export type View =
   | 'mcps'
   | 'automations'
   | 'sessions'
-  | 'models';
+  | 'models'
+  | 'theme';

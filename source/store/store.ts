@@ -310,7 +310,7 @@ export const useStore = create<AppState>((set, get) => ({
     if (!get().config) {
       get().updateConfig({
         llm: {
-          endpoint: 'https://api.openai.com/v1',
+          endpoint: 'https://api.llm7.io/v1',
           apiKey: '',
           model: 'gpt-4-turbo-preview',
           temperature: 0.7,

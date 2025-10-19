@@ -2,14 +2,16 @@ import React, { useEffect } from 'react';
 import { Box } from 'ink';
 import { useStore } from '../store/store.js';
 import { Header } from './Header.js';
-import { Timeline } from './Timeline.js';
+import { NewTimeline } from './NewTimeline.js';
 import { InputArea } from './InputArea.js';
 import { SettingsView } from '../views/SettingsView.js';
 import { AgentsView } from '../views/AgentsView.js';
 import { MCPsView } from '../views/MCPsView.js';
 import { ModelsView } from '../views/ModelsView.js';
+import { ThemeSelectView } from '../views/ThemeSelectView.js';
+import { AutomationsView } from '../views/AutomationsView.js';
 import { executeCommand } from '../commands/index.js';
-import { sendMessage } from '../services/llm.js';
+import { sendStreamingMessage } from '../services/streaming.js';
 import { initializeDefaults } from '../utils/init.js';
 
 export const App: React.FC = () => {
@@ -47,31 +49,61 @@ export const App: React.FC = () => {
     }
 
     // Adicionar mensagem de processamento
-    const processingMessageId = Date.now().toString();
     addMessage({
       role: selectedAgent ? 'agent' : 'assistant',
-      content: 'Processando...',
+      content: '',
       status: 'processing',
       agentId: selectedAgent?.id,
       agentName: selectedAgent?.name,
     });
 
     try {
-      // Enviar para LLM
-      const response = await sendMessage(input, selectedAgent || undefined);
-
-      // Atualizar mensagem com resposta
-      const messages = useStore.getState().messages;
-      const lastMessage = messages[messages.length - 1];
+      let fullResponse = '';
       
-      if (lastMessage) {
-        updateMessage(lastMessage.id, {
-          content: response,
-          status: 'completed',
-        });
-      }
+      // Enviar para LLM com streaming
+      await sendStreamingMessage(
+        input,
+        selectedAgent || undefined,
+        (chunk: string) => {
+          fullResponse += chunk;
+          // Atualizar mensagem em tempo real
+          const messages = useStore.getState().messages;
+          const lastMessage = messages[messages.length - 1];
+          
+          if (lastMessage) {
+            updateMessage(lastMessage.id, {
+              content: fullResponse,
+              status: 'processing',
+            });
+          }
+        },
+        () => {
+          // Conclusão
+          const messages = useStore.getState().messages;
+          const lastMessage = messages[messages.length - 1];
+          
+          if (lastMessage) {
+            updateMessage(lastMessage.id, {
+              content: fullResponse,
+              status: 'completed',
+            });
+          }
+        },
+        (error: Error) => {
+          // Erro
+          const messages = useStore.getState().messages;
+          const lastMessage = messages[messages.length - 1];
+          
+          if (lastMessage) {
+            updateMessage(lastMessage.id, {
+              content: `❌ Erro: ${error.message}`,
+              status: 'error',
+            });
+          }
+        }
+      );
     } catch (error: any) {
-      // Atualizar mensagem com erro
+      // Erro geral
       const messages = useStore.getState().messages;
       const lastMessage = messages[messages.length - 1];
       
@@ -90,7 +122,7 @@ export const App: React.FC = () => {
       
       {currentView === 'chat' && (
         <Box flexDirection="column" flexGrow={1}>
-          <Timeline height={15} />
+          <NewTimeline height={15} />
           <Box marginTop={1}>
             <InputArea onSubmit={handleSubmit} />
           </Box>
@@ -101,6 +133,8 @@ export const App: React.FC = () => {
       {currentView === 'agents' && <AgentsView />}
       {currentView === 'mcps' && <MCPsView />}
       {currentView === 'models' && <ModelsView />}
+      {currentView === 'theme' && <ThemeSelectView />}
+      {currentView === 'automations' && <AutomationsView />}
     </Box>
   );
 };
