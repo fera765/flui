@@ -163,9 +163,9 @@ export class MCPLoader {
    */
   static listMCPTools(): Array<{ mcpId: string; mcpName: string; toolId: string; toolName: string }> {
     const registry = getToolRegistry();
-    const mcpTools = registry.list({ category: 'mcp' });
+    const mcpToolsResult = registry.list({ category: 'mcp' });
     
-    return mcpTools.map((tool) => {
+    return mcpToolsResult.tools.map((tool: any) => {
       // Extrair IDs do toolId (formato: mcp-{mcpId}-{toolId})
       const parts = tool.id.split('-');
       const mcpId = parts[1];

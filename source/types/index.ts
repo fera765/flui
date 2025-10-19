@@ -52,8 +52,14 @@ export const MCPSchema = z.object({
   name: z.string(),
   description: z.string(),
   version: z.string(),
+  server: z.string().optional(),
   tools: z.array(MCPToolSchema),
   enabled: z.boolean().default(true),
+  metadata: z.object({
+    createdAt: z.string(),
+    updatedAt: z.string(),
+    lastSyncedAt: z.string().optional(),
+  }).optional(),
 });
 
 export type MCP = z.infer<typeof MCPSchema>;
@@ -66,10 +72,17 @@ export const AgentSchema = z.object({
   systemPrompt: z.string(),
   model: z.string().optional(), // Modelo específico do agente
   temperature: z.number().min(0).max(2).optional(),
+  maxTokens: z.number().optional(),
+  tools: z.array(z.string()).optional().default([]), // IDs de ferramentas disponíveis
   mcpIds: z.array(z.string()).default([]), // MCPs associados
   createdAt: z.string(),
   updatedAt: z.string(),
   enabled: z.boolean().default(true),
+  metadata: z.object({
+    createdAt: z.string(),
+    updatedAt: z.string(),
+    executionCount: z.number().optional(),
+  }).optional(),
 });
 
 export type Agent = z.infer<typeof AgentSchema>;

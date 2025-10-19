@@ -79,14 +79,15 @@ export type UIConfig = z.infer<typeof UIConfigSchema>;
 
 export const ToolParamSchema = z.object({
   name: z.string(),
-  key: z.string(), // Key usado no objeto de configuração
+  key: z.string().optional(), // Key usado no objeto de configuração (defaults to name)
   type: ToolParamTypeSchema,
   description: z.string(),
   required: z.boolean().default(false),
   default: z.any().optional(),
   placeholder: z.string().optional(),
   options: z.array(z.any()).optional(), // Para selects/enums (backward compatibility)
-  ui: UIConfigSchema,
+  ui: UIConfigSchema.optional(), // Optional, will be inferred from type if not provided
+  validation: z.function().args(z.any()).returns(z.boolean()).optional(), // Custom validation function
 });
 
 export type ToolParam = z.infer<typeof ToolParamSchema>;

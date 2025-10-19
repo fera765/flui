@@ -16,6 +16,7 @@ export const getDefaultAgents = (): Omit<Agent, 'id' | 'createdAt' | 'updatedAt'
 
 Sempre forneça exemplos práticos e explicações claras.`,
       mcpIds: [],
+      tools: [],
       enabled: true,
     },
     {
@@ -30,6 +31,7 @@ Sempre forneça exemplos práticos e explicações claras.`,
 
 Sempre apresente insights acionáveis e visualizações quando apropriado.`,
       mcpIds: [],
+      tools: [],
       enabled: true,
     },
     {
@@ -44,6 +46,7 @@ Sempre apresente insights acionáveis e visualizações quando apropriado.`,
 
 Sempre busque a solução mais eficiente e escalável.`,
       mcpIds: [],
+      tools: [],
       enabled: true,
     },
     {
@@ -58,6 +61,7 @@ Sempre busque a solução mais eficiente e escalável.`,
 
 Sempre baseie suas análises em dados concretos e forneça recomendações acionáveis.`,
       mcpIds: [],
+      tools: [],
       enabled: true,
     },
     {
@@ -72,6 +76,7 @@ Sempre baseie suas análises em dados concretos e forneça recomendações acion
 
 Sempre adapte o tom e estilo ao público-alvo e objetivo do conteúdo.`,
       mcpIds: [],
+      tools: [],
       enabled: true,
     },
     {
@@ -86,6 +91,7 @@ Sempre adapte o tom e estilo ao público-alvo e objetivo do conteúdo.`,
 
 Sempre cite fontes e organize informações de forma clara.`,
       mcpIds: [],
+      tools: [],
       enabled: true,
     },
     {
@@ -100,6 +106,7 @@ Sempre cite fontes e organize informações de forma clara.`,
 
 Sempre considere o contexto, público e objetivo da comunicação.`,
       mcpIds: [],
+      tools: [],
       enabled: true,
     },
   ];

@@ -19,7 +19,6 @@ import {
   Plus,
   Edit,
   Trash2,
-  Play,
   Info,
 } from 'lucide-react';
 import axios from 'axios';

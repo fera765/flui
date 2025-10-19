@@ -11,6 +11,7 @@ import {
   CheckCircle,
   XCircle,
   Clock,
+  Trash2,
 } from 'lucide-react';
 
 interface ToolNodeData {
@@ -23,6 +24,7 @@ interface ToolNodeData {
   status?: 'idle' | 'running' | 'completed' | 'failed';
   executionTime?: number;
   onConfigure?: () => void;
+  onDelete?: () => void;
 }
 
 const categoryColors: Record<string, string> = {
@@ -75,15 +77,31 @@ function ToolNode({ data, selected }: NodeProps<ToolNodeData>) {
           </span>
         </div>
         
-        {data.onConfigure && (
-          <button
-            onClick={data.onConfigure}
-            className="text-white hover:bg-white/20 rounded p-1 transition-colors"
-            title="Configurar nó"
-          >
-            <Settings className="w-4 h-4" />
-          </button>
-        )}
+        <div className="flex items-center gap-1">
+          {data.onConfigure && (
+            <button
+              onClick={data.onConfigure}
+              className="text-white hover:bg-white/20 rounded p-1 transition-colors"
+              title="Configurar nó"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+          )}
+          {data.onDelete && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (window.confirm('Tem certeza que deseja excluir este nó?') && data.onDelete) {
+                  data.onDelete();
+                }
+              }}
+              className="text-white hover:bg-red-500/40 rounded p-1 transition-colors"
+              title="Excluir nó"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Body */}
