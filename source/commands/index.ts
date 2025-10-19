@@ -179,8 +179,16 @@ export const getCommands = (): Command[] => {
         const subcommand = args[0];
 
         if (!subcommand || subcommand === 'list') {
-          // Listar todas as ferramentas
-          const tools = registry.list();
+          // Listar todas as ferramentas com paginação
+          const pageArg = args.find(a => a.startsWith('--page='));
+          const pageSizeArg = args.find(a => a.startsWith('--page-size='));
+          
+          const page = pageArg ? parseInt(pageArg.split('=')[1]) : 1;
+          const pageSize = pageSizeArg ? parseInt(pageSizeArg.split('=')[1]) : 50;
+          
+          const result = registry.list({ page, pageSize });
+          const tools = result.tools;
+          
           const grouped = tools.reduce((acc, tool) => {
             if (!acc[tool.category]) acc[tool.category] = [];
             acc[tool.category].push(tool);
@@ -193,14 +201,18 @@ export const getCommands = (): Command[] => {
             output += `**${category.toUpperCase()}**\n`;
             categoryTools.forEach((tool) => {
               const metrics = tool.metrics;
-              output += `  • ${tool.name} (${tool.id})\n`;
+              output += `  • ${tool.name} (${tool.id}) v${tool.version}\n`;
               output += `    ${tool.description}\n`;
               output += `    📊 Execuções: ${metrics.executionCount} | Sucesso: ${metrics.successCount} | Falha: ${metrics.failureCount}\n`;
             });
             output += '\n';
           }
           
-          output += `\n📦 **Total:** ${tools.length} ferramentas registradas`;
+          output += `\n📦 **Página ${result.page} de ${result.totalPages}** (${result.total} ferramentas no total)`;
+          
+          if (result.page < result.totalPages) {
+            output += `\n💡 Use: /tools list --page=${result.page + 1} para ver mais`;
+          }
           
           store.addMessage({
             role: 'system',
@@ -350,14 +362,134 @@ export const getCommands = (): Command[] => {
               });
             }
           }
+        } else if (subcommand === 'delete') {
+          // Deletar ferramenta
+          const toolId = args[1];
+          if (!toolId) {
+            store.addMessage({
+              role: 'system',
+              content: '❌ Uso: /tools delete <tool-id>',
+              status: 'error',
+            });
+            return;
+          }
+
+          if (!registry.has(toolId)) {
+            store.addMessage({
+              role: 'system',
+              content: `❌ Ferramenta '${toolId}' não encontrada`,
+              status: 'error',
+            });
+            return;
+          }
+
+          const removed = registry.unregister(toolId);
+          
+          store.addMessage({
+            role: 'system',
+            content: removed 
+              ? `✅ Ferramenta '${toolId}' removida com sucesso`
+              : `❌ Erro ao remover ferramenta '${toolId}'`,
+            status: removed ? 'completed' : 'error',
+          });
+        } else if (subcommand === 'test') {
+          // Testar ferramenta (alias para exec)
+          const toolId = args[1];
+          if (!toolId) {
+            store.addMessage({
+              role: 'system',
+              content: '❌ Uso: /tools test <tool-id> <params-json>',
+              status: 'error',
+            });
+            return;
+          }
+
+          const tool = registry.get(toolId);
+          if (!tool) {
+            store.addMessage({
+              role: 'system',
+              content: `❌ Ferramenta '${toolId}' não encontrada`,
+              status: 'error',
+            });
+            return;
+          }
+
+          // Parse params JSON
+          const paramsJson = args.slice(2).join(' ');
+          let params = {};
+          
+          if (paramsJson) {
+            try {
+              params = JSON.parse(paramsJson);
+            } catch {
+              store.addMessage({
+                role: 'system',
+                content: '❌ Parâmetros devem ser um JSON válido',
+                status: 'error',
+              });
+              return;
+            }
+          }
+
+          store.addMessage({
+            role: 'system',
+            content: `🧪 Testando ${tool.name}...`,
+            status: 'processing',
+          });
+
+          try {
+            const context = {
+              automationId: 'cli-test',
+              nodeId: 'cli-test',
+              previousResults: {},
+              globalContext: {},
+            };
+
+            const startTime = Date.now();
+            const result = await ToolExecutor.execute(toolId, params, context);
+            const duration = Date.now() - startTime;
+
+            const messages = store.messages;
+            const lastMessage = messages[messages.length - 1];
+
+            if (lastMessage) {
+              let output = '';
+              
+              if (result.success) {
+                output = `✅ **Teste concluído com sucesso**\n\n`;
+                output += `**Tool:** ${tool.name} (${tool.id})\n`;
+                output += `**Duração:** ${duration}ms\n\n`;
+                output += `**Resultado:**\n\`\`\`json\n${JSON.stringify(result.result, null, 2)}\n\`\`\``;
+              } else {
+                output = `❌ **Teste falhou**\n\n`;
+                output += `**Tool:** ${tool.name} (${tool.id})\n`;
+                output += `**Erro:** ${result.error}`;
+              }
+
+              store.updateMessage(lastMessage.id, {
+                content: output,
+                status: result.success ? 'completed' : 'error',
+              });
+            }
+          } catch (error: any) {
+            const messages = store.messages;
+            const lastMessage = messages[messages.length - 1];
+            
+            if (lastMessage) {
+              store.updateMessage(lastMessage.id, {
+                content: `❌ Erro ao testar: ${error.message}`,
+                status: 'error',
+              });
+            }
+          }
         } else if (subcommand === 'categories') {
           // Listar categorias
           const categories = registry.getCategories();
           
           let output = '📁 **Categorias de Ferramentas**\n\n';
           categories.forEach((category) => {
-            const tools = registry.list({ category });
-            output += `  • ${category}: ${tools.length} ferramenta(s)\n`;
+            const result = registry.list({ category });
+            output += `  • ${category}: ${result.tools.length} ferramenta(s)\n`;
           });
 
           store.addMessage({
@@ -368,7 +500,7 @@ export const getCommands = (): Command[] => {
         } else {
           store.addMessage({
             role: 'system',
-            content: `❌ Subcomando desconhecido: ${subcommand}\n\n**Subcomandos disponíveis:**\n  • list - Listar todas as ferramentas\n  • info <tool-id> - Informações detalhadas\n  • exec <tool-id> <params-json> - Executar ferramenta\n  • categories - Listar categorias`,
+            content: `❌ Subcomando desconhecido: ${subcommand}\n\n**Subcomandos disponíveis:**\n  • list [--page N] [--page-size M] - Listar ferramentas com paginação\n  • info <tool-id> - Informações detalhadas\n  • exec <tool-id> <params-json> - Executar ferramenta\n  • test <tool-id> <params-json> - Testar ferramenta\n  • delete <tool-id> - Deletar ferramenta\n  • categories - Listar categorias`,
             status: 'error',
           });
         }

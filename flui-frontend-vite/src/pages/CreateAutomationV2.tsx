@@ -22,6 +22,7 @@ import 'reactflow/dist/style.css';
 import { ArrowLeft, Save, Plus, Play, Eye } from 'lucide-react';
 import ToolNode from '../components/ToolNode';
 import ToolPalette from '../components/ToolPalette';
+import NodeConfigPanel from '../components/NodeConfigPanel';
 
 interface Tool {
   id: string;
@@ -49,6 +50,8 @@ export default function CreateAutomationV2() {
   const [isExecuting, setIsExecuting] = useState(false);
   const [executionLogs, setExecutionLogs] = useState<any[]>([]);
   const [showLogs, setShowLogs] = useState(false);
+  const [configPanelOpen, setConfigPanelOpen] = useState(false);
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
   // Tipos de nó customizados
   const nodeTypes = useMemo(() => ({ tool: ToolNode }), []);
@@ -110,8 +113,43 @@ export default function CreateAutomationV2() {
 
   // Configurar nó (abre modal)
   const handleConfigureNode = (nodeId: string) => {
-    console.log('Configurar nó:', nodeId);
-    // TODO: Abrir modal de configuração
+    const node = nodes.find((n) => n.id === nodeId);
+    if (node) {
+      setSelectedNode(node);
+      setConfigPanelOpen(true);
+    }
+  };
+
+  // Salvar configuração do nó
+  const handleSaveNodeConfig = (config: any) => {
+    if (!selectedNode) return;
+
+    setNodes((nds) =>
+      nds.map((n) =>
+        n.id === selectedNode.id
+          ? { ...n, data: { ...n.data, config } }
+          : n
+      )
+    );
+    
+    setConfigPanelOpen(false);
+    setSelectedNode(null);
+  };
+
+  // Excluir nó
+  const handleDeleteNode = (nodeId: string) => {
+    if (window.confirm('Tem certeza que deseja excluir este nó?')) {
+      setNodes((nds) => nds.filter((n) => n.id !== nodeId));
+      setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
+    }
+  };
+
+  // Testar nó
+  const handleTestNode = async (config: any) => {
+    if (!selectedNode) return;
+    
+    console.log('Testar nó:', selectedNode.id, config);
+    // A lógica de teste já está no NodeConfigPanel
   };
 
   // Salvar automação
@@ -422,6 +460,22 @@ export default function CreateAutomationV2() {
         <ToolPalette
           onAddTool={handleAddTool}
           onClose={() => setShowPalette(false)}
+        />
+      )}
+
+      {/* Node Config Panel */}
+      {selectedNode && (
+        <NodeConfigPanel
+          isOpen={configPanelOpen}
+          nodeId={selectedNode.id}
+          toolId={selectedNode.data.toolId}
+          initialConfig={selectedNode.data.config}
+          onClose={() => {
+            setConfigPanelOpen(false);
+            setSelectedNode(null);
+          }}
+          onSave={handleSaveNodeConfig}
+          onTest={handleTestNode}
         />
       )}
     </div>
