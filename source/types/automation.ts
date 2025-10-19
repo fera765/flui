@@ -11,6 +11,7 @@ export const AutomationNodeTypeSchema = z.enum([
   'http_request',
   'file_operation',
   'data_transform',
+  'webhook',
 ]);
 
 export type AutomationNodeType = z.infer<typeof AutomationNodeTypeSchema>;
