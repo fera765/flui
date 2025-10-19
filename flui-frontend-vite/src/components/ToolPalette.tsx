@@ -83,18 +83,22 @@ export default function ToolPalette({ onAddTool, onClose }: ToolPaletteProps) {
   async function fetchTools() {
     try {
       const response = await fetch('http://localhost:3001/api/tools');
-      const data = await response.json();
-      setTools(data);
-      setFilteredTools(data);
+      const result = await response.json();
+      // API retorna { data: [...], pagination: {...} }
+      const toolsArray = Array.isArray(result) ? result : (result.data || []);
+      setTools(toolsArray);
+      setFilteredTools(toolsArray);
     } catch (error) {
       console.error('Erro ao carregar ferramentas:', error);
+      setTools([]);
+      setFilteredTools([]);
     } finally {
       setLoading(false);
     }
   }
 
-  // Obter categorias únicas
-  const categories = Array.from(new Set(tools.map((t) => t.category)));
+  // Obter categorias únicas - garantir que tools é um array
+  const categories = Array.isArray(tools) ? Array.from(new Set(tools.map((t) => t.category))) : [];
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">

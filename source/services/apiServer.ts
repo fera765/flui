@@ -2,6 +2,8 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
+import { writeFile } from 'fs/promises';
+import { join } from 'path';
 import { getAutomations, saveAutomation, deleteAutomation } from '../store/automationStorage.js';
 import { useStore } from '../store/store.js';
 import { getToolRegistry } from '../core/toolRegistry.js';
@@ -9,6 +11,7 @@ import { ToolExecutor } from '../core/toolExecutor.js';
 import { ExecutionContext } from '../core/types.js';
 import { executeFlow } from '../core/flowEngine.js';
 import { FlowDefinition } from '../core/flowTypes.js';
+import { getCustomNodeManager, CustomNodeManager } from './customNodeManager.js';
 
 const app = express();
 const PORT = 3001;
@@ -823,7 +826,100 @@ function incrementVersion(lastUpdate: string): string {
   return `v${date.getTime()}`;
 }
 
-export const startApiServer = () => {
+// ============= CUSTOM NODES ENDPOINTS =============
+
+// GET /api/custom-nodes - Listar custom nodes instalados
+app.get('/api/custom-nodes', (_req: Request, res: Response) => {
+  try {
+    const manager = getCustomNodeManager();
+    const nodes = manager.listNodes();
+    res.json(nodes);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/custom-nodes/:fingerprint - Obter custom node específico
+app.get('/api/custom-nodes/:fingerprint', (req: Request, res: Response) => {
+  try {
+    const manager = getCustomNodeManager();
+    const node = manager.getNode(req.params.fingerprint);
+    
+    if (!node) {
+      return res.status(404).json({ error: 'Custom node não encontrado' });
+    }
+    
+    res.json(node);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/custom-nodes/upload - Upload de custom node
+// TODO: Implementar upload com multer após adicionar dependência
+app.post('/api/custom-nodes/upload', async (req: Request, res: Response) => {
+  res.status(501).json({ 
+    success: false,
+    message: 'Upload via API será implementado em breve. Use o CLI: flui --upload-node',
+    isUpdate: false,
+  });
+});
+
+// POST /api/custom-nodes/validate - Validar pacote sem instalar
+app.post('/api/custom-nodes/validate', async (req: Request, res: Response) => {
+  res.status(501).json({ 
+    valid: false,
+    errors: ['Validação via API será implementada em breve'],
+  });
+});
+
+// DELETE /api/custom-nodes/:fingerprint - Remover custom node
+app.delete('/api/custom-nodes/:fingerprint', async (req: Request, res: Response) => {
+  try {
+    const manager = getCustomNodeManager();
+    const removed = await manager.removeNode(req.params.fingerprint);
+    
+    if (removed) {
+      broadcast({
+        type: 'custom-node-removed',
+        fingerprint: req.params.fingerprint,
+      });
+      
+      res.json({ success: true, message: 'Custom node removido com sucesso' });
+    } else {
+      res.status(404).json({ success: false, error: 'Custom node não encontrado' });
+    }
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// GET /api/custom-nodes/:fingerprint/versions - Listar versões de um node
+app.get('/api/custom-nodes/:fingerprint/versions', (req: Request, res: Response) => {
+  try {
+    const manager = getCustomNodeManager();
+    const node = manager.getNode(req.params.fingerprint);
+    
+    if (!node) {
+      return res.status(404).json({ error: 'Custom node não encontrado' });
+    }
+    
+    res.json(node.versions);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+export const startApiServer = async () => {
+  // Inicializar custom node manager
+  try {
+    const manager = getCustomNodeManager();
+    await manager.initialize();
+    console.log('✅ Custom Node Manager initialized');
+  } catch (error) {
+    console.error('❌ Failed to initialize Custom Node Manager:', error);
+  }
+  
   httpServer.listen(PORT, () => {
     console.log(`🚀 API Server rodando em http://localhost:${PORT}`);
     console.log(`📡 WebSocket Server rodando em ws://localhost:${PORT}`);

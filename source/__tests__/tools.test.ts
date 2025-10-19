@@ -271,26 +271,27 @@ describe('Tools Integration Tests', () => {
   describe('Tool Registry', () => {
     it('deve listar todas as ferramentas', () => {
       const registry = getToolRegistry();
-      const tools = registry.list();
+      const result = registry.list();
       
-      expect(tools.length).toBeGreaterThanOrEqual(10);
+      expect(result.tools.length).toBeGreaterThanOrEqual(10);
+      expect(result.total).toBeGreaterThanOrEqual(10);
     });
 
     it('deve filtrar por categoria', () => {
       const registry = getToolRegistry();
-      const systemTools = registry.list({ category: 'system' });
+      const result = registry.list({ category: 'system' });
       
-      expect(systemTools.length).toBeGreaterThan(0);
-      systemTools.forEach(tool => {
+      expect(result.tools.length).toBeGreaterThan(0);
+      result.tools.forEach(tool => {
         expect(tool.category).toBe('system');
       });
     });
 
     it('deve buscar ferramentas', () => {
       const registry = getToolRegistry();
-      const httpTools = registry.list({ search: 'http' });
+      const result = registry.list({ search: 'http' });
       
-      expect(httpTools.length).toBeGreaterThan(0);
+      expect(result.tools.length).toBeGreaterThan(0);
     });
 
     it('deve obter métricas', async () => {
