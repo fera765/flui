@@ -955,8 +955,5 @@ export const startApiServer = async () => {
   });
 };
 
-// Auto-start server when imported
-startApiServer().catch((error: any) => {
-  console.error('❌ Failed to start server:', error);
-  process.exit(1);
-});
+// Export for manual start (don't auto-start)
+export default startApiServer;

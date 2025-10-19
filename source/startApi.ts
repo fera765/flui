@@ -5,6 +5,12 @@
  * Inicia apenas o servidor API sem o CLI
  */
 
-import './services/apiServer.js';
+import { startApiServer } from './services/apiServer.js';
 
-console.log('🚀 FLUI API Server iniciado!');
+console.log('🚀 Iniciando FLUI API Server...');
+
+// Start the API server
+startApiServer().catch((error) => {
+  console.error('❌ Failed to start API server:', error);
+  process.exit(1);
+});
