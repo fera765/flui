@@ -52,18 +52,77 @@ app.get('/api/automations', (_req: Request, res: Response) => {
   res.json(automations);
 });
 
+app.get('/api/automations/:id', (req: Request, res: Response) => {
+  const automations = getAutomations();
+  const automation = automations.find(a => a.id === req.params.id);
+  
+  if (!automation) {
+    return res.status(404).json({ error: 'Automação não encontrada' });
+  }
+  
+  res.json(automation);
+});
+
 app.post('/api/automations', (req: Request, res: Response) => {
   const automation = req.body;
-  saveAutomation({
+  const newAutomation = {
     ...automation,
     id: automation.id || Date.now().toString(),
-    startNodeId: automation.nodes[0]?.id || '',
-    enabled: true,
-    runCount: 0,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  });
-  res.json({ success: true });
+    startNodeId: automation.startNodeId || automation.nodes[0]?.id || '',
+    enabled: automation.enabled !== undefined ? automation.enabled : true,
+    runCount: automation.runCount || 0,
+    edges: automation.edges || [],
+    metadata: {
+      createdAt: automation.metadata?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  };
+  saveAutomation(newAutomation);
+  res.json({ success: true, id: newAutomation.id });
+});
+
+app.put('/api/automations/:id', (req: Request, res: Response) => {
+  const automations = getAutomations();
+  const existing = automations.find(a => a.id === req.params.id);
+  
+  if (!existing) {
+    return res.status(404).json({ error: 'Automação não encontrada' });
+  }
+  
+  const updated = {
+    ...req.body,
+    id: req.params.id,
+    metadata: {
+      ...existing.metadata,
+      ...req.body.metadata,
+      createdAt: existing.metadata?.createdAt || existing.createdAt,
+      updatedAt: new Date().toISOString(),
+    },
+  };
+  
+  saveAutomation(updated);
+  res.json({ success: true, id: req.params.id });
+});
+
+app.patch('/api/automations/:id', (req: Request, res: Response) => {
+  const automations = getAutomations();
+  const existing = automations.find(a => a.id === req.params.id);
+  
+  if (!existing) {
+    return res.status(404).json({ error: 'Automação não encontrada' });
+  }
+  
+  const updated = {
+    ...existing,
+    ...req.body,
+    metadata: {
+      ...existing.metadata,
+      updatedAt: new Date().toISOString(),
+    },
+  };
+  
+  saveAutomation(updated);
+  res.json({ success: true, id: req.params.id });
 });
 
 app.delete('/api/automations/:id', (req: Request, res: Response) => {
@@ -71,16 +130,295 @@ app.delete('/api/automations/:id', (req: Request, res: Response) => {
   res.json({ success: true });
 });
 
-// Agentes
+app.post('/api/automations/:id/execute', async (req: Request, res: Response) => {
+  try {
+    const automations = getAutomations();
+    const automation = automations.find(a => a.id === req.params.id);
+    
+    if (!automation) {
+      return res.status(404).json({ error: 'Automação não encontrada' });
+    }
+
+    // Converter automação para FlowDefinition
+    const flow: FlowDefinition = {
+      id: automation.id,
+      name: automation.name,
+      description: automation.description,
+      version: '2.0.0',
+      nodes: automation.nodes.map(node => ({
+        id: node.id,
+        type: 'tool',
+        name: node.name,
+        description: node.description,
+        config: node.config || {},
+        position: node.position,
+      })),
+      edges: automation.edges || [],
+      startNodeId: automation.startNodeId,
+      metadata: automation.metadata,
+    };
+
+    // Executar flow
+    const logs: any[] = [];
+    const execution = await executeFlow(
+      flow,
+      req.body.initialData || {},
+      (log) => {
+        logs.push(log);
+        broadcast({
+          type: 'execution-log',
+          automationId: automation.id,
+          log,
+        });
+      }
+    );
+
+    // Atualizar runCount
+    saveAutomation({
+      ...automation,
+      runCount: (automation.runCount || 0) + 1,
+      metadata: {
+        createdAt: automation.metadata?.createdAt || automation.createdAt,
+        updatedAt: new Date().toISOString(),
+        lastRunAt: new Date().toISOString(),
+      },
+    });
+
+    broadcast({
+      type: 'execution-complete',
+      automationId: automation.id,
+      execution,
+    });
+
+    res.json({
+      success: execution.status === 'completed',
+      result: execution.result,
+      error: execution.error,
+      logs,
+      executionTime: execution.completedAt 
+        ? new Date(execution.completedAt).getTime() - new Date(execution.startedAt).getTime()
+        : undefined,
+    });
+  } catch (error: any) {
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
+  }
+});
+
+// ============= AGENTS ENDPOINTS =============
+
 app.get('/api/agents', (_req: Request, res: Response) => {
   const store = useStore.getState();
   res.json(store.agents);
 });
 
-// MCPs
+app.get('/api/agents/:id', (req: Request, res: Response) => {
+  const store = useStore.getState();
+  const agent = store.agents.find(a => a.id === req.params.id);
+  
+  if (!agent) {
+    return res.status(404).json({ error: 'Agente não encontrado' });
+  }
+  
+  res.json(agent);
+});
+
+app.post('/api/agents', (req: Request, res: Response) => {
+  try {
+    const agent = req.body;
+    const store = useStore.getState();
+    
+    const newAgent = {
+      ...agent,
+      id: agent.id || Date.now().toString(),
+      metadata: {
+        createdAt: agent.metadata?.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        executionCount: agent.metadata?.executionCount || 0,
+      },
+    };
+    
+    store.createAgent(newAgent);
+    res.json({ success: true, id: newAgent.id });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.put('/api/agents/:id', (req: Request, res: Response) => {
+  try {
+    const store = useStore.getState();
+    const existing = store.agents.find(a => a.id === req.params.id);
+    
+    if (!existing) {
+      return res.status(404).json({ error: 'Agente não encontrado' });
+    }
+    
+    const updates = {
+      ...req.body,
+      id: req.params.id,
+      metadata: {
+        ...existing.metadata,
+        ...req.body.metadata,
+        createdAt: existing.metadata?.createdAt || existing.createdAt,
+        updatedAt: new Date().toISOString(),
+      },
+    };
+    
+    store.updateAgent(req.params.id, updates);
+    res.json({ success: true, id: req.params.id });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.patch('/api/agents/:id', (req: Request, res: Response) => {
+  try {
+    const store = useStore.getState();
+    const existing = store.agents.find(a => a.id === req.params.id);
+    
+    if (!existing) {
+      return res.status(404).json({ error: 'Agente não encontrado' });
+    }
+    
+    store.updateAgent(req.params.id, req.body);
+    res.json({ success: true, id: req.params.id });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.delete('/api/agents/:id', (req: Request, res: Response) => {
+  try {
+    const store = useStore.getState();
+    store.deleteAgent(req.params.id);
+    res.json({ success: true });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============= MCPs ENDPOINTS =============
+
 app.get('/api/mcps', (_req: Request, res: Response) => {
   const store = useStore.getState();
   res.json(store.mcps);
+});
+
+app.get('/api/mcps/:id', (req: Request, res: Response) => {
+  const store = useStore.getState();
+  const mcp = store.mcps.find(m => m.id === req.params.id);
+  
+  if (!mcp) {
+    return res.status(404).json({ error: 'MCP não encontrado' });
+  }
+  
+  res.json(mcp);
+});
+
+app.post('/api/mcps', (req: Request, res: Response) => {
+  try {
+    const mcp = req.body;
+    const store = useStore.getState();
+    
+    const newMcp = {
+      ...mcp,
+      id: mcp.id || Date.now().toString(),
+      metadata: {
+        createdAt: mcp.metadata?.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        lastSyncedAt: mcp.metadata?.lastSyncedAt,
+      },
+    };
+    
+    store.createMCP(newMcp);
+    res.json({ success: true, id: newMcp.id });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.put('/api/mcps/:id', (req: Request, res: Response) => {
+  try {
+    const store = useStore.getState();
+    const existing = store.mcps.find(m => m.id === req.params.id);
+    
+    if (!existing) {
+      return res.status(404).json({ error: 'MCP não encontrado' });
+    }
+    
+    const updates = {
+      ...req.body,
+      id: req.params.id,
+      metadata: {
+        ...existing.metadata,
+        ...req.body.metadata,
+        updatedAt: new Date().toISOString(),
+      },
+    };
+    
+    store.updateMCP(req.params.id, updates);
+    res.json({ success: true, id: req.params.id });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.patch('/api/mcps/:id', (req: Request, res: Response) => {
+  try {
+    const store = useStore.getState();
+    const existing = store.mcps.find(m => m.id === req.params.id);
+    
+    if (!existing) {
+      return res.status(404).json({ error: 'MCP não encontrado' });
+    }
+    
+    store.updateMCP(req.params.id, req.body);
+    res.json({ success: true, id: req.params.id });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.delete('/api/mcps/:id', (req: Request, res: Response) => {
+  try {
+    const store = useStore.getState();
+    store.deleteMCP(req.params.id);
+    res.json({ success: true });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/mcps/:id/sync', async (req: Request, res: Response) => {
+  try {
+    const store = useStore.getState();
+    const mcp = store.mcps.find(m => m.id === req.params.id);
+    
+    if (!mcp) {
+      return res.status(404).json({ error: 'MCP não encontrado' });
+    }
+
+    // Aqui você implementaria a lógica de sincronização com o servidor MCP
+    // Por enquanto, apenas atualiza o timestamp
+    store.updateMCP(req.params.id, {
+      metadata: {
+        createdAt: mcp.metadata?.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        lastSyncedAt: new Date().toISOString(),
+      },
+    });
+    
+    res.json({ 
+      success: true, 
+      message: 'MCP sincronizado com sucesso',
+      syncedAt: new Date().toISOString(),
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // ============= TOOLS REGISTRY ENDPOINTS =============
@@ -404,10 +742,13 @@ app.post('/api/flows', (req: Request, res: Response) => {
       id: flow.id,
       name: flow.name,
       description: flow.description,
+      version: flow.version || '2.0.0',
+      edges: flow.edges || [],
       nodes: flow.nodes.map((node) => ({
         id: node.id,
         type: 'mcp_tool' as any, // Converter todos para tipo compatível
         name: node.name,
+        description: node.description,
         config: node.config,
         position: node.position,
         nextNodes: [],

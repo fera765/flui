@@ -1,10 +1,10 @@
 /**
- * CreateAutomationV2 - Editor de automação estilo N8n melhorado
- * Usa ToolNode, ToolPalette e FlowEngine
+ * EditAutomation - Editor de automação existente
+ * Carrega os dados da automação e permite editar no workflow
  */
 
-import { useState, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import ReactFlow, {
   Controls,
   Background,
@@ -19,7 +19,7 @@ import ReactFlow, {
   type Connection,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { ArrowLeft, Save, Plus, Play, Eye } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Play, Eye, Trash2 } from 'lucide-react';
 import ToolNode from '../components/ToolNode';
 import ToolPalette from '../components/ToolPalette';
 import NodeConfigPanel from '../components/NodeConfigPanel';
@@ -37,12 +37,29 @@ interface Tool {
   };
 }
 
-export default function CreateAutomationV2() {
+interface Automation {
+  id: string;
+  name: string;
+  description: string;
+  version: string;
+  nodes: any[];
+  edges: any[];
+  startNodeId: string;
+  enabled: boolean;
+  metadata?: {
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
+export default function EditAutomation() {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [name, setName] = useState('Nova Automação');
+  const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [loading, setLoading] = useState(true);
   
   // UI States
   const [showPalette, setShowPalette] = useState(false);
@@ -55,6 +72,65 @@ export default function CreateAutomationV2() {
 
   // Tipos de nó customizados
   const nodeTypes = useMemo(() => ({ tool: ToolNode }), []);
+
+  // Carregar automação existente
+  useEffect(() => {
+    if (id) {
+      loadAutomation(id);
+    }
+  }, [id]);
+
+  const loadAutomation = async (automationId: string) => {
+    try {
+      setLoading(true);
+      const res = await fetch(`http://localhost:3001/api/automations/${automationId}`);
+      
+      if (!res.ok) {
+        throw new Error('Automação não encontrada');
+      }
+
+      const automation: Automation = await res.json();
+      
+      setName(automation.name);
+      setDescription(automation.description || '');
+
+      // Converter nós do formato salvo para ReactFlow
+      const reactFlowNodes: Node[] = automation.nodes.map((node) => ({
+        id: node.id,
+        type: 'tool',
+        position: node.position || { x: 100, y: 100 },
+        data: {
+          label: node.name,
+          description: node.description,
+          toolId: node.config?.toolId,
+          category: node.config?.category,
+          color: node.config?.color,
+          icon: node.config?.icon,
+          status: 'idle',
+          config: node.config?.params || {},
+          onConfigure: () => handleConfigureNode(node.id),
+          onDelete: () => handleDeleteNode(node.id),
+        },
+      }));
+
+      // Converter edges do formato salvo para ReactFlow
+      const reactFlowEdges: Edge[] = automation.edges.map((edge) => ({
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+        type: 'smoothstep',
+        animated: true,
+      }));
+
+      setNodes(reactFlowNodes);
+      setEdges(reactFlowEdges);
+      setLoading(false);
+    } catch (error) {
+      console.error('Erro ao carregar automação:', error);
+      alert('Erro ao carregar automação');
+      navigate('/automations');
+    }
+  };
 
   // Conectar nós
   const onConnect = useCallback(
@@ -140,10 +216,8 @@ export default function CreateAutomationV2() {
 
   // Excluir nó
   const handleDeleteNode = (nodeId: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este nó?')) {
-      setNodes((nds) => nds.filter((n) => n.id !== nodeId));
-      setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
-    }
+    setNodes((nds) => nds.filter((n) => n.id !== nodeId));
+    setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
   };
 
   // Testar nó
@@ -151,7 +225,6 @@ export default function CreateAutomationV2() {
     if (!selectedNode) return;
     
     console.log('Testar nó:', selectedNode.id, config);
-    // A lógica de teste já está no NodeConfigPanel
   };
 
   // Salvar automação
@@ -177,7 +250,10 @@ export default function CreateAutomationV2() {
         description: node.data.description,
         config: {
           toolId: node.data.toolId,
-          params: {}, // TODO: Pegar params configurados
+          category: node.data.category,
+          color: node.data.color,
+          icon: node.data.icon,
+          params: node.data.config || {},
         },
         position: node.position,
       }));
@@ -189,7 +265,7 @@ export default function CreateAutomationV2() {
       }));
 
       const automation = {
-        id: Date.now().toString(),
+        id: id,
         name,
         description,
         version: '2.0.0',
@@ -197,20 +273,19 @@ export default function CreateAutomationV2() {
         edges: flowEdges,
         startNodeId: nodes[0]?.id || '',
         metadata: {
-          createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
       };
 
-      // Salvar via API
-      await fetch('http://localhost:3001/api/automations', {
-        method: 'POST',
+      // Atualizar via API
+      await fetch(`http://localhost:3001/api/automations/${id}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(automation),
       });
 
-      alert('Automação salva com sucesso!');
-      navigate('/');
+      alert('Automação atualizada com sucesso!');
+      navigate('/automations');
     } catch (error) {
       console.error('Erro ao salvar:', error);
       alert('Erro ao salvar automação');
@@ -231,84 +306,23 @@ export default function CreateAutomationV2() {
     setShowLogs(true);
 
     try {
-      // Converter para flow e executar
-      const flowNodes = nodes.map((node) => ({
-        id: node.id,
-        type: 'tool',
-        name: node.data.label,
-        config: {
-          toolId: node.data.toolId,
-          params: {},
-        },
-      }));
+      // Executar via API
+      const res = await fetch(`http://localhost:3001/api/automations/${id}/execute`, {
+        method: 'POST',
+      });
 
-      const flowEdges = edges.map((edge) => ({
-        id: edge.id,
-        source: edge.source,
-        target: edge.target,
-      }));
+      const result = await res.json();
 
-      const flow = {
-        id: 'test-execution',
-        name: 'Teste',
-        description: 'Execução de teste',
-        version: '2.0.0',
-        nodes: flowNodes,
-        edges: flowEdges,
-        startNodeId: nodes[0].id,
-      };
-
-      // TODO: Executar via API e coletar logs em tempo real via WebSocket
-      console.log('Executando flow:', flow);
-      
-      // Simular execução por enquanto
-      for (let i = 0; i < nodes.length; i++) {
-        const node = nodes[i];
+      if (result.success) {
+        alert('Execução concluída com sucesso!');
         
-        // Atualizar status do nó
-        setNodes((nds) =>
-          nds.map((n) =>
-            n.id === node.id
-              ? { ...n, data: { ...n.data, status: 'running' } }
-              : n
-          )
-        );
-
-        setExecutionLogs((logs) => [
-          ...logs,
-          {
-            nodeId: node.id,
-            nodeName: node.data.label,
-            status: 'running',
-            message: `Executando ${node.data.label}...`,
-            timestamp: new Date().toISOString(),
-          },
-        ]);
-
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // Completar nó
-        setNodes((nds) =>
-          nds.map((n) =>
-            n.id === node.id
-              ? { ...n, data: { ...n.data, status: 'completed', executionTime: Math.random() * 500 } }
-              : n
-          )
-        );
-
-        setExecutionLogs((logs) => [
-          ...logs,
-          {
-            nodeId: node.id,
-            nodeName: node.data.label,
-            status: 'completed',
-            message: `${node.data.label} concluído`,
-            timestamp: new Date().toISOString(),
-          },
-        ]);
+        // Atualizar status dos nós baseado nos resultados
+        if (result.logs) {
+          setExecutionLogs(result.logs);
+        }
+      } else {
+        alert('Erro na execução: ' + result.error);
       }
-
-      alert('Execução concluída!');
     } catch (error) {
       console.error('Erro na execução:', error);
       alert('Erro na execução');
@@ -317,13 +331,40 @@ export default function CreateAutomationV2() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm('Tem certeza que deseja excluir esta automação?')) {
+      return;
+    }
+
+    try {
+      await fetch(`http://localhost:3001/api/automations/${id}`, {
+        method: 'DELETE',
+      });
+      navigate('/automations');
+    } catch (error) {
+      console.error('Erro ao excluir:', error);
+      alert('Erro ao excluir automação');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando automação...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b px-6 py-4 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/automations')}
             className="text-gray-600 hover:text-gray-900 transition-colors"
           >
             <ArrowLeft className="w-6 h-6" />
@@ -347,6 +388,14 @@ export default function CreateAutomationV2() {
         </div>
         
         <div className="flex items-center gap-3">
+          <button
+            onClick={handleDelete}
+            className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          >
+            <Trash2 className="w-5 h-5" />
+            Excluir
+          </button>
+
           <button
             onClick={() => setShowLogs(!showLogs)}
             className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"

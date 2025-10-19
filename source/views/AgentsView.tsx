@@ -64,6 +64,7 @@ export const AgentsView: React.FC = () => {
             systemPrompt: formData.systemPrompt || 'Você é um agente assistente inteligente.',
             model: formData.model || undefined,
             mcpIds: [],
+            tools: [],
             enabled: true,
           });
         } else {

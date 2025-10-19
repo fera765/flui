@@ -12,6 +12,8 @@ export const getDefaultAutomations = (): Automation[] => {
       description:
         'Monitora preços de produtos, analisa tendências de mercado usando agentes especializados, gera relatório PDF e envia por email',
       enabled: true,
+      version: '2.0.0',
+      edges: [],
       createdAt: now,
       updatedAt: now,
       runCount: 0,
@@ -161,6 +163,8 @@ Inclua:
       description:
         'Cria conteúdo completo: pesquisa, redação, geração de imagens, conversão para áudio, legendas e publicação automática',
       enabled: true,
+      version: '2.0.0',
+      edges: [],
       createdAt: now,
       updatedAt: now,
       runCount: 0,
