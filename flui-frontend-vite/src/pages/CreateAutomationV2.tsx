@@ -140,10 +140,9 @@ export default function CreateAutomationV2() {
 
   // Excluir nó
   const handleDeleteNode = (nodeId: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este nó?')) {
-      setNodes((nds) => nds.filter((n) => n.id !== nodeId));
-      setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
-    }
+    // Confirmação já é feita no ToolNode, não duplicar aqui
+    setNodes((nds) => nds.filter((n) => n.id !== nodeId));
+    setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
   };
 
   // Testar nó

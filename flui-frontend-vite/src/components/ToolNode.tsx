@@ -80,7 +80,10 @@ function ToolNode({ data, selected }: NodeProps<ToolNodeData>) {
         <div className="flex items-center gap-1">
           {data.onConfigure && (
             <button
-              onClick={data.onConfigure}
+              onClick={(e) => {
+                e.stopPropagation();
+                data.onConfigure?.();
+              }}
               className="text-white hover:bg-white/20 rounded p-1 transition-colors"
               title="Configurar nó"
             >
@@ -91,9 +94,7 @@ function ToolNode({ data, selected }: NodeProps<ToolNodeData>) {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                if (window.confirm('Tem certeza que deseja excluir este nó?') && data.onDelete) {
-                  data.onDelete();
-                }
+                data.onDelete?.();
               }}
               className="text-white hover:bg-red-500/40 rounded p-1 transition-colors"
               title="Excluir nó"

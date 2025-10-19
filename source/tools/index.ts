@@ -18,6 +18,13 @@ import {
 } from './system/fileOperations.js';
 import { HTTPRequestTool } from './system/httpRequest.js';
 import { SystemInfoTool } from './system/systemInfo.js';
+import { ConditionTool } from './system/condition.js';
+import { DelayTool } from './system/delay.js';
+import {
+  DataTransformTool,
+  DataFilterTool,
+  DataMergeTool,
+} from './system/dataTransform.js';
 
 // Agent Tools
 import { AgentExecutorTool } from './agent/agentExecutor.js';
@@ -29,7 +36,7 @@ import { CustomCodeTool } from './custom/customCode.js';
  * Lista de todas as ferramentas built-in do sistema
  */
 export const ALL_TOOLS: Tool[] = [
-  // System
+  // System & Control Flow
   ShellExecutorTool,
   FileReadTool,
   FileWriteTool,
@@ -38,6 +45,13 @@ export const ALL_TOOLS: Tool[] = [
   TextSearchTool,
   HTTPRequestTool,
   SystemInfoTool,
+  ConditionTool,
+  DelayTool,
+  
+  // Data Transformation
+  DataTransformTool,
+  DataFilterTool,
+  DataMergeTool,
   
   // Agent
   AgentExecutorTool,
@@ -68,7 +82,7 @@ export function registerAllTools(): void {
  * Exportações individuais para uso direto
  */
 export {
-  // System
+  // System & Control Flow
   ShellExecutorTool,
   FileReadTool,
   FileWriteTool,
@@ -77,6 +91,13 @@ export {
   TextSearchTool,
   HTTPRequestTool,
   SystemInfoTool,
+  ConditionTool,
+  DelayTool,
+  
+  // Data Transformation
+  DataTransformTool,
+  DataFilterTool,
+  DataMergeTool,
   
   // Agent
   AgentExecutorTool,
