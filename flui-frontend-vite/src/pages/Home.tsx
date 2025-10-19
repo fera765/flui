@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { PlusCircle, Workflow, Bot, Zap } from 'lucide-react';
@@ -38,13 +36,13 @@ export default function Home() {
             </div>
             
             <nav className="flex items-center gap-4">
-              <Link href="/automations" className="text-purple-300 hover:text-white transition">
+              <Link to="/automations" className="text-purple-300 hover:text-white transition">
                 Automações
               </Link>
-              <Link href="/agents" className="text-purple-300 hover:text-white transition">
+              <Link to="/agents" className="text-purple-300 hover:text-white transition">
                 Agentes
               </Link>
-              <Link href="/mcps" className="text-purple-300 hover:text-white transition">
+              <Link to="/mcps" className="text-purple-300 hover:text-white transition">
                 MCPs
               </Link>
             </nav>
@@ -91,7 +89,7 @@ export default function Home() {
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-white">Suas Automações</h2>
           <Link 
-            href="/automations/create"
+            to="/automations/create"
             className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-lg font-semibold transition shadow-lg shadow-purple-500/50"
           >
             <PlusCircle className="w-5 h-5" />
@@ -105,7 +103,7 @@ export default function Home() {
               <Workflow className="w-16 h-16 text-purple-500/50 mx-auto mb-4" />
               <p className="text-purple-300 mb-4">Nenhuma automação criada ainda</p>
               <Link 
-                href="/automations/create"
+                to="/automations/create"
                 className="inline-flex items-center gap-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 px-6 py-3 rounded-lg transition"
               >
                 <PlusCircle className="w-5 h-5" />
@@ -116,7 +114,7 @@ export default function Home() {
             automations.map(auto => (
               <Link 
                 key={auto.id}
-                href={`/automations/${auto.id}`}
+                to={`/automations/${auto.id}`}
                 className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6 hover:border-purple-500/50 transition group"
               >
                 <div className="flex items-start justify-between mb-4">

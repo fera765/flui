@@ -1,7 +1,5 @@
 import { useState, useCallback } from 'react';
 import ReactFlow, {
-  Node,
-  Edge,
   Controls,
   Background,
   useNodesState,
@@ -9,7 +7,7 @@ import ReactFlow, {
   addEdge,
   Panel,
 } from 'reactflow';
-import type { Connection } from 'reactflow';
+import type { Node, Connection } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Save, Plus, Settings } from 'lucide-react';
 
