@@ -9,6 +9,24 @@ import { Tool, ExecutionContext, ToolResult } from '../../core/types.js';
 import os from 'os';
 import { readFile } from 'fs/promises';
 
+/**
+ * Formata uptime em formato legível
+ */
+function formatUptime(seconds: number): string {
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+
+  const parts = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+  parts.push(`${secs}s`);
+
+  return parts.join(' ');
+}
+
 export const SystemInfoTool: Tool = {
   id: 'system-info',
   name: 'System Info',
@@ -60,7 +78,7 @@ export const SystemInfoTool: Tool = {
           usedGB: (usedMemory / 1024 / 1024 / 1024).toFixed(2),
         },
         uptime: os.uptime(),
-        uptimeFormatted: this.formatUptime(os.uptime()),
+        uptimeFormatted: formatUptime(os.uptime()),
         hostname: os.hostname(),
         nodeVersion: process.version,
         pid: process.pid,
@@ -100,22 +118,6 @@ export const SystemInfoTool: Tool = {
         error: `Erro ao obter informações do sistema: ${error.message}`,
       };
     }
-  },
-
-  // Função auxiliar para formatar uptime
-  formatUptime(seconds: number): string {
-    const days = Math.floor(seconds / 86400);
-    const hours = Math.floor((seconds % 86400) / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = Math.floor(seconds % 60);
-
-    const parts = [];
-    if (days > 0) parts.push(`${days}d`);
-    if (hours > 0) parts.push(`${hours}h`);
-    if (minutes > 0) parts.push(`${minutes}m`);
-    parts.push(`${secs}s`);
-
-    return parts.join(' ');
   },
 
   ui: {

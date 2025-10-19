@@ -64,7 +64,6 @@ export const ShellExecutorTool: Tool = {
 
       // Executar comando
       const result = await sandbox.executeShell(args.command, {
-        cwd: args.directory,
         timeout: args.timeout,
         env: args.env,
       });

@@ -1,0 +1,108 @@
+╔══════════════════════════════════════════════════════════╗
+║                                                          ║
+║  🔧 COMANDOS PARA CORRIGIR E BUILD                      ║
+║                                                          ║
+╚══════════════════════════════════════════════════════════╝
+
+
+EXECUTE ESTES COMANDOS NO TERMUX:
+
+═══════════════════════════════════════════════════════════
+1️⃣  Ir para o diretório
+═══════════════════════════════════════════════════════════
+
+cd ~/flui
+
+
+═══════════════════════════════════════════════════════════
+2️⃣  Instalar dependências faltantes
+═══════════════════════════════════════════════════════════
+
+npm install
+
+
+═══════════════════════════════════════════════════════════
+3️⃣  Limpar build anterior
+═══════════════════════════════════════════════════════════
+
+rm -rf dist
+
+
+═══════════════════════════════════════════════════════════
+4️⃣  Build do backend
+═══════════════════════════════════════════════════════════
+
+npm run build
+
+
+═══════════════════════════════════════════════════════════
+✅ VERIFICAÇÃO
+═══════════════════════════════════════════════════════════
+
+Se build passou, você DEVE ver:
+
+✓ Compiled successfully
+✓ chmod +x dist/cli.js
+
+
+SEM erros de TypeScript!
+
+
+═══════════════════════════════════════════════════════════
+5️⃣  Iniciar sistema
+═══════════════════════════════════════════════════════════
+
+npm start
+
+
+═══════════════════════════════════════════════════════════
+✅ DEVE MOSTRAR
+═══════════════════════════════════════════════════════════
+
+🔧 Inicializando FLUI Tool Registry System...
+
+📦 Registrando ferramentas built-in...
+✅ Tool registrada: Shell Executor (shell-executor)
+✅ Tool registrada: File Read (file-read)
+✅ Tool registrada: File Write (file-write)
+✅ Tool registrada: File Edit (file-edit)
+✅ Tool registrada: File Search (file-search)
+✅ Tool registrada: Text Search (text-search)
+✅ Tool registrada: HTTP Request (http-request)
+✅ Tool registrada: System Info (system-info)
+✅ Tool registrada: Agent Executor (agent-executor)
+✅ Tool registrada: Custom Code (custom-code)
+
+📦 Total de ferramentas registradas: 10
+
+🔌 Carregando MCPs...
+✅ N MCPs carregados com sucesso
+
+✅ Sistema de ferramentas inicializado!
+
+API rodando em http://localhost:3001
+
+
+═══════════════════════════════════════════════════════════
+6️⃣  Testar comandos
+═══════════════════════════════════════════════════════════
+
+Na CLI que abriu, digite:
+
+/tools list
+
+Deve listar todas as 18+ ferramentas!
+
+
+═══════════════════════════════════════════════════════════
+🐛 SE DER ERRO
+═══════════════════════════════════════════════════════════
+
+Se npm install falhar:
+  npm install --legacy-peer-deps
+
+Se build falhar:
+  Cole o erro completo
+
+
+═══════════════════════════════════════════════════════════
