@@ -4,14 +4,25 @@ import { Agent, MCP } from '../types/index.js';
 import { initializeStreamingLLM, getStreamingLLMClient } from './streaming.js';
 import { executeTool } from './toolExecutor.js';
 
+let isInterrupted = false;
+
+export const interruptStreaming = () => {
+  isInterrupted = true;
+};
+
+const resetInterrupt = () => {
+  isInterrupted = false;
+};
+
 export const sendStreamingMessageWithTools = async (
   content: string,
   agent: Agent | undefined,
   onChunk: (chunk: string) => void,
   onComplete: () => void,
   onError: (error: Error) => void,
-  onToolCall?: (toolName: string) => void
+  onToolCall?: (toolName: string, output?: string) => void
 ): Promise<void> => {
+  resetInterrupt();
   const store = useStore.getState();
   const config = store.config;
 
@@ -89,6 +100,10 @@ export const sendStreamingMessageWithTools = async (
     let currentToolCall: any = null;
 
     for await (const chunk of stream) {
+      if (isInterrupted) {
+        return;
+      }
+
       const delta = chunk.choices[0]?.delta;
 
       // Conteúdo de texto
@@ -125,14 +140,21 @@ export const sendStreamingMessageWithTools = async (
     // Executar tool calls se houver
     if (toolCalls.length > 0) {
       for (const toolCall of toolCalls) {
-        if (onToolCall) {
-          onToolCall(toolCall.function.name);
+        if (isInterrupted) {
+          return;
         }
 
         const result = await executeTool(
           toolCall.function.name,
           JSON.parse(toolCall.function.arguments)
         );
+
+        if (onToolCall) {
+          onToolCall(
+            toolCall.function.name,
+            typeof result.result === 'string' ? result.result : JSON.stringify(result.result)
+          );
+        }
 
         // Enviar resultado de volta para LLM
         openaiMessages.push({

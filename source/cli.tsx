@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 import React from 'react';
 import { render } from 'ink';
-import { EnhancedApp } from './components/EnhancedApp.js';
+import { CleanApp } from './components/CleanApp.js';
 
 // Inicializar CLI
-render(<EnhancedApp />);
+render(<CleanApp />, {
+  patchConsole: false,
+  exitOnCtrlC: true,
+});
