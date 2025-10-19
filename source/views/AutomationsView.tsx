@@ -4,7 +4,7 @@ import { useStore } from '../store/store.js';
 import { getTheme } from '../themes/index.js';
 import { Automation } from '../types/automation.js';
 import { executeAutomation } from '../services/automationExecutor.js';
-import { saveExecution } from '../store/automationStorage.js';
+import { saveExecution, getAutomations } from '../store/automationStorage.js';
 
 export const AutomationsView: React.FC = () => {
   const { theme, setView, addMessage } = useStore();
@@ -15,7 +15,6 @@ export const AutomationsView: React.FC = () => {
 
   // Carregar automações do storage
   React.useEffect(() => {
-    const { getAutomations } = require('../store/automationStorage.js');
     const loaded = getAutomations();
     setAutomations(loaded);
   }, []);
