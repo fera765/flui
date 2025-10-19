@@ -34,22 +34,23 @@ echo "════════════════════════�
 echo "  Escolha como deseja iniciar o FLUI:"
 echo "════════════════════════════════════════════════════"
 echo ""
-echo "  1) Iniciar API Server (backend)"
+echo "  1) Iniciar API Server (backend) ← RECOMENDADO"
 echo "  2) Iniciar Frontend (interface web)"
 echo "  3) Iniciar CLI (terminal interativo)"
-echo "  4) Iniciar TUDO (API + Frontend)"
+echo "  4) Iniciar API + Frontend (completo)"
 echo "  5) Apenas rodar testes"
 echo "  0) Sair"
 echo ""
-read -p "Escolha uma opção (1-5): " option
+read -p "Escolha uma opção (0-5): " option
 
 case $option in
     1)
         echo ""
         echo "🚀 Iniciando API Server..."
         echo "📍 Acesse: http://localhost:3001"
+        echo "📖 Rotas: /api/tools, /api/agents, /api/automations"
         echo ""
-        npm start
+        npm run start:api
         ;;
     2)
         echo ""
@@ -76,14 +77,16 @@ case $option in
         echo "⚠️  Abrindo em terminais separados..."
         
         # Iniciar API em background
-        npm start &
+        npm run start:api &
         API_PID=$!
         
         # Aguardar API iniciar
-        sleep 3
+        echo "⏳ Aguardando API iniciar..."
+        sleep 6
         
         # Iniciar Frontend
         cd flui-frontend-vite
+        echo "🚀 Iniciando Frontend..."
         npm run dev
         
         # Cleanup quando frontend fechar

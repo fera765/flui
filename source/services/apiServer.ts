@@ -12,6 +12,8 @@ import { ExecutionContext } from '../core/types.js';
 import { executeFlow } from '../core/flowEngine.js';
 import { FlowDefinition } from '../core/flowTypes.js';
 import { getCustomNodeManager, CustomNodeManager } from './customNodeManager.js';
+import { listTools, getToolMetadata } from './toolApi.js';
+import { registerAllTools } from '../tools/index.js';
 
 const app = express();
 const PORT = 3001;
@@ -210,24 +212,9 @@ app.post('/api/automations/:id/execute', async (req: Request, res: Response) => 
   }
 });
 
-// ============= TOOLS ENDPOINTS =============
+// ============= TOOLS ENDPOINTS (via toolApi) =============
 
-app.get('/api/tools', (_req: Request, res: Response) => {
-  const { listTools } = require('./toolApi.js');
-  res.json(listTools());
-});
-
-app.get('/api/tools/:toolId', async (req: Request, res: Response) => {
-  const { getToolMetadata } = require('./toolApi.js');
-  const tool = await getToolMetadata(req.params.toolId);
-  
-  if (!tool) {
-    return res.status(404).json({ error: 'Tool não encontrada' });
-  }
-  
-  res.json(tool);
-});
-
+// GET /api/tools/:toolId/agents-options - Obter opções de agentes para select
 app.get('/api/tools/:toolId/agents-options', (_req: Request, res: Response) => {
   const store = useStore.getState();
   const agents = store.agents.map(agent => ({
@@ -454,61 +441,68 @@ app.post('/api/mcps/:id/sync', async (req: Request, res: Response) => {
 
 // ============= TOOLS REGISTRY ENDPOINTS =============
 
-// GET /api/tools - Listar todas as ferramentas (com paginação)
+// GET /api/tools - Listar todas as ferramentas (compatível com frontend)
 app.get('/api/tools', (req: Request, res: Response) => {
   try {
-    const registry = getToolRegistry();
-    const category = req.query.category as string | undefined;
-    const search = req.query.search as string | undefined;
-    const page = parseInt(req.query.page as string) || 1;
-    const pageSize = parseInt(req.query.pageSize as string) || 20;
-    const tags = req.query.tags ? (req.query.tags as string).split(',') : undefined;
-    
-    const result = registry.list({
-      category: category as any,
-      search,
-      tags,
-      page,
-      pageSize,
-    });
-    
-    // Adicionar links de paginação
-    const baseUrl = `${req.protocol}://${req.get('host')}${req.path}`;
-    const queryParams = new URLSearchParams(req.query as any);
-    
-    const links: any = {};
-    
-    // First
-    queryParams.set('page', '1');
-    links.first = `${baseUrl}?${queryParams}`;
-    
-    // Last
-    queryParams.set('page', result.totalPages.toString());
-    links.last = `${baseUrl}?${queryParams}`;
-    
-    // Prev
-    if (result.page > 1) {
-      queryParams.set('page', (result.page - 1).toString());
-      links.prev = `${baseUrl}?${queryParams}`;
+    // Se tem query params de paginação, usar API avançada
+    if (req.query.page || req.query.pageSize) {
+      const registry = getToolRegistry();
+      const category = req.query.category as string | undefined;
+      const search = req.query.search as string | undefined;
+      const page = parseInt(req.query.page as string) || 1;
+      const pageSize = parseInt(req.query.pageSize as string) || 20;
+      const tags = req.query.tags ? (req.query.tags as string).split(',') : undefined;
+      
+      const result = registry.list({
+        category: category as any,
+        search,
+        tags,
+        page,
+        pageSize,
+      });
+      
+      // Adicionar links de paginação
+      const baseUrl = `${req.protocol}://${req.get('host')}${req.path}`;
+      const queryParams = new URLSearchParams(req.query as any);
+      
+      const links: any = {};
+      
+      // First
+      queryParams.set('page', '1');
+      links.first = `${baseUrl}?${queryParams}`;
+      
+      // Last
+      queryParams.set('page', result.totalPages.toString());
+      links.last = `${baseUrl}?${queryParams}`;
+      
+      // Prev
+      if (result.page > 1) {
+        queryParams.set('page', (result.page - 1).toString());
+        links.prev = `${baseUrl}?${queryParams}`;
+      }
+      
+      // Next
+      if (result.page < result.totalPages) {
+        queryParams.set('page', (result.page + 1).toString());
+        links.next = `${baseUrl}?${queryParams}`;
+      }
+      
+      return res.json({
+        data: result.tools,
+        pagination: {
+          page: result.page,
+          pageSize: result.pageSize,
+          total: result.total,
+          totalPages: result.totalPages,
+        },
+        links,
+      });
     }
     
-    // Next
-    if (result.page < result.totalPages) {
-      queryParams.set('page', (result.page + 1).toString());
-      links.next = `${baseUrl}?${queryParams}`;
-    }
-    
-    res.json({
-      data: result.tools,
-      pagination: {
-        page: result.page,
-        pageSize: result.pageSize,
-        total: result.total,
-        totalPages: result.totalPages,
-      },
-      links,
-    });
+    // Sem paginação, usar toolApi (compatível com frontend)
+    res.json(listTools());
   } catch (error: any) {
+    console.error('❌ Erro ao listar tools:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -939,6 +933,13 @@ app.get('/api/custom-nodes/:fingerprint/versions', (req: Request, res: Response)
 });
 
 export const startApiServer = async () => {
+  // Registrar todas as ferramentas
+  console.log('🔧 Registrando ferramentas...');
+  registerAllTools();
+  const registry = getToolRegistry();
+  const toolsCount = registry.list().tools.length;
+  console.log(`✅ ${toolsCount} ferramentas registradas`);
+  
   // Inicializar custom node manager
   try {
     const manager = getCustomNodeManager();
@@ -953,3 +954,9 @@ export const startApiServer = async () => {
     console.log(`📡 WebSocket Server rodando em ws://localhost:${PORT}`);
   });
 };
+
+// Auto-start server when imported
+startApiServer().catch((error: any) => {
+  console.error('❌ Failed to start server:', error);
+  process.exit(1);
+});
