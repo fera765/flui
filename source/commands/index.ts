@@ -76,6 +76,7 @@ export const getCommands = (): Command[] => {
     {
       name: 'sessions',
       description: 'Gerenciar sessões',
+      aliases: ['sess'],
       handler: async () => {
         const store = useStore.getState();
         store.setView('sessions');
