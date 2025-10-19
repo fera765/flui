@@ -101,12 +101,42 @@ export default function NodeConfigPanel({
     setIsLoading(true);
     try {
       const response = await axios.get(`http://localhost:3001/api/tools/${toolId}`);
-      setTool(response.data);
+      let toolData = response.data;
+      
+      // Para agent-executor, carregar agentes disponíveis dinamicamente
+      if (toolId === 'agent-executor') {
+        try {
+          const agentsResponse = await axios.get('http://localhost:3001/api/agents');
+          const agents = agentsResponse.data;
+          
+          // Atualizar opções do parâmetro agentId
+          toolData.params = toolData.params.map((param: any) => {
+            if (param.key === 'agentId') {
+              return {
+                ...param,
+                ui: {
+                  ...param.ui,
+                  options: agents.map((agent: any) => ({
+                    label: agent.name,
+                    value: agent.id,
+                    description: agent.systemPrompt?.substring(0, 80) + '...' || 'Sem descrição',
+                  })),
+                },
+              };
+            }
+            return param;
+          });
+        } catch (error) {
+          console.error('Erro ao carregar agentes:', error);
+        }
+      }
+      
+      setTool(toolData);
       
       // Inicializar config com defaults se vazio
-      if (Object.keys(config).length === 0 && response.data.params) {
+      if (Object.keys(config).length === 0 && toolData.params) {
         const defaultConfig: any = {};
-        response.data.params.forEach((param: ToolParam) => {
+        toolData.params.forEach((param: ToolParam) => {
           if (param.default !== undefined) {
             defaultConfig[param.key] = param.default;
           }

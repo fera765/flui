@@ -210,6 +210,34 @@ app.post('/api/automations/:id/execute', async (req: Request, res: Response) => 
   }
 });
 
+// ============= TOOLS ENDPOINTS =============
+
+app.get('/api/tools', (_req: Request, res: Response) => {
+  const { listTools } = require('./toolApi.js');
+  res.json(listTools());
+});
+
+app.get('/api/tools/:toolId', async (req: Request, res: Response) => {
+  const { getToolMetadata } = require('./toolApi.js');
+  const tool = await getToolMetadata(req.params.toolId);
+  
+  if (!tool) {
+    return res.status(404).json({ error: 'Tool não encontrada' });
+  }
+  
+  res.json(tool);
+});
+
+app.get('/api/tools/:toolId/agents-options', (_req: Request, res: Response) => {
+  const store = useStore.getState();
+  const agents = store.agents.map(agent => ({
+    label: agent.name,
+    value: agent.id,
+    description: agent.systemPrompt?.substring(0, 100) || 'Sem descrição',
+  }));
+  res.json(agents);
+});
+
 // ============= AGENTS ENDPOINTS =============
 
 app.get('/api/agents', (_req: Request, res: Response) => {

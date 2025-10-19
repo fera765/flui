@@ -18,8 +18,9 @@ import {
 } from './system/fileOperations.js';
 import { HTTPRequestTool } from './system/httpRequest.js';
 import { SystemInfoTool } from './system/systemInfo.js';
-import { ConditionTool } from './system/condition.js';
+import { UniversalConditionTool } from './system/universalCondition.js';
 import { DelayTool } from './system/delay.js';
+import { WebhookTriggerTool, WebhookResponseTool } from './system/webhook.js';
 import {
   DataTransformTool,
   DataFilterTool,
@@ -45,8 +46,12 @@ export const ALL_TOOLS: Tool[] = [
   TextSearchTool,
   HTTPRequestTool,
   SystemInfoTool,
-  ConditionTool,
+  UniversalConditionTool, // Nova Condição Universal (substitui ConditionTool)
   DelayTool,
+  
+  // Webhook & Integration
+  WebhookTriggerTool,
+  WebhookResponseTool,
   
   // Data Transformation
   DataTransformTool,
@@ -91,8 +96,12 @@ export {
   TextSearchTool,
   HTTPRequestTool,
   SystemInfoTool,
-  ConditionTool,
+  UniversalConditionTool,
   DelayTool,
+  
+  // Webhook & Integration
+  WebhookTriggerTool,
+  WebhookResponseTool,
   
   // Data Transformation
   DataTransformTool,
