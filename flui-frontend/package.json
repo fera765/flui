@@ -8,14 +8,13 @@
     "start": "next start -p 8080"
   },
   "dependencies": {
-    "next": "14.0.4",
+    "axios": "^1.6.2",
+    "lucide-react": "^0.294.0",
+    "next": "14.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "reactflow": "^11.10.1",
-    "axios": "^1.6.2",
-    "socket.io-client": "^4.5.4",
-    "zustand": "^4.4.7",
-    "lucide-react": "^0.294.0"
+    "zustand": "^4.4.7"
   },
   "devDependencies": {
     "@types/node": "^20",
