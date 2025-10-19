@@ -384,6 +384,38 @@ export const DataMergeTool: Tool = {
     tags: ['merge', 'combine', 'concat'],
     category: 'Dados',
     group: 'Combinação',
+    examples: [
+      {
+        title: 'Merge Objetos',
+        description: 'Combina dois objetos em um',
+        params: {
+          mode: 'object',
+          dataA: { a: 1, b: 2 },
+          dataB: { c: 3, d: 4 },
+        },
+        expectedOutput: { a: 1, b: 2, c: 3, d: 4 },
+      },
+      {
+        title: 'Concatenar Arrays',
+        description: 'Junta dois arrays',
+        params: {
+          mode: 'array',
+          dataA: [1, 2, 3],
+          dataB: [4, 5, 6],
+        },
+        expectedOutput: [1, 2, 3, 4, 5, 6],
+      },
+      {
+        title: 'Merge Arrays Únicos',
+        description: 'Combina arrays removendo duplicatas',
+        params: {
+          mode: 'array-unique',
+          dataA: [1, 2, 3],
+          dataB: [3, 4, 5],
+        },
+        expectedOutput: [1, 2, 3, 4, 5],
+      },
+    ],
   },
 
   config: {

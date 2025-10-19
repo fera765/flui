@@ -36,11 +36,16 @@ export const SystemInfoTool: Tool = {
 
   params: [
     {
-      name: 'detailed',
+      name: 'Detalhado',
+      key: 'detailed',
       type: 'boolean',
       description: 'Incluir informações detalhadas',
       required: false,
       default: false,
+      ui: {
+        widgetType: 'toggle',
+        helperText: 'Incluir informações adicionais como CPU, rede e usuário',
+      },
     },
   ],
 
