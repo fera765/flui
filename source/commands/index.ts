@@ -1,5 +1,7 @@
 import { Command } from '../types/index.js';
 import { useStore } from '../store/store.js';
+import { getToolRegistry } from '../core/toolRegistry.js';
+import { ToolExecutor } from '../core/toolExecutor.js';
 import { testLLMConnection } from '../services/streaming.js';
 
 // Definição de comandos
