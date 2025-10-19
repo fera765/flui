@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { getAutomations, saveAutomation, deleteAutomation } from '../store/automationStorage.js';
 import { useStore } from '../store/store.js';
@@ -10,12 +10,12 @@ app.use(cors());
 app.use(express.json());
 
 // Automações
-app.get('/api/automations', (req, res) => {
+app.get('/api/automations', (_req: Request, res: Response) => {
   const automations = getAutomations();
   res.json(automations);
 });
 
-app.post('/api/automations', (req, res) => {
+app.post('/api/automations', (req: Request, res: Response) => {
   const automation = req.body;
   saveAutomation({
     ...automation,
@@ -29,19 +29,19 @@ app.post('/api/automations', (req, res) => {
   res.json({ success: true });
 });
 
-app.delete('/api/automations/:id', (req, res) => {
+app.delete('/api/automations/:id', (req: Request, res: Response) => {
   deleteAutomation(req.params.id);
   res.json({ success: true });
 });
 
 // Agentes
-app.get('/api/agents', (req, res) => {
+app.get('/api/agents', (_req: Request, res: Response) => {
   const store = useStore.getState();
   res.json(store.agents);
 });
 
 // MCPs
-app.get('/api/mcps', (req, res) => {
+app.get('/api/mcps', (_req: Request, res: Response) => {
   const store = useStore.getState();
   res.json(store.mcps);
 });

@@ -79,6 +79,7 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSubmit }) => {
       if (key.return) {
         const selected = filteredCommands[selectedIndex];
         if (selected) {
+          console.clear(); // Limpar ao selecionar comando
           setInput(`/${selected.name} `);
           setShowCommandSuggestions(false);
           setSelectedIndex(0);
@@ -86,6 +87,7 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSubmit }) => {
         return;
       }
       if (key.escape) {
+        console.clear(); // Limpar ao fechar sugestões
         setShowCommandSuggestions(false);
         setSelectedIndex(0);
         return;
@@ -109,6 +111,7 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSubmit }) => {
       if (key.return) {
         const selected = filteredAgents[selectedIndex];
         if (selected) {
+          console.clear(); // Limpar ao selecionar agente
           const beforeAt = input.slice(0, lastAtIndex);
           setInput(`${beforeAt}@${selected.name} `);
           setShowAgentMentions(false);
@@ -117,6 +120,7 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSubmit }) => {
         return;
       }
       if (key.escape) {
+        console.clear(); // Limpar ao fechar menções
         setShowAgentMentions(false);
         setSelectedIndex(0);
         return;
