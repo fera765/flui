@@ -41,12 +41,15 @@ export class ToolRegistry {
       throw new Error(`Limite de ferramentas atingido: ${this.options.maxTools}`);
     }
 
+    // Preparar metadados primeiro (adicionar defaults, incluindo keys)
+    const preparedMetadata = prepareToolMetadata(tool);
+
     // Validar estrutura e metadados se necessário
     if (this.options.validateOnRegister) {
-      this.validateToolStructure(tool);
+      this.validateToolStructure(preparedMetadata as Tool);
       
       // Validar metadados usando JSON Schema
-      const validation = validateToolMetadata(tool);
+      const validation = validateToolMetadata(preparedMetadata);
       if (!validation.valid) {
         throw new Error(
           `Metadados inválidos para tool '${tool.id}':\n` + 
@@ -60,9 +63,6 @@ export class ToolRegistry {
         validation.warnings.forEach((w) => console.warn(`   - ${w}`));
       }
     }
-
-    // Preparar metadados (adicionar defaults)
-    const preparedMetadata = prepareToolMetadata(tool);
 
     // Criar RegisteredTool com métricas, preservando execute e validate do tool original
     const registeredTool: RegisteredTool = {

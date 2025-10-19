@@ -360,67 +360,77 @@ export default function EditAutomation() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b px-6 py-4 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate('/automations')}
-            className="text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            <ArrowLeft className="w-6 h-6" />
-          </button>
-          <div>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="text-xl font-bold text-gray-900 bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1"
-              placeholder="Nome da automação"
-            />
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="block text-sm text-gray-500 bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 mt-1"
-              placeholder="Descrição (opcional)"
-            />
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleDelete}
-            className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-          >
-            <Trash2 className="w-5 h-5" />
-            Excluir
-          </button>
+      {/* Header - Responsive */}
+      <div className="bg-white border-b shadow-sm">
+        <div className="px-4 md:px-6 py-3 md:py-4">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 lg:gap-4">
+            {/* Left section - Back button and inputs */}
+            <div className="flex items-center gap-3 md:gap-4 min-w-0 flex-1">
+              <button
+                onClick={() => navigate('/automations')}
+                className="flex-shrink-0 text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5 md:w-6 md:h-6" />
+              </button>
+              <div className="min-w-0 flex-1">
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full text-lg md:text-xl font-bold text-gray-900 bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1"
+                  placeholder="Nome da automação"
+                />
+                <input
+                  type="text"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full text-xs md:text-sm text-gray-500 bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 mt-1"
+                  placeholder="Descrição (opcional)"
+                />
+              </div>
+            </div>
+            
+            {/* Right section - Action buttons */}
+            <div className="flex items-center gap-2 md:gap-3 flex-shrink-0 flex-wrap">
+              <button
+                onClick={handleDelete}
+                className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 text-sm md:text-base text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                title="Excluir automação"
+              >
+                <Trash2 className="w-4 h-4 md:w-5 md:h-5" />
+                <span className="hidden sm:inline">Excluir</span>
+              </button>
 
-          <button
-            onClick={() => setShowLogs(!showLogs)}
-            className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <Eye className="w-5 h-5" />
-            Logs
-          </button>
-          
-          <button
-            onClick={handleExecute}
-            disabled={isExecuting || nodes.length === 0}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Play className="w-5 h-5" />
-            {isExecuting ? 'Executando...' : 'Executar'}
-          </button>
-          
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Save className="w-5 h-5" />
-            {isSaving ? 'Salvando...' : 'Salvar'}
-          </button>
+              <button
+                onClick={() => setShowLogs(!showLogs)}
+                className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 text-sm md:text-base text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Ver logs"
+              >
+                <Eye className="w-4 h-4 md:w-5 md:h-5" />
+                <span className="hidden sm:inline">Logs</span>
+              </button>
+              
+              <button
+                onClick={handleExecute}
+                disabled={isExecuting || nodes.length === 0}
+                className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 text-sm md:text-base bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Executar automação"
+              >
+                <Play className="w-4 h-4 md:w-5 md:h-5" />
+                <span className="hidden sm:inline">{isExecuting ? 'Executando...' : 'Executar'}</span>
+              </button>
+              
+              <button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 text-sm md:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Salvar alterações"
+              >
+                <Save className="w-4 h-4 md:w-5 md:h-5" />
+                <span className="hidden sm:inline">{isSaving ? 'Salvando...' : 'Salvar'}</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
