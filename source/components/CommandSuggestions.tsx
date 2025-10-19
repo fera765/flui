@@ -15,7 +15,7 @@ export const CommandSuggestions: React.FC<CommandSuggestionsProps> = ({
   const { theme } = useStore();
   const colors = getTheme(theme);
 
-  if (commands.length === 0) {
+  if (!commands || commands.length === 0) {
     return null;
   }
 
@@ -23,18 +23,18 @@ export const CommandSuggestions: React.FC<CommandSuggestionsProps> = ({
     <Box
       flexDirection="column"
       borderStyle="round"
-      borderColor={colors.border}
+      borderColor={colors.accent}
       paddingX={1}
       marginBottom={1}
       width="100%"
     >
-      <Box marginBottom={1}>
+      <Box marginBottom={1} paddingLeft={1}>
         <Text bold color={colors.accent}>
-          💡 Comandos Disponíveis
+          💡 Comandos Disponíveis ({commands.length})
         </Text>
       </Box>
       {commands.map((cmd, index) => (
-        <Box key={cmd.name} paddingLeft={1}>
+        <Box key={`${cmd.name}-${index}`} paddingLeft={1}>
           <Text color={index === selectedIndex ? colors.primary : colors.text}>
             {index === selectedIndex ? '▶ ' : '  '}
           </Text>
@@ -47,8 +47,10 @@ export const CommandSuggestions: React.FC<CommandSuggestionsProps> = ({
           <Text dimColor> - {cmd.description}</Text>
         </Box>
       ))}
-      <Box marginTop={1}>
-        <Text dimColor>↑↓ Navegar | Enter Selecionar | Esc Cancelar</Text>
+      <Box marginTop={1} paddingLeft={1}>
+        <Text dimColor color={colors.accent}>
+          ↑↓ Navegar | Enter Selecionar | Esc Cancelar
+        </Text>
       </Box>
     </Box>
   );

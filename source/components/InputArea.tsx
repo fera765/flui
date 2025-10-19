@@ -28,21 +28,23 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSubmit }) => {
 
   // Detectar comandos "/"
   useEffect(() => {
-    if (input.startsWith('/')) {
+    if (input.startsWith('/') && input.length >= 1) {
       setShowCommandSuggestions(true);
       setShowAgentMentions(false);
+      setSelectedIndex(0); // Reset selection
     } else if (input.includes('@')) {
       const lastAtIndex = input.lastIndexOf('@');
       const afterAt = input.slice(lastAtIndex + 1);
       if (!afterAt.includes(' ')) {
         setShowAgentMentions(true);
         setShowCommandSuggestions(false);
+        setSelectedIndex(0); // Reset selection
       }
     } else {
       setShowCommandSuggestions(false);
       setShowAgentMentions(false);
     }
-  }, [input]);
+  }, [input, setShowCommandSuggestions, setShowAgentMentions]);
 
   // Filtrar comandos
   const commands = getCommands();

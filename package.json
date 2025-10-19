@@ -10,6 +10,7 @@
     "dev": "tsx watch source/cli.tsx",
     "build": "tsc && chmod +x dist/cli.js",
     "start": "node dist/cli.js",
+    "create-node": "tsx source/cli.tsx --create-node",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
