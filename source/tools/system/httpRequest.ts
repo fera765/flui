@@ -13,52 +13,148 @@ import { Tool, ExecutionContext, ToolResult } from '../../core/types.js';
 export const HTTPRequestTool: Tool = {
   id: 'http-request',
   name: 'HTTP Request',
-  description: 'Realiza requisições HTTP para APIs e serviços externos',
+  description: 'Realiza requisições HTTP para APIs e serviços externos com suporte completo a headers, query params, body e autenticação',
   category: 'http',
-  version: '1.0.0',
+  version: '2.0.0',
 
   params: [
     {
-      name: 'url',
+      name: 'URL',
+      key: 'url',
       type: 'string',
-      description: 'URL completa da requisição',
+      description: 'URL completa da requisição (suporta expressões)',
       required: true,
       placeholder: 'https://api.example.com/endpoint',
+      ui: {
+        widgetType: 'textInput',
+        placeholder: 'https://api.example.com/endpoint',
+        helperText: 'URL completa incluindo protocolo (http:// ou https://)',
+        validation: {
+          pattern: '^https?://.+',
+        },
+        allowExpressions: true,
+      },
     },
     {
-      name: 'method',
+      name: 'Método HTTP',
+      key: 'method',
       type: 'string',
-      description: 'Método HTTP',
+      description: 'Método HTTP da requisição',
       required: false,
       default: 'GET',
       options: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'],
+      ui: {
+        widgetType: 'select',
+        placeholder: 'Selecione o método',
+        helperText: 'Método HTTP a ser usado',
+        options: [
+          { label: 'GET', value: 'GET', description: 'Buscar dados' },
+          { label: 'POST', value: 'POST', description: 'Criar recurso' },
+          { label: 'PUT', value: 'PUT', description: 'Atualizar recurso completo' },
+          { label: 'PATCH', value: 'PATCH', description: 'Atualizar recurso parcial' },
+          { label: 'DELETE', value: 'DELETE', description: 'Deletar recurso' },
+          { label: 'HEAD', value: 'HEAD', description: 'Obter headers apenas' },
+          { label: 'OPTIONS', value: 'OPTIONS', description: 'Ver opções disponíveis' },
+        ],
+        allowExpressions: false,
+      },
     },
     {
-      name: 'headers',
+      name: 'Headers',
+      key: 'headers',
       type: 'object',
-      description: 'Headers da requisição (objeto JSON)',
+      description: 'Headers HTTP da requisição (chave-valor)',
       required: false,
       default: {},
+      ui: {
+        widgetType: 'keyValue',
+        placeholder: 'Adicionar header',
+        helperText: 'Cabeçalhos HTTP como Authorization, Content-Type, etc',
+        allowExpressions: true,
+      },
     },
     {
-      name: 'body',
+      name: 'Query Parameters',
+      key: 'queryParams',
       type: 'object',
-      description: 'Body da requisição (objeto JSON)',
+      description: 'Parâmetros de query string (chave-valor)',
       required: false,
+      default: {},
+      ui: {
+        widgetType: 'keyValue',
+        placeholder: 'Adicionar parâmetro',
+        helperText: 'Parâmetros que serão adicionados à URL (?key=value)',
+        allowExpressions: true,
+        advanced: false,
+      },
     },
     {
-      name: 'timeout',
+      name: 'Body',
+      key: 'body',
+      type: 'object',
+      description: 'Corpo da requisição (JSON)',
+      required: false,
+      ui: {
+        widgetType: 'jsonEditor',
+        placeholder: '{\n  "key": "value"\n}',
+        helperText: 'Corpo da requisição em formato JSON (apenas para POST, PUT, PATCH)',
+        codeLanguage: 'json',
+        allowExpressions: true,
+        showIf: "method !== 'GET' && method !== 'HEAD'",
+      },
+    },
+    {
+      name: 'Timeout (ms)',
+      key: 'timeout',
       type: 'number',
-      description: 'Timeout em milissegundos',
+      description: 'Tempo máximo de espera em milissegundos',
       required: false,
       default: 30000,
+      ui: {
+        widgetType: 'number',
+        placeholder: '30000',
+        helperText: 'Tempo limite para a requisição (padrão: 30s)',
+        validation: {
+          min: 1000,
+          max: 300000,
+        },
+        advanced: true,
+        allowExpressions: false,
+      },
     },
     {
-      name: 'followRedirects',
+      name: 'Seguir Redirecionamentos',
+      key: 'followRedirects',
       type: 'boolean',
-      description: 'Seguir redirecionamentos',
+      description: 'Seguir redirecionamentos HTTP automaticamente',
       required: false,
       default: true,
+      ui: {
+        widgetType: 'toggle',
+        helperText: 'Seguir redirecionamentos 3xx automaticamente',
+        advanced: true,
+        allowExpressions: false,
+      },
+    },
+    {
+      name: 'Autenticação',
+      key: 'auth',
+      type: 'object',
+      description: 'Configuração de autenticação',
+      required: false,
+      ui: {
+        widgetType: 'select',
+        placeholder: 'Nenhuma',
+        helperText: 'Tipo de autenticação a ser usado',
+        options: [
+          { label: 'Nenhuma', value: 'none' },
+          { label: 'Bearer Token', value: 'bearer' },
+          { label: 'Basic Auth', value: 'basic' },
+          { label: 'API Key', value: 'apikey' },
+        ],
+        advanced: false,
+        allowExpressions: false,
+      },
     },
   ],
 
@@ -81,6 +177,16 @@ export const HTTPRequestTool: Tool = {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), args.timeout);
 
+      // Construir URL com query params
+      let url = args.url;
+      if (args.queryParams && Object.keys(args.queryParams).length > 0) {
+        const urlObj = new URL(url);
+        Object.entries(args.queryParams).forEach(([key, value]) => {
+          urlObj.searchParams.append(key, String(value));
+        });
+        url = urlObj.toString();
+      }
+
       const options: RequestInit = {
         method: args.method,
         headers: args.headers || {},
@@ -100,7 +206,7 @@ export const HTTPRequestTool: Tool = {
         }
       }
 
-      const response = await fetch(args.url, options);
+      const response = await fetch(url, options);
       clearTimeout(timeoutId);
 
       const duration = Date.now() - startTime;
@@ -151,43 +257,83 @@ export const HTTPRequestTool: Tool = {
     }
   },
 
+  // Capabilities
+  capabilities: {
+    requiresAuth: false,
+    runsInSandbox: false,
+    isAsync: true,
+    supportsStreaming: false,
+    canBeCached: false,
+    isStateful: false,
+    requiresNetwork: true,
+    requiresFileSystem: false,
+  },
+
   ui: {
     icon: 'Globe',
     color: '#06b6d4', // cyan
-    tags: ['http', 'api', 'request', 'fetch', 'rest'],
+    tags: ['http', 'api', 'request', 'fetch', 'rest', 'webhook'],
+    category: 'Integração',
+    group: 'HTTP',
     examples: [
       {
-        title: 'GET Request',
-        description: 'Buscar dados de uma API',
+        title: 'GET Request Simples',
+        description: 'Buscar dados de uma API pública',
         params: {
           url: 'https://api.github.com/users/octocat',
           method: 'GET',
         },
-      },
-      {
-        title: 'POST Request',
-        description: 'Enviar dados para API',
-        params: {
-          url: 'https://api.example.com/data',
-          method: 'POST',
-          headers: {
-            'Authorization': 'Bearer token123',
-          },
+        expectedOutput: {
+          status: 200,
           body: {
-            name: 'John Doe',
-            email: 'john@example.com',
+            login: 'octocat',
+            id: 1,
+            name: 'The Octocat',
           },
         },
       },
       {
-        title: 'Custom Headers',
-        description: 'Requisição com headers customizados',
+        title: 'POST com Autenticação',
+        description: 'Enviar dados para API com token de autenticação',
         params: {
-          url: 'https://api.example.com/endpoint',
-          method: 'GET',
+          url: 'https://api.example.com/users',
+          method: 'POST',
           headers: {
-            'X-API-Key': 'your-api-key',
-            'Accept': 'application/json',
+            'Authorization': 'Bearer seu-token-aqui',
+            'Content-Type': 'application/json',
+          },
+          body: {
+            name: 'João Silva',
+            email: 'joao@example.com',
+            role: 'admin',
+          },
+        },
+      },
+      {
+        title: 'GET com Query Params',
+        description: 'Buscar com parâmetros de filtro',
+        params: {
+          url: 'https://api.example.com/products',
+          method: 'GET',
+          queryParams: {
+            category: 'electronics',
+            limit: '10',
+            sort: 'price',
+          },
+        },
+      },
+      {
+        title: 'PUT para Atualizar',
+        description: 'Atualizar recurso existente',
+        params: {
+          url: 'https://api.example.com/users/123',
+          method: 'PUT',
+          headers: {
+            'Authorization': 'Bearer token',
+          },
+          body: {
+            name: 'Novo Nome',
+            status: 'active',
           },
         },
       },
@@ -199,5 +345,9 @@ export const HTTPRequestTool: Tool = {
     retries: 2,
     sandbox: false,
     concurrent: true,
+    rateLimit: {
+      max: 100,
+      window: 60000, // 100 req/min
+    },
   },
 };

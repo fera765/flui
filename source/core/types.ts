@@ -22,18 +22,86 @@ export const ToolParamTypeSchema = z.enum([
 
 export type ToolParamType = z.infer<typeof ToolParamTypeSchema>;
 
+// Widget types para renderização dinâmica no frontend
+export const WidgetTypeSchema = z.enum([
+  'textInput',      // Input de texto simples
+  'textArea',       // Textarea para texto longo
+  'number',         // Input numérico
+  'select',         // Select/Dropdown
+  'multiSelect',    // Select múltiplo
+  'checkbox',       // Checkbox
+  'toggle',         // Toggle switch
+  'keyValue',       // Editor de chave-valor (headers, params)
+  'codeEditor',     // Editor de código com syntax highlight
+  'jsonEditor',     // Editor JSON com validação
+  'filePicker',     // Seletor de arquivo
+  'datePicker',     // Seletor de data
+  'timePicker',     // Seletor de hora
+  'colorPicker',    // Seletor de cor
+  'slider',         // Slider numérico
+  'radio',          // Radio buttons
+]);
+
+export type WidgetType = z.infer<typeof WidgetTypeSchema>;
+
+// UI Configuration para cada parâmetro
+export const UIConfigSchema = z.object({
+  widgetType: WidgetTypeSchema,
+  placeholder: z.string().optional(),
+  helperText: z.string().optional(),
+  options: z.array(z.union([
+    z.string(),
+    z.object({
+      label: z.string(),
+      value: z.any(),
+      description: z.string().optional(),
+      icon: z.string().optional(),
+    })
+  ])).optional(),
+  validation: z.object({
+    min: z.number().optional(),
+    max: z.number().optional(),
+    minLength: z.number().optional(),
+    maxLength: z.number().optional(),
+    pattern: z.string().optional(), // regex pattern
+    customValidator: z.string().optional(), // nome da função de validação customizada
+  }).optional(),
+  advanced: z.boolean().optional(), // Se true, só mostra em modo avançado
+  dependsOn: z.string().optional(), // Nome do campo do qual este depende
+  showIf: z.string().optional(), // Expressão condicional para mostrar o campo
+  codeLanguage: z.string().optional(), // Para codeEditor (js, python, etc)
+  allowExpressions: z.boolean().optional(), // Permite drag-and-drop de expressões
+  multiline: z.boolean().optional(),
+  rows: z.number().optional(),
+});
+
+export type UIConfig = z.infer<typeof UIConfigSchema>;
+
 export const ToolParamSchema = z.object({
   name: z.string(),
+  key: z.string(), // Key usado no objeto de configuração
   type: ToolParamTypeSchema,
   description: z.string(),
   required: z.boolean().default(false),
   default: z.any().optional(),
-  validation: z.function().args(z.any()).returns(z.boolean()).optional(),
   placeholder: z.string().optional(),
-  options: z.array(z.any()).optional(), // Para selects/enums
+  options: z.array(z.any()).optional(), // Para selects/enums (backward compatibility)
+  ui: UIConfigSchema,
 });
 
 export type ToolParam = z.infer<typeof ToolParamSchema>;
+
+// ============= TOOL INPUT/OUTPUT PORTS =============
+
+export const PortSchema = z.object({
+  name: z.string(),
+  key: z.string(),
+  type: ToolParamTypeSchema,
+  description: z.string().optional(),
+  required: z.boolean().default(false),
+});
+
+export type Port = z.infer<typeof PortSchema>;
 
 // ============= TOOL OUTPUT TYPES =============
 
@@ -83,6 +151,19 @@ export const ToolResultSchema = z.object({
 
 export type ToolResult = z.infer<typeof ToolResultSchema>;
 
+// ============= TOOL CAPABILITIES =============
+
+export interface ToolCapabilities {
+  requiresAuth?: boolean;       // Requer autenticação
+  runsInSandbox?: boolean;      // Executa em sandbox isolado
+  isAsync?: boolean;            // É assíncrono
+  supportsStreaming?: boolean;  // Suporta streaming
+  canBeCached?: boolean;        // Resultado pode ser cacheado
+  isStateful?: boolean;         // Mantém estado entre execuções
+  requiresNetwork?: boolean;    // Requer acesso à rede
+  requiresFileSystem?: boolean; // Requer acesso ao sistema de arquivos
+}
+
 // ============= TOOL DEFINITION =============
 
 export interface Tool {
@@ -91,17 +172,24 @@ export interface Tool {
   name: string;
   description: string;
   category: ToolCategory;
-  version: string;
+  version: string; // semver
   
   // Parâmetros e saída
   params: ToolParam[];
   output: ToolOutput;
+  
+  // Inputs/Outputs nomeados (portas de conexão)
+  inputs?: Port[];
+  outputs?: Port[];
   
   // Função de execução
   execute: (args: any, context: ExecutionContext) => Promise<ToolResult>;
   
   // Validação de parâmetros (opcional, pode ser auto-gerada)
   validate?: (args: any) => { valid: boolean; errors?: string[] };
+  
+  // Capabilities (capacidades da ferramenta)
+  capabilities?: ToolCapabilities;
   
   // Metadados para UI
   ui: {
@@ -112,7 +200,10 @@ export interface Tool {
       title: string;
       description: string;
       params: any;
+      expectedOutput?: any;
     }>;
+    category?: string; // Categoria visual (pode ser diferente da categoria técnica)
+    group?: string;    // Grupo dentro da categoria
   };
   
   // Configurações avançadas

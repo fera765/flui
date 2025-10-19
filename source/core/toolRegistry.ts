@@ -13,6 +13,7 @@ import {
   ToolMetrics,
   ToolRegistryOptions,
 } from './types.js';
+import { validateToolMetadata, prepareToolMetadata } from './toolMetadataValidator.js';
 
 export class ToolRegistry {
   private tools: Map<string, RegisteredTool> = new Map();
@@ -40,14 +41,32 @@ export class ToolRegistry {
       throw new Error(`Limite de ferramentas atingido: ${this.options.maxTools}`);
     }
 
-    // Validar estrutura se necessário
+    // Validar estrutura e metadados se necessário
     if (this.options.validateOnRegister) {
       this.validateToolStructure(tool);
+      
+      // Validar metadados usando JSON Schema
+      const validation = validateToolMetadata(tool);
+      if (!validation.valid) {
+        throw new Error(
+          `Metadados inválidos para tool '${tool.id}':\n` + 
+          validation.errors?.join('\n')
+        );
+      }
+      
+      // Log warnings
+      if (validation.warnings && validation.warnings.length > 0) {
+        console.warn(`⚠️  Avisos para tool '${tool.id}':`);
+        validation.warnings.forEach((w) => console.warn(`   - ${w}`));
+      }
     }
+
+    // Preparar metadados (adicionar defaults)
+    const preparedTool = prepareToolMetadata(tool);
 
     // Criar RegisteredTool com métricas
     const registeredTool: RegisteredTool = {
-      ...tool,
+      ...preparedTool,
       registeredAt: new Date().toISOString(),
       metrics: {
         executionCount: 0,
@@ -75,11 +94,18 @@ export class ToolRegistry {
   }
 
   /**
-   * Lista todas as ferramentas (com filtros opcionais)
+   * Lista todas as ferramentas (com filtros opcionais e paginação)
    */
-  list(filter?: ToolFilter): RegisteredTool[] {
+  list(filter?: ToolFilter & { page?: number; pageSize?: number }): {
+    tools: RegisteredTool[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  } {
     let tools = Array.from(this.tools.values());
 
+    // Aplicar filtros
     if (filter) {
       // Filtrar por categoria
       if (filter.category) {
@@ -92,7 +118,8 @@ export class ToolRegistry {
         tools = tools.filter(
           (t) =>
             t.name.toLowerCase().includes(search) ||
-            t.description.toLowerCase().includes(search)
+            t.description.toLowerCase().includes(search) ||
+            t.id.toLowerCase().includes(search)
         );
       }
 
@@ -104,7 +131,24 @@ export class ToolRegistry {
       }
     }
 
-    return tools;
+    const total = tools.length;
+    
+    // Aplicar paginação
+    const page = filter?.page || 1;
+    const pageSize = filter?.pageSize || 50;
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    
+    const paginatedTools = tools.slice(startIndex, endIndex);
+    const totalPages = Math.ceil(total / pageSize);
+
+    return {
+      tools: paginatedTools,
+      total,
+      page,
+      pageSize,
+      totalPages,
+    };
   }
 
   /**
