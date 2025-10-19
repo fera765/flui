@@ -169,6 +169,225 @@ export const getCommands = (): Command[] => {
         }
       },
     },
+    {
+      name: 'tools',
+      description: 'Gerenciar ferramentas do sistema',
+      aliases: ['tool', 't'],
+      handler: async (args: string[]) => {
+        const store = useStore.getState();
+        const registry = getToolRegistry();
+        const subcommand = args[0];
+
+        if (!subcommand || subcommand === 'list') {
+          // Listar todas as ferramentas
+          const tools = registry.list();
+          const grouped = tools.reduce((acc, tool) => {
+            if (!acc[tool.category]) acc[tool.category] = [];
+            acc[tool.category].push(tool);
+            return acc;
+          }, {} as Record<string, typeof tools>);
+
+          let output = '🔧 **Ferramentas Disponíveis**\n\n';
+          
+          for (const [category, categoryTools] of Object.entries(grouped)) {
+            output += `**${category.toUpperCase()}**\n`;
+            categoryTools.forEach((tool) => {
+              const metrics = tool.metrics;
+              output += `  • ${tool.name} (${tool.id})\n`;
+              output += `    ${tool.description}\n`;
+              output += `    📊 Execuções: ${metrics.executionCount} | Sucesso: ${metrics.successCount} | Falha: ${metrics.failureCount}\n`;
+            });
+            output += '\n';
+          }
+          
+          output += `\n📦 **Total:** ${tools.length} ferramentas registradas`;
+          
+          store.addMessage({
+            role: 'system',
+            content: output,
+            status: 'completed',
+          });
+        } else if (subcommand === 'info') {
+          // Informações detalhadas de uma ferramenta
+          const toolId = args[1];
+          if (!toolId) {
+            store.addMessage({
+              role: 'system',
+              content: '❌ Uso: /tools info <tool-id>',
+              status: 'error',
+            });
+            return;
+          }
+
+          const tool = registry.get(toolId);
+          if (!tool) {
+            store.addMessage({
+              role: 'system',
+              content: `❌ Ferramenta '${toolId}' não encontrada`,
+              status: 'error',
+            });
+            return;
+          }
+
+          let output = `🔧 **${tool.name}** (${tool.id})\n\n`;
+          output += `**Descrição:** ${tool.description}\n`;
+          output += `**Categoria:** ${tool.category}\n`;
+          output += `**Versão:** ${tool.version}\n\n`;
+          
+          output += `**Parâmetros:**\n`;
+          tool.params.forEach((param) => {
+            const required = param.required ? '(obrigatório)' : '(opcional)';
+            output += `  • ${param.name}: ${param.type} ${required}\n`;
+            output += `    ${param.description}\n`;
+            if (param.default !== undefined) {
+              output += `    Padrão: ${JSON.stringify(param.default)}\n`;
+            }
+          });
+
+          output += `\n**Saída:**\n`;
+          output += `  Tipo: ${tool.output.type}\n`;
+          output += `  ${tool.output.description}\n`;
+
+          const metrics = tool.metrics;
+          output += `\n**📊 Métricas:**\n`;
+          output += `  • Execuções: ${metrics.executionCount}\n`;
+          output += `  • Sucesso: ${metrics.successCount}\n`;
+          output += `  • Falhas: ${metrics.failureCount}\n`;
+          output += `  • Tempo médio: ${metrics.averageExecutionTime.toFixed(2)}ms\n`;
+          if (metrics.lastExecutedAt) {
+            output += `  • Última execução: ${metrics.lastExecutedAt}\n`;
+          }
+
+          if (tool.ui.examples && tool.ui.examples.length > 0) {
+            output += `\n**📚 Exemplos:**\n`;
+            tool.ui.examples.forEach((example, i) => {
+              output += `  ${i + 1}. ${example.title}\n`;
+              output += `     ${example.description}\n`;
+            });
+          }
+
+          store.addMessage({
+            role: 'system',
+            content: output,
+            status: 'completed',
+          });
+        } else if (subcommand === 'exec' || subcommand === 'execute') {
+          // Executar uma ferramenta
+          const toolId = args[1];
+          if (!toolId) {
+            store.addMessage({
+              role: 'system',
+              content: '❌ Uso: /tools exec <tool-id> <params-json>',
+              status: 'error',
+            });
+            return;
+          }
+
+          const tool = registry.get(toolId);
+          if (!tool) {
+            store.addMessage({
+              role: 'system',
+              content: `❌ Ferramenta '${toolId}' não encontrada`,
+              status: 'error',
+            });
+            return;
+          }
+
+          // Parse params JSON
+          const paramsJson = args.slice(2).join(' ');
+          let params = {};
+          
+          if (paramsJson) {
+            try {
+              params = JSON.parse(paramsJson);
+            } catch {
+              store.addMessage({
+                role: 'system',
+                content: '❌ Parâmetros devem ser um JSON válido',
+                status: 'error',
+              });
+              return;
+            }
+          }
+
+          store.addMessage({
+            role: 'system',
+            content: `🔄 Executando ${tool.name}...`,
+            status: 'processing',
+          });
+
+          try {
+            const context = {
+              automationId: 'cli-exec',
+              nodeId: 'cli-exec',
+              previousResults: {},
+              globalContext: {},
+            };
+
+            const result = await ToolExecutor.execute(toolId, params, context);
+
+            const messages = store.messages;
+            const lastMessage = messages[messages.length - 1];
+
+            if (lastMessage) {
+              const output = result.success
+                ? `✅ **Execução concluída**\n\n**Resultado:**\n\`\`\`json\n${JSON.stringify(result.result, null, 2)}\n\`\`\`\n\n⏱️ Tempo: ${result.executionTime}ms`
+                : `❌ **Erro na execução**\n\n${result.error}`;
+
+              store.updateMessage(lastMessage.id, {
+                content: output,
+                status: result.success ? 'completed' : 'error',
+              });
+            }
+          } catch (error: any) {
+            const messages = store.messages;
+            const lastMessage = messages[messages.length - 1];
+            
+            if (lastMessage) {
+              store.updateMessage(lastMessage.id, {
+                content: `❌ Erro: ${error.message}`,
+                status: 'error',
+              });
+            }
+          }
+        } else if (subcommand === 'categories') {
+          // Listar categorias
+          const categories = registry.getCategories();
+          
+          let output = '📁 **Categorias de Ferramentas**\n\n';
+          categories.forEach((category) => {
+            const tools = registry.list({ category });
+            output += `  • ${category}: ${tools.length} ferramenta(s)\n`;
+          });
+
+          store.addMessage({
+            role: 'system',
+            content: output,
+            status: 'completed',
+          });
+        } else {
+          store.addMessage({
+            role: 'system',
+            content: `❌ Subcomando desconhecido: ${subcommand}\n\n**Subcomandos disponíveis:**\n  • list - Listar todas as ferramentas\n  • info <tool-id> - Informações detalhadas\n  • exec <tool-id> <params-json> - Executar ferramenta\n  • categories - Listar categorias`,
+            status: 'error',
+          });
+        }
+      },
+    },
+    {
+      name: 'flow',
+      description: 'Gerenciar fluxos de automação',
+      aliases: ['f'],
+      handler: async (args: string[]) => {
+        const store = useStore.getState();
+        
+        store.addMessage({
+          role: 'system',
+          content: '🔄 Sistema de fluxos disponível!\n\nUse /automations para criar e gerenciar fluxos visuais.',
+          status: 'completed',
+        });
+      },
+    },
   ];
 };
 
