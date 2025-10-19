@@ -141,12 +141,15 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   switchSession: (id) => {
+    // Limpar mensagens antigas PRIMEIRO
+    set({ messages: [] });
+    
     const session = storage.getSession(id);
     if (session) {
       storage.setActiveSessionId(id);
       set({
         currentSession: session,
-        messages: session.messages,
+        messages: session.messages || [],
       });
     }
   },

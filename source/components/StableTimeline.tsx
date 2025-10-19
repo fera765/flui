@@ -6,18 +6,20 @@ import { Message } from '../types/index.js';
 
 export const StableTimeline: React.FC = () => {
   const messages = useStore((state) => state.messages);
+  const currentSession = useStore((state) => state.currentSession);
   const theme = useStore((state) => state.theme);
   const colors = getTheme(theme);
 
-  // Deduplicar mensagens por ID
+  // Deduplicar mensagens por ID E filtrar por sessão atual
   const uniqueMessages = useMemo(() => {
     const seen = new Set();
     return messages.filter((msg: Message) => {
+      // Evitar duplicatas
       if (seen.has(msg.id)) return false;
       seen.add(msg.id);
       return true;
     });
-  }, [messages]);
+  }, [messages, currentSession?.id]);
 
   const renderedMessages = useMemo(() => {
     return uniqueMessages.map((msg: Message) => {

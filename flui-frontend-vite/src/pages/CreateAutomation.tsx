@@ -7,9 +7,9 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   addEdge,
-  Connection,
   Panel,
 } from 'reactflow';
+import type { Connection } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Save, Plus, Settings } from 'lucide-react';
 

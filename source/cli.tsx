@@ -4,7 +4,9 @@ import { render } from 'ink';
 import { StableApp } from './components/StableApp.js';
 import { startApiServer } from './services/apiServer.js';
 
-// Limpar console primeiro
+// Limpar console múltiplas vezes para garantir
+console.clear();
+process.stdout.write('\x1Bc'); // Clear alternativo
 console.clear();
 
 // Iniciar API server

@@ -16,20 +16,37 @@ import { sendStreamingMessageWithTools, interruptStreaming } from '../services/s
 import { initializeDefaults } from '../utils/init.js';
 
 export const StableApp: React.FC = () => {
-  const { currentView, initialize, addMessage, updateMessage, theme } = useStore();
+  const { currentView, initialize, addMessage, updateMessage, theme, messages } = useStore();
   const colors = getTheme(theme);
   const [isProcessing, setIsProcessing] = useState(false);
   const initRef = useRef(false);
+  const prevMessagesLength = useRef(0);
   const { exit } = useApp();
 
   // Inicializar apenas uma vez
   useEffect(() => {
     if (!initRef.current) {
+      // Limpar tela múltiplas vezes
+      console.clear();
+      process.stdout.write('\x1Bc');
+      console.clear();
+      
       initialize();
       initializeDefaults();
       initRef.current = true;
     }
   }, []);
+
+  // Detectar quando sessão é trocada (mensagens diminuem)
+  useEffect(() => {
+    if (messages.length > 0 && messages.length < prevMessagesLength.current) {
+      // Sessão foi trocada, limpar tela
+      console.clear();
+      process.stdout.write('\x1Bc');
+      console.clear();
+    }
+    prevMessagesLength.current = messages.length;
+  }, [messages.length]);
 
   const handleSubmit = useCallback(async (input: string) => {
     if (isProcessing) {
