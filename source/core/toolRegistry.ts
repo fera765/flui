@@ -62,11 +62,14 @@ export class ToolRegistry {
     }
 
     // Preparar metadados (adicionar defaults)
-    const preparedTool = prepareToolMetadata(tool);
+    const preparedMetadata = prepareToolMetadata(tool);
 
-    // Criar RegisteredTool com métricas
+    // Criar RegisteredTool com métricas, preservando execute e validate do tool original
     const registeredTool: RegisteredTool = {
-      ...preparedTool,
+      ...preparedMetadata,
+      execute: tool.execute, // Preservar função de execução
+      validate: tool.validate, // Preservar função de validação (se existir)
+      hooks: tool.hooks, // Preservar hooks (se existirem)
       registeredAt: new Date().toISOString(),
       metrics: {
         executionCount: 0,
