@@ -73,6 +73,24 @@ export default function EditAutomation() {
   // Tipos de nó customizados
   const nodeTypes = useMemo(() => ({ tool: ToolNode }), []);
 
+  // Configurar nó (abre modal)
+  const handleConfigureNode = useCallback((nodeId: string) => {
+    setNodes((currentNodes) => {
+      const node = currentNodes.find((n) => n.id === nodeId);
+      if (node) {
+        setSelectedNode(node);
+        setConfigPanelOpen(true);
+      }
+      return currentNodes;
+    });
+  }, [setNodes]);
+
+  // Excluir nó
+  const handleDeleteNode = useCallback((nodeId: string) => {
+    setNodes((nds) => nds.filter((n) => n.id !== nodeId));
+    setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
+  }, [setNodes, setEdges]);
+
   // Carregar automação existente
   useEffect(() => {
     if (id) {
@@ -187,16 +205,7 @@ export default function EditAutomation() {
       };
       setEdges((eds) => [...eds, newEdge]);
     }
-  }, [nodes, setNodes, setEdges]);
-
-  // Configurar nó (abre modal)
-  const handleConfigureNode = (nodeId: string) => {
-    const node = nodes.find((n) => n.id === nodeId);
-    if (node) {
-      setSelectedNode(node);
-      setConfigPanelOpen(true);
-    }
-  };
+  }, [nodes, setNodes, setEdges, handleConfigureNode, handleDeleteNode]);
 
   // Salvar configuração do nó
   const handleSaveNodeConfig = (config: any) => {
@@ -205,19 +214,22 @@ export default function EditAutomation() {
     setNodes((nds) =>
       nds.map((n) =>
         n.id === selectedNode.id
-          ? { ...n, data: { ...n.data, config } }
+          ? {
+              ...n,
+              data: {
+                ...n.data,
+                config,
+                // Preserve callbacks explicitly
+                onConfigure: n.data.onConfigure,
+                onDelete: n.data.onDelete,
+              },
+            }
           : n
       )
     );
     
     setConfigPanelOpen(false);
     setSelectedNode(null);
-  };
-
-  // Excluir nó
-  const handleDeleteNode = (nodeId: string) => {
-    setNodes((nds) => nds.filter((n) => n.id !== nodeId));
-    setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
   };
 
   // Testar nó

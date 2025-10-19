@@ -56,6 +56,25 @@ export default function CreateAutomationV2() {
   // Tipos de nó customizados
   const nodeTypes = useMemo(() => ({ tool: ToolNode }), []);
 
+  // Configurar nó (abre modal)
+  const handleConfigureNode = useCallback((nodeId: string) => {
+    setNodes((currentNodes) => {
+      const node = currentNodes.find((n) => n.id === nodeId);
+      if (node) {
+        setSelectedNode(node);
+        setConfigPanelOpen(true);
+      }
+      return currentNodes;
+    });
+  }, [setNodes]);
+
+  // Excluir nó
+  const handleDeleteNode = useCallback((nodeId: string) => {
+    // Confirmação já é feita no ToolNode, não duplicar aqui
+    setNodes((nds) => nds.filter((n) => n.id !== nodeId));
+    setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
+  }, [setNodes, setEdges]);
+
   // Conectar nós
   const onConnect = useCallback(
     (params: Connection) => {
@@ -111,16 +130,7 @@ export default function CreateAutomationV2() {
       };
       setEdges((eds) => [...eds, newEdge]);
     }
-  }, [nodes, setNodes, setEdges]);
-
-  // Configurar nó (abre modal)
-  const handleConfigureNode = (nodeId: string) => {
-    const node = nodes.find((n) => n.id === nodeId);
-    if (node) {
-      setSelectedNode(node);
-      setConfigPanelOpen(true);
-    }
-  };
+  }, [nodes, setNodes, setEdges, handleConfigureNode, handleDeleteNode]);
 
   // Salvar configuração do nó
   const handleSaveNodeConfig = (config: any) => {
@@ -129,20 +139,22 @@ export default function CreateAutomationV2() {
     setNodes((nds) =>
       nds.map((n) =>
         n.id === selectedNode.id
-          ? { ...n, data: { ...n.data, config } }
+          ? {
+              ...n,
+              data: {
+                ...n.data,
+                config,
+                // Preserve callbacks explicitly
+                onConfigure: n.data.onConfigure,
+                onDelete: n.data.onDelete,
+              },
+            }
           : n
       )
     );
     
     setConfigPanelOpen(false);
     setSelectedNode(null);
-  };
-
-  // Excluir nó
-  const handleDeleteNode = (nodeId: string) => {
-    // Confirmação já é feita no ToolNode, não duplicar aqui
-    setNodes((nds) => nds.filter((n) => n.id !== nodeId));
-    setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
   };
 
   // Testar nó
@@ -268,7 +280,16 @@ export default function CreateAutomationV2() {
         setNodes((nds) =>
           nds.map((n) =>
             n.id === node.id
-              ? { ...n, data: { ...n.data, status: 'running' } }
+              ? {
+                  ...n,
+                  data: {
+                    ...n.data,
+                    status: 'running',
+                    // Preserve callbacks
+                    onConfigure: n.data.onConfigure,
+                    onDelete: n.data.onDelete,
+                  },
+                }
               : n
           )
         );
@@ -290,7 +311,17 @@ export default function CreateAutomationV2() {
         setNodes((nds) =>
           nds.map((n) =>
             n.id === node.id
-              ? { ...n, data: { ...n.data, status: 'completed', executionTime: Math.random() * 500 } }
+              ? {
+                  ...n,
+                  data: {
+                    ...n.data,
+                    status: 'completed',
+                    executionTime: Math.random() * 500,
+                    // Preserve callbacks
+                    onConfigure: n.data.onConfigure,
+                    onDelete: n.data.onDelete,
+                  },
+                }
               : n
           )
         );
