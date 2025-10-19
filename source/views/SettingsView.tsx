@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Text, useInput } from 'ink';
 import { useStore } from '../store/store.js';
 import { getTheme } from '../themes/index.js';
+import { listModelsStreaming } from '../services/streaming.js';
 
 export const SettingsView: React.FC = () => {
   const { config, updateConfig, theme, setView } = useStore();
@@ -9,6 +10,21 @@ export const SettingsView: React.FC = () => {
   const [selectedField, setSelectedField] = useState(0);
   const [editMode, setEditMode] = useState(false);
   const [editValue, setEditValue] = useState('');
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+
+  useEffect(() => {
+    const loadModels = async () => {
+      if (config?.llm.apiKey && config?.llm.endpoint) {
+        try {
+          const models = await listModelsStreaming();
+          setAvailableModels(models);
+        } catch {
+          // Ignorar erro silenciosamente
+        }
+      }
+    };
+    loadModels();
+  }, [config?.llm.apiKey, config?.llm.endpoint]);
 
   const fields = [
     { label: 'Endpoint LLM', key: 'endpoint', value: config?.llm.endpoint || '' },
@@ -108,8 +124,15 @@ export const SettingsView: React.FC = () => {
 
       <Box marginTop={2} flexDirection="column">
         <Text color={colors.info}>
-          💡 Temas disponíveis: default, cyberpunk, minimal, ocean
+          💡 Temas: default, cyberpunk, minimal, ocean
         </Text>
+        {availableModels.length > 0 && (
+          <Box marginTop={1}>
+            <Text color={colors.success}>
+              ✓ {availableModels.length} modelos disponíveis (use /models para selecionar)
+            </Text>
+          </Box>
+        )}
         <Box marginTop={1}>
           <Text dimColor>
             {editMode

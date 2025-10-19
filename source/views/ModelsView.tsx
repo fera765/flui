@@ -3,7 +3,7 @@ import { Box, Text, useInput } from 'ink';
 import Spinner from 'ink-spinner';
 import { useStore } from '../store/store.js';
 import { getTheme } from '../themes/index.js';
-import { listModels } from '../services/llm.js';
+import { listModelsStreaming } from '../services/streaming.js';
 
 export const ModelsView: React.FC = () => {
   const { config, updateConfig, theme, setView } = useStore();
@@ -17,10 +17,16 @@ export const ModelsView: React.FC = () => {
 
   useEffect(() => {
     const loadModels = async () => {
+      if (!config?.llm.apiKey) {
+        setError('Configure sua API Key em /settings primeiro');
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       setError(null);
       try {
-        const modelList = await listModels();
+        const modelList = await listModelsStreaming();
         setModels(modelList);
         const currentModelIndex = modelList.indexOf(config?.llm.model || '');
         if (currentModelIndex >= 0) {
@@ -34,7 +40,7 @@ export const ModelsView: React.FC = () => {
     };
 
     loadModels();
-  }, []);
+  }, [config?.llm.apiKey, config?.llm.endpoint]);
 
   useInput((input, key) => {
     if (key.escape) {

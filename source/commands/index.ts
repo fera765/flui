@@ -1,5 +1,6 @@
 import { Command } from '../types/index.js';
 import { useStore } from '../store/store.js';
+import { testLLMConnection } from '../services/streaming.js';
 
 // Definição de comandos
 export const getCommands = (): Command[] => {
@@ -136,6 +137,33 @@ export const getCommands = (): Command[] => {
           content: status,
           status: 'completed',
         });
+      },
+    },
+    {
+      name: 'test',
+      description: 'Testar conexão com LLM',
+      handler: async () => {
+        const store = useStore.getState();
+        
+        store.addMessage({
+          role: 'system',
+          content: '🔄 Testando conexão com LLM...',
+          status: 'processing',
+        });
+
+        const result = await testLLMConnection();
+        
+        const messages = store.messages;
+        const lastMessage = messages[messages.length - 1];
+        
+        if (lastMessage) {
+          store.updateMessage(lastMessage.id, {
+            content: result.success
+              ? `✅ ${result.message}\n\n📋 Primeiros 10 modelos:\n${result.models?.slice(0, 10).map(m => `  • ${m}`).join('\n')}${result.models && result.models.length > 10 ? `\n  ... e mais ${result.models.length - 10} modelos` : ''}`
+              : `❌ ${result.message}\n\n💡 Configure em /settings`,
+            status: result.success ? 'completed' : 'error',
+          });
+        }
       },
     },
   ];
