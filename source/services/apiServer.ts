@@ -1,13 +1,47 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import { createServer } from 'http';
+import { WebSocketServer, WebSocket } from 'ws';
 import { getAutomations, saveAutomation, deleteAutomation } from '../store/automationStorage.js';
 import { useStore } from '../store/store.js';
 import { getToolRegistry } from '../core/toolRegistry.js';
 import { ToolExecutor } from '../core/toolExecutor.js';
 import { ExecutionContext } from '../core/types.js';
+import { executeFlow } from '../core/flowEngine.js';
+import { FlowDefinition } from '../core/flowTypes.js';
 
 const app = express();
 const PORT = 3001;
+const httpServer = createServer(app);
+const wss = new WebSocketServer({ server: httpServer });
+
+// Gerenciar conexões WebSocket
+const clients = new Set<WebSocket>();
+
+wss.on('connection', (ws: WebSocket) => {
+  console.log('📡 Cliente WebSocket conectado');
+  clients.add(ws);
+
+  ws.on('close', () => {
+    console.log('📡 Cliente WebSocket desconectado');
+    clients.delete(ws);
+  });
+
+  ws.on('error', (error) => {
+    console.error('❌ Erro WebSocket:', error);
+    clients.delete(ws);
+  });
+});
+
+// Broadcast para todos os clientes conectados
+function broadcast(data: any) {
+  const message = JSON.stringify(data);
+  clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  });
+}
 
 app.use(cors());
 app.use(express.json());
@@ -137,8 +171,84 @@ app.get('/api/tools/:id/metrics', (req: Request, res: Response) => {
   }
 });
 
+// ============= FLOWS ENDPOINTS =============
+
+// POST /api/flows/execute - Executar um flow com logs em tempo real
+app.post('/api/flows/execute', async (req: Request, res: Response) => {
+  try {
+    const flow: FlowDefinition = req.body;
+    const initialData = req.body.initialData || {};
+
+    // Executar flow e transmitir logs via WebSocket
+    const execution = await executeFlow(
+      flow,
+      initialData,
+      (log) => {
+        // Broadcast log para todos os clientes conectados
+        broadcast({
+          type: 'execution-log',
+          flowId: flow.id,
+          log,
+        });
+      }
+    );
+
+    // Broadcast conclusão
+    broadcast({
+      type: 'execution-complete',
+      flowId: flow.id,
+      execution,
+    });
+
+    res.json(execution);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/flows - Listar flows salvos
+app.get('/api/flows', (_req: Request, res: Response) => {
+  try {
+    const automations = getAutomations();
+    res.json(automations);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/flows - Salvar flow
+app.post('/api/flows', (req: Request, res: Response) => {
+  try {
+    const flow: FlowDefinition = req.body;
+    
+    saveAutomation({
+      id: flow.id,
+      name: flow.name,
+      description: flow.description,
+      nodes: flow.nodes.map((node) => ({
+        id: node.id,
+        type: 'mcp_tool' as any, // Converter todos para tipo compatível
+        name: node.name,
+        config: node.config,
+        position: node.position,
+        nextNodes: [],
+      })),
+      startNodeId: flow.startNodeId,
+      enabled: true,
+      runCount: 0,
+      createdAt: flow.metadata?.createdAt || new Date().toISOString(),
+      updatedAt: flow.metadata?.updatedAt || new Date().toISOString(),
+    });
+
+    res.json({ success: true, id: flow.id });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export const startApiServer = () => {
-  app.listen(PORT, () => {
-    console.log(`API rodando em http://localhost:${PORT}`);
+  httpServer.listen(PORT, () => {
+    console.log(`🚀 API Server rodando em http://localhost:${PORT}`);
+    console.log(`📡 WebSocket Server rodando em ws://localhost:${PORT}`);
   });
 };
