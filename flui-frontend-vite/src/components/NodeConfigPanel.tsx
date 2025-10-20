@@ -9,6 +9,8 @@ import { useState, useEffect } from 'react';
 import { X, Save, Play, AlertCircle, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import axios from 'axios';
 import { OutputSelector } from './OutputSelector';
+import VisualFieldEditor from './VisualFieldEditor';
+import { extractNodeInputs, type InputField } from '../utils/typeMatching';
 
 // ============= TYPES =============
 
@@ -97,6 +99,8 @@ export default function NodeConfigPanel({
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<any>(null);
   const [selectedExample, setSelectedExample] = useState<number>(-1);
+  const [visualFields, setVisualFields] = useState<InputField[]>([]);
+  const [useVisualEditor, setUseVisualEditor] = useState(true); // 🆕 Toggle entre visual e JSON
 
   // Carregar metadados da tool
   useEffect(() => {
@@ -104,6 +108,14 @@ export default function NodeConfigPanel({
       loadToolMetadata();
     }
   }, [isOpen, toolId]);
+  
+  // Inicializar visualFields quando tool carrega
+  useEffect(() => {
+    if (tool) {
+      const fields = extractNodeInputs({ data: { toolId: tool.id }, type: tool.id });
+      setVisualFields(fields);
+    }
+  }, [tool]);
 
   const loadToolMetadata = async () => {
     setIsLoading(true);
@@ -450,8 +462,42 @@ export default function NodeConfigPanel({
             </div>
           ) : tool ? (
             <div className="space-y-6">
+              {/* Mode Toggle - Visual vs JSON */}
+              <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg p-4 border border-purple-500/30">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-white mb-1">Modo de Configuração</h3>
+                    <p className="text-xs text-purple-300">
+                      {useVisualEditor ? '🎨 Visual (Sem JSON)' : '💻 Avançado (JSON)'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setUseVisualEditor(!useVisualEditor)}
+                    className={`px-4 py-2 rounded-lg font-medium transition ${
+                      useVisualEditor
+                        ? 'bg-purple-500 text-white'
+                        : 'bg-slate-700 text-purple-300 hover:bg-slate-600'
+                    }`}
+                  >
+                    {useVisualEditor ? '🎨 Visual' : '💻 Avançado'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Visual Field Editor (Para Não-Técnicos) */}
+              {useVisualEditor && (
+                <div className="bg-white rounded-lg p-4">
+                  <VisualFieldEditor
+                    fields={visualFields}
+                    onChange={setVisualFields}
+                    parentNodes={localNodes || []}
+                    isFirstNode={!localNodes || localNodes.length === 0}
+                  />
+                </div>
+              )}
+
               {/* Examples */}
-              {tool.ui.examples && tool.ui.examples.length > 0 && (
+              {!useVisualEditor && tool.ui.examples && tool.ui.examples.length > 0 && (
                 <div className="bg-slate-700/50 rounded-lg p-4 border border-purple-500/20">
                   <div className="flex items-center gap-2 mb-3">
                     <Info className="w-5 h-5 text-purple-400" />
@@ -476,8 +522,8 @@ export default function NodeConfigPanel({
                 </div>
               )}
 
-              {/* Basic Fields */}
-              {tool.params
+              {/* Basic Fields (Modo Avançado) */}
+              {!useVisualEditor && tool.params
                 .filter((p) => !p.ui.advanced)
                 .map((param) => (
                   <div key={param.key}>

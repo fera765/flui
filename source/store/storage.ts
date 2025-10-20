@@ -79,6 +79,12 @@ export const deleteAgent = (id: string): void => {
   );
 };
 
+export const clearAllAgents = (): void => {
+  console.log('🗑️  Limpando todos os agentes...');
+  config.set('agents', []);
+  console.log('✅ Todos os agentes removidos');
+};
+
 // ============= MCPs =============
 export const getMCPs = (): MCP[] => {
   return (config.get('mcps') as MCP[]) || [];
@@ -106,6 +112,12 @@ export const deleteMCP = (id: string): void => {
     'mcps',
     mcps.filter((m) => m.id !== id)
   );
+};
+
+export const clearAllMCPs = (): void => {
+  console.log('🗑️  Limpando todos os MCPs...');
+  config.set('mcps', []);
+  console.log('✅ Todos os MCPs removidos');
 };
 
 // ============= SESSÕES =============
