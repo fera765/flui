@@ -23,6 +23,7 @@ import { ArrowLeft, Save, Plus, Play, Eye, Trash2 } from 'lucide-react';
 import ToolNode from '../components/ToolNode';
 import ToolPalette from '../components/ToolPalette';
 import NodeConfigPanel from '../components/NodeConfigPanel';
+import ExecutionLogs from '../components/ExecutionLogs';
 
 interface Tool {
   id: string;
@@ -66,6 +67,9 @@ export default function EditAutomation() {
   const [isSaving, setIsSaving] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
   const [executionLogs, setExecutionLogs] = useState<any[]>([]);
+  const [executionNodes, setExecutionNodes] = useState<any[]>([]);
+  const [executionStatus, setExecutionStatus] = useState<'running' | 'completed' | 'failed' | 'cancelled'>('running');
+  const [executionDuration, setExecutionDuration] = useState<number | undefined>();
   const [showLogs, setShowLogs] = useState(false);
   const [configPanelOpen, setConfigPanelOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
@@ -306,7 +310,7 @@ export default function EditAutomation() {
     }
   };
 
-  // Executar automação (teste)
+  // Executar automação (teste) - COM LOGS DETALHADOS
   const handleExecute = async () => {
     if (nodes.length === 0) {
       alert('Adicione pelo menos um nó para executar');
@@ -315,29 +319,59 @@ export default function EditAutomation() {
 
     setIsExecuting(true);
     setExecutionLogs([]);
+    setExecutionNodes([]);
+    setExecutionStatus('running');
     setShowLogs(true);
 
     try {
-      // Executar via API
+      // Executar via API com novo sistema
       const res = await fetch(`http://localhost:3001/api/automations/${id}/execute`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          debugMode: true, // Ativar modo debug para logs detalhados
+          initialData: {},
+        }),
       });
 
       const result = await res.json();
 
+      console.log('🎯 Resultado da execução:', result);
+
       if (result.success) {
-        alert('Execução concluída com sucesso!');
+        setExecutionStatus('completed');
+        setExecutionDuration(result.duration);
+        setExecutionLogs(result.logs || []);
+        setExecutionNodes(result.nodes || []);
         
-        // Atualizar status dos nós baseado nos resultados
-        if (result.logs) {
-          setExecutionLogs(result.logs);
-        }
+        // Atualizar status visual dos nós no canvas
+        setNodes((nds) =>
+          nds.map((n) => {
+            const nodeResult = result.nodes?.find((nr: any) => nr.nodeId === n.id);
+            if (nodeResult) {
+              return {
+                ...n,
+                data: {
+                  ...n.data,
+                  status: nodeResult.status,
+                },
+              };
+            }
+            return n;
+          })
+        );
       } else {
-        alert('Erro na execução: ' + result.error);
+        setExecutionStatus('failed');
+        setExecutionLogs(result.logs || []);
+        setExecutionNodes(result.nodes || []);
+        alert('Erro na execução: ' + (result.error || 'Erro desconhecido'));
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro na execução:', error);
-      alert('Erro na execução');
+      setExecutionStatus('failed');
+      alert('Erro na execução: ' + error.message);
     } finally {
       setIsExecuting(false);
     }
@@ -488,44 +522,15 @@ export default function EditAutomation() {
         </ReactFlow>
       </div>
 
-      {/* Logs Panel */}
+      {/* Logs Panel - NOVO SISTEMA SUPERIOR */}
       {showLogs && (
-        <div className="bg-white border-t p-4 h-64 overflow-y-auto">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-900">Logs de Execução</h3>
-            <button
-              onClick={() => setShowLogs(false)}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              Fechar
-            </button>
-          </div>
-          
-          <div className="space-y-2 font-mono text-sm">
-            {executionLogs.length === 0 ? (
-              <p className="text-gray-500">Nenhum log disponível</p>
-            ) : (
-              executionLogs.map((log, i) => (
-                <div
-                  key={i}
-                  className={`p-2 rounded ${
-                    log.status === 'running'
-                      ? 'bg-blue-50 text-blue-700'
-                      : log.status === 'completed'
-                      ? 'bg-green-50 text-green-700'
-                      : 'bg-gray-50 text-gray-700'
-                  }`}
-                >
-                  <span className="text-gray-500">
-                    [{new Date(log.timestamp).toLocaleTimeString()}]
-                  </span>{' '}
-                  <span className="font-medium">{log.nodeName}:</span>{' '}
-                  {log.message}
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+        <ExecutionLogs
+          nodes={executionNodes}
+          logs={executionLogs}
+          status={executionStatus}
+          duration={executionDuration}
+          onClose={() => setShowLogs(false)}
+        />
       )}
 
       {/* Tool Palette Modal */}

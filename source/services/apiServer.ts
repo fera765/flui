@@ -216,6 +216,8 @@ app.delete('/api/automations/:id', (req: Request, res: Response) => {
 });
 
 app.post('/api/automations/:id/execute', async (req: Request, res: Response) => {
+  console.log('🚀 [API] POST /api/automations/:id/execute', req.params.id);
+  
   try {
     const automations = getAutomations();
     const automation = automations.find(a => a.id === req.params.id);
@@ -224,41 +226,69 @@ app.post('/api/automations/:id/execute', async (req: Request, res: Response) => 
       return res.status(404).json({ error: 'Automação não encontrada' });
     }
 
-    // Converter automação para FlowDefinition
-    const flow: FlowDefinition = {
+    // Converter para ExecutionFlow (formato do novo engine)
+    const { ExecutionEngineV3 } = await import('./executionEngine.js');
+    
+    const executionFlow = {
       id: automation.id,
       name: automation.name,
-      description: automation.description,
-      version: '2.0.0',
       nodes: automation.nodes.map(node => ({
         id: node.id,
-        type: 'tool',
+        type: node.type || 'tool',
         name: node.name,
-        description: node.description,
         config: node.config || {},
         position: node.position,
       })),
       edges: automation.edges || [],
-      startNodeId: automation.startNodeId,
-      metadata: automation.metadata,
+      startNodeId: automation.startNodeId || automation.nodes[0]?.id,
     };
 
-    // Executar flow
-    const logs: any[] = [];
-    const execution = await executeFlow(
-      flow,
-      req.body.initialData || {},
+    console.log('📊 [API] Execução iniciada:', { 
+      flowId: executionFlow.id,
+      nodesCount: executionFlow.nodes.length
+    });
+
+    // Coletar logs e atualizações de nodes em tempo real
+    const allLogs: any[] = [];
+    const nodeResults: any[] = [];
+
+    const engine = new ExecutionEngineV3(
+      executionFlow,
+      {
+        debugMode: req.body.debugMode || false,
+        enableCache: req.body.enableCache !== false,
+        maxRetries: req.body.maxRetries || 3,
+      },
       (log) => {
-        logs.push(log);
+        allLogs.push(log);
+        // Broadcast em tempo real via WebSocket
         broadcast({
           type: 'execution-log',
           automationId: automation.id,
           log,
         });
+      },
+      (nodeResult) => {
+        nodeResults.push(nodeResult);
+        // Broadcast atualização de node em tempo real
+        broadcast({
+          type: 'node-update',
+          automationId: automation.id,
+          nodeResult,
+        });
       }
     );
 
-    // Atualizar runCount
+    // Executar automação
+    const result = await engine.execute(req.body.initialData || {});
+
+    console.log('✅ [API] Execução concluída:', {
+      status: result.status,
+      duration: result.duration,
+      nodesExecuted: result.nodes.size,
+    });
+
+    // Atualizar runCount e metadata
     saveAutomation({
       ...automation,
       runCount: (automation.runCount || 0) + 1,
@@ -269,25 +299,32 @@ app.post('/api/automations/:id/execute', async (req: Request, res: Response) => 
       },
     });
 
+    // Broadcast conclusão
     broadcast({
       type: 'execution-complete',
       automationId: automation.id,
-      execution,
+      result,
     });
 
+    // Responder com resultado detalhado
     res.json({
-      success: execution.status === 'completed',
-      result: execution.result,
-      error: execution.error,
-      logs,
-      executionTime: execution.completedAt 
-        ? new Date(execution.completedAt).getTime() - new Date(execution.startedAt).getTime()
-        : undefined,
+      success: result.status === 'completed',
+      executionId: result.id,
+      status: result.status,
+      startTime: result.startTime,
+      endTime: result.endTime,
+      duration: result.duration,
+      finalOutput: result.finalOutput,
+      error: result.error,
+      logs: allLogs,
+      nodes: Array.from(result.nodes.values()),
     });
   } catch (error: any) {
+    console.error('❌ [API] Erro na execução:', error);
     res.status(500).json({ 
       success: false,
-      error: error.message 
+      error: error.message,
+      stack: error.stack,
     });
   }
 });
@@ -718,20 +755,23 @@ app.post('/api/tools/:id/execute', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/automations/:automationId/nodes/:nodeId/test - Testar node com fluxo completo
+// POST /api/automations/:automationId/nodes/:nodeId/test - Testar node com fluxo completo V3
 app.post('/api/automations/:automationId/nodes/:nodeId/test', async (req: Request, res: Response) => {
+  console.log('🧪 [API] POST /api/automations/:automationId/nodes/:nodeId/test', {
+    automationId: req.params.automationId,
+    nodeId: req.params.nodeId,
+  });
+  
   try {
     const { automationId, nodeId } = req.params;
     const { nodes: bodyNodes, edges: bodyEdges } = req.body;
-    
-    console.log('🧪 [API] Teste de node iniciado:', { automationId, nodeId });
     
     let flowNodes = bodyNodes;
     let flowEdges = bodyEdges;
     
     // Se não passou nodes/edges no body, tenta carregar da store
     if (!flowNodes || !flowEdges) {
-      const automations = await getAutomations();
+      const automations = getAutomations();
       const automation = automations.find((a: any) => a.id === automationId);
       if (!automation) {
         return res.status(404).json({ error: 'Automação não encontrada' });
@@ -744,72 +784,80 @@ app.post('/api/automations/:automationId/nodes/:nodeId/test', async (req: Reques
       return res.status(400).json({ error: 'Nenhum node encontrado para teste' });
     }
     
-    // Converter para formato FlowDefinition
-    const firstNodeId = flowNodes[0]?.id || 'start';
-    const flowDefinition: FlowDefinition = {
+    // Converter para ExecutionFlow (formato do ExecutionEngineV3)
+    const { ExecutionEngineV3 } = await import('./executionEngine.js');
+    
+    const executionFlow = {
       id: automationId || 'test-flow',
-      name: 'Test Flow',
-      description: 'Test execution',
-      version: '1.0.0',
-      startNodeId: firstNodeId,
+      name: 'Test Node Flow',
       nodes: flowNodes.map((n: any) => ({
         id: n.id,
+        type: n.type || 'tool',
         name: n.data?.label || n.name || 'Node',
-        type: 'tool' as const,
         config: {
-          ...n.data?.config,
           toolId: n.data?.toolId || n.config?.toolId,
-        }
+          params: n.data?.config || n.config?.params || {},
+        },
+        position: n.position,
       })),
       edges: flowEdges.map((e: any) => ({
-        from: e.source,
-        to: e.target,
+        id: e.id || `${e.source}-${e.target}`,
+        source: e.source,
+        target: e.target,
       })),
+      startNodeId: flowNodes[0]?.id || 'start',
     };
     
-    console.log('🔧 [API] Flow montado:', {
-      nodes: flowDefinition.nodes.length,
-      edges: flowDefinition.edges.length,
-      targetNode: nodeId
+    console.log('🔧 [API] Flow montado para teste:', {
+      nodes: executionFlow.nodes.length,
+      edges: executionFlow.edges.length,
+      targetNode: nodeId,
     });
     
-    // Criar FlowEngineV2 com logs
-    const logs: FlowExecutionLog[] = [];
-    const engine = new FlowEngineV2(flowDefinition, (log: FlowExecutionLog) => {
-      console.log('📝 [FlowEngine]', log.status, log.message, log.data);
-      logs.push(log);
+    // Coletar logs e atualizações
+    const allLogs: any[] = [];
+    const nodeResults: any[] = [];
+    
+    const engine = new ExecutionEngineV3(
+      executionFlow,
+      {
+        debugMode: true,
+        enableCache: false, // Desabilitar cache para testes
+        maxRetries: 0, // Sem retry em testes
+      },
+      (log) => {
+        allLogs.push(log);
+      },
+      (nodeResult) => {
+        nodeResults.push(nodeResult);
+      }
+    );
+    
+    // Executar até o node de teste
+    const result = await engine.executeUntilNode(nodeId, req.body.initialData || {});
+    
+    console.log('✅ [API] Teste de node concluído:', {
+      status: result.status,
+      duration: result.duration,
+      nodesExecuted: result.nodes.size,
     });
     
-    // Executar até o node de teste (incluindo ele)
-    const startTime = Date.now();
-    const execution = await engine.executeUntilNode(nodeId);
-    const executionTime = Date.now() - startTime;
-    
-    // Pegar resultado do node testado
+    // Pegar resultado específico do node testado
     const nodeOutput = engine.getNodeOutput(nodeId);
     
-    console.log('✅ [API] Teste concluído:', {
-      status: execution.status,
-      executionTime,
-      hasOutput: !!nodeOutput
-    });
-    
     res.json({
-      success: execution.status === 'completed',
+      success: result.status === 'completed',
       nodeId,
       result: nodeOutput,
-      execution: {
-        id: execution.id,
-        status: execution.status,
-        startedAt: execution.startedAt,
-        completedAt: execution.completedAt,
-        duration: executionTime
-      },
-      logs,
-      flowExecuted: execution.logs.length
+      status: result.status,
+      duration: result.duration,
+      logs: allLogs,
+      nodes: Array.from(result.nodes.values()),
+      finalOutput: result.finalOutput,
+      error: result.error,
     });
   } catch (error: any) {
-    console.error('❌ [API] Erro no teste:', error);
+    console.error('❌ [API] Erro no teste de node:', error);
     res.status(500).json({ error: error.message, stack: error.stack });
   }
 });

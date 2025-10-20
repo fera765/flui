@@ -23,6 +23,7 @@ import { ArrowLeft, Save, Plus, Play, Eye } from 'lucide-react';
 import ToolNode from '../components/ToolNode';
 import ToolPalette from '../components/ToolPalette';
 import NodeConfigPanel from '../components/NodeConfigPanel';
+import ExecutionLogs from '../components/ExecutionLogs';
 
 interface Tool {
   id: string;
@@ -50,6 +51,9 @@ export default function CreateAutomationV2() {
   const [isSaving, setIsSaving] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
   const [executionLogs, setExecutionLogs] = useState<any[]>([]);
+  const [executionNodes, setExecutionNodes] = useState<any[]>([]);
+  const [executionStatus, setExecutionStatus] = useState<'running' | 'completed' | 'failed' | 'cancelled'>('running');
+  const [executionDuration, setExecutionDuration] = useState<number | undefined>();
   const [showLogs, setShowLogs] = useState(false);
   const [configPanelOpen, setConfigPanelOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
@@ -238,105 +242,178 @@ export default function CreateAutomationV2() {
     }
   };
 
-  // Executar automação (teste)
+  // Executar automação (teste) - EXECUÇÃO REAL COM LOGS DETALHADOS
   const handleExecute = async () => {
     if (nodes.length === 0) {
       alert('Adicione pelo menos um nó para executar');
       return;
     }
 
+    // IMPORTANTE: Salvar primeiro se ainda não salvou
+    if (!automationId) {
+      const confirmSave = window.confirm(
+        'A automação precisa ser salva antes de executar. Deseja salvar agora?'
+      );
+      if (confirmSave) {
+        await handleSave();
+        // Após salvar, o automationId será definido
+        // Aguardar um pouco para garantir que salvou
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      } else {
+        return;
+      }
+    }
+
+    if (!automationId) {
+      alert('Erro: automação não foi salva corretamente');
+      return;
+    }
+
     setIsExecuting(true);
     setExecutionLogs([]);
+    setExecutionNodes([]);
+    setExecutionStatus('running');
     setShowLogs(true);
 
     try {
-      // Converter para flow e executar
-      const flowNodes = nodes.map((node) => ({
-        id: node.id,
-        type: 'tool',
-        name: node.data.label,
-        config: {
-          toolId: node.data.toolId,
-          params: {},
+      console.log('🚀 Executando automação:', automationId);
+
+      // Executar via API REAL usando o novo sistema
+      const res = await fetch(`http://localhost:3001/api/automations/${automationId}/execute`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      }));
+        body: JSON.stringify({
+          debugMode: true,
+          initialData: {},
+        }),
+      });
 
-      const flowEdges = edges.map((edge) => ({
-        id: edge.id,
-        source: edge.source,
-        target: edge.target,
-      }));
+      const result = await res.json();
+      console.log('✅ Resultado da execução:', result);
 
-      const flow = {
-        id: 'test-execution',
-        name: 'Teste',
-        description: 'Execução de teste',
-        version: '2.0.0',
-        nodes: flowNodes,
-        edges: flowEdges,
-        startNodeId: nodes[0].id,
-      };
+      if (result.success) {
+        setExecutionStatus('completed');
+        setExecutionDuration(result.duration);
+        setExecutionLogs(result.logs || []);
+        setExecutionNodes(result.nodes || []);
 
-      // TODO: Executar via API e coletar logs em tempo real via WebSocket
-      console.log('Executando flow:', flow);
-      
-      // Simular execução por enquanto
-      for (let i = 0; i < nodes.length; i++) {
-        const node = nodes[i];
-        
-        // Atualizar status do nó
+        // Atualizar status visual dos nós
         setNodes((nds) =>
-          nds.map((n) =>
-            n.id === node.id
-              ? {
-                  ...n,
-                  data: {
-                    ...n.data,
-                    status: 'running',
-                    // Preserve callbacks
-                    onConfigure: n.data.onConfigure,
-                    onDelete: n.data.onDelete,
-                  },
-                }
-              : n
-          )
+          nds.map((n) => {
+            const nodeResult = result.nodes?.find((nr: any) => nr.nodeId === n.id);
+            if (nodeResult) {
+              return {
+                ...n,
+                data: {
+                  ...n.data,
+                  status: nodeResult.status,
+                },
+              };
+            }
+            return n;
+          })
         );
+      } else {
+        setExecutionStatus('failed');
+        setExecutionLogs(result.logs || []);
+        setExecutionNodes(result.nodes || []);
+        alert('Erro na execução: ' + (result.error || 'Erro desconhecido'));
+      }
+    } catch (error: any) {
+      console.error('❌ Erro na execução:', error);
+      setExecutionStatus('failed');
+      alert('Erro na execução: ' + error.message);
+    } finally {
+      setIsExecuting(false);
+    }
+  };
 
-        setExecutionLogs((logs) => [
-          ...logs,
-          {
-            nodeId: node.id,
-            nodeName: node.data.label,
-            status: 'running',
-            message: `Executando ${node.data.label}...`,
-            timestamp: new Date().toISOString(),
-          },
-        ]);
+  // Salvar automação (extrair para função separada para reusar)
+  const doSave = async () => {
+    if (!name.trim()) {
+      throw new Error('Digite um nome para a automação');
+    }
 
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+    if (nodes.length === 0) {
+      throw new Error('Adicione pelo menos um nó à automação');
+    }
 
-        // Completar nó
-        setNodes((nds) =>
-          nds.map((n) =>
-            n.id === node.id
-              ? {
-                  ...n,
-                  data: {
-                    ...n.data,
-                    status: 'completed',
-                    executionTime: Math.random() * 500,
-                    // Preserve callbacks
-                    onConfigure: n.data.onConfigure,
-                    onDelete: n.data.onDelete,
-                  },
-                }
-              : n
-          )
-        );
+    // Converter para formato de FlowDefinition
+    const flowNodes = nodes.map((node) => ({
+      id: node.id,
+      type: 'tool',
+      name: node.data.label,
+      description: node.data.description,
+      config: {
+        toolId: node.data.toolId,
+        category: node.data.category,
+        color: node.data.color,
+        icon: node.data.icon,
+        params: node.data.config || {},
+      },
+      position: node.position,
+    }));
 
-        setExecutionLogs((logs) => [
-          ...logs,
-          {
+    const flowEdges = edges.map((edge) => ({
+      id: edge.id,
+      source: edge.source,
+      target: edge.target,
+    }));
+
+    const automation = {
+      name,
+      description,
+      version: '2.0.0',
+      nodes: flowNodes,
+      edges: flowEdges,
+      startNodeId: nodes[0]?.id || '',
+      metadata: {
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    };
+
+    // Salvar via API
+    const response = await fetch('http://localhost:3001/api/automations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(automation),
+    });
+
+    const data = await response.json();
+
+    // Guardar o ID da automação salva
+    if (data.id) {
+      setAutomationId(data.id);
+      return data.id;
+    }
+
+    throw new Error('Falha ao salvar: ID não retornado');
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await doSave();
+      alert('Automação salva com sucesso!');
+      // Não navegar imediatamente se foi salvo para executar
+    } catch (error: any) {
+      console.error('Erro ao salvar:', error);
+      alert('Erro ao salvar automação: ' + error.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Função antiga do handleSave (removida para usar a nova)
+  const oldHandleExecute_REMOVED = async () => {
+    if (false) {
+      const node: any = null;
+      setExecutionLogs((logs) => [
+        ...logs,
+        {
             nodeId: node.id,
             nodeName: node.data.label,
             status: 'completed',
