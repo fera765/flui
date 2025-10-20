@@ -98,21 +98,28 @@ export default function AutomationsPage() {
     }
   };
 
+  const [executingId, setExecutingId] = useState<string | null>(null);
+
   const handleExecute = async (id: string) => {
     try {
+      setExecutingId(id);
       const res = await fetch(`http://localhost:3001/api/automations/${id}/execute`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ debugMode: true }),
       });
       const result = await res.json();
       
-      if (result.success) {
-        alert('Automação executada com sucesso!');
+      if (result.success || result.status === 'completed') {
+        alert(`✅ Execução concluída!\n\nDuração: ${result.duration}ms\nStatus: ${result.status}\nNodes executados: ${result.nodes?.length || 0}`);
       } else {
-        alert('Erro na execução: ' + result.error);
+        alert(`❌ Erro na execução!\n\n${result.error || 'Erro desconhecido'}`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erro ao executar automação:', err);
-      alert('Erro ao executar automação');
+      alert(`❌ Erro ao executar:\n\n${err.message}`);
+    } finally {
+      setExecutingId(null);
     }
   };
 
@@ -245,9 +252,14 @@ export default function AutomationsPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleExecute(auto.id)}
-                      className="px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg text-sm transition"
+                      disabled={executingId === auto.id}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        executingId === auto.id
+                          ? 'bg-blue-500/30 text-blue-200 cursor-wait animate-pulse'
+                          : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 text-purple-300 hover:text-white shadow-lg hover:shadow-purple-500/50'
+                      }`}
                     >
-                      Executar
+                      {executingId === auto.id ? '⏳ Executando...' : '▶️ Executar'}
                     </button>
                     
                     <button

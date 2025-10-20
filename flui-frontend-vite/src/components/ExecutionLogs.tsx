@@ -142,14 +142,14 @@ export default function ExecutionLogs({
   };
 
   return (
-    <div className="bg-white border-t shadow-lg" style={{ height: '400px' }}>
+    <div className="bg-white border-t shadow-lg" style={{ height: '500px', maxHeight: '70vh' }}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-gray-50">
-        <div className="flex items-center gap-4">
-          <h3 className="font-semibold text-gray-900">Logs de Execução</h3>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100 gap-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
+          <h3 className="font-bold text-gray-900 text-lg">📊 Logs de Execução</h3>
           
           {/* Tabs */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => setView('nodes')}
               className={`px-3 py-1 text-sm rounded-lg transition-colors ${
@@ -183,7 +183,7 @@ export default function ExecutionLogs({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Status badge */}
           <div className={`px-3 py-1 rounded-full text-sm font-medium ${
             status === 'completed' ? 'bg-green-100 text-green-700' :
@@ -298,7 +298,7 @@ export default function ExecutionLogs({
                               INPUT
                             </span>
                           </div>
-                          <pre className="bg-white p-3 rounded border text-xs overflow-x-auto">
+                          <pre className="bg-gradient-to-br from-blue-50 to-white p-4 rounded-lg border border-blue-200 text-sm overflow-x-auto text-gray-900 font-mono shadow-inner max-w-full">
                             {JSON.stringify(node.input, null, 2)}
                           </pre>
                         </div>
@@ -311,7 +311,7 @@ export default function ExecutionLogs({
                                 OUTPUT
                               </span>
                             </div>
-                            <pre className="bg-white p-3 rounded border text-xs overflow-x-auto">
+                            <pre className="bg-gradient-to-br from-green-50 to-white p-4 rounded-lg border border-green-200 text-sm overflow-x-auto text-gray-900 font-mono shadow-inner max-w-full">
                               {JSON.stringify(node.output, null, 2)}
                             </pre>
                           </div>
