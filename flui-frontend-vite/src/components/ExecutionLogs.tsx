@@ -422,7 +422,7 @@ export default function ExecutionLogs({
                       </div>
 
                       {log.data && (
-                        <pre className="mt-2 text-xs bg-white p-2 rounded border overflow-x-auto">
+                        <pre className="mt-2 text-xs bg-white p-2 rounded border overflow-x-auto text-gray-900 font-mono">
                           {JSON.stringify(log.data, null, 2)}
                         </pre>
                       )}

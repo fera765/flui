@@ -22,6 +22,7 @@ function validateAndNormalizeAutomation(automation: any): Automation {
     edges: Array.isArray(automation.edges) ? automation.edges : [],
     startNodeId: automation.startNodeId || (automation.nodes?.[0]?.id) || '',
     enabled: automation.enabled !== undefined ? automation.enabled : true,
+    continuousExecution: automation.continuousExecution || false, // 🔁 Execução contínua
     schedule: automation.schedule || undefined,
     version: automation.version || '2.0.0',
     createdAt: automation.createdAt || new Date().toISOString(),

@@ -13,7 +13,6 @@ import ReactFlow, {
   addEdge,
   Panel,
   BackgroundVariant,
-  MiniMap,
   type Node,
   type Edge,
   type Connection,
@@ -45,6 +44,7 @@ export default function CreateAutomationV2() {
   const [name, setName] = useState('Nova Automação');
   const [description, setDescription] = useState('');
   const [automationId, setAutomationId] = useState<string>('');
+  const [continuousExecution, setContinuousExecution] = useState(false);
   
   // UI States
   const [showPalette, setShowPalette] = useState(false);
@@ -298,6 +298,7 @@ export default function CreateAutomationV2() {
       nodes: flowNodes,
       edges: flowEdges,
       startNodeId: nodes[0]?.id || '',
+      continuousExecution, // 🔁 Nova feature: execução contínua
       metadata: {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -369,6 +370,26 @@ export default function CreateAutomationV2() {
               </div>
             </div>
             
+            {/* Middle section - Continuous Execution Toggle */}
+            <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={continuousExecution}
+                  onChange={(e) => setContinuousExecution(e.target.checked)}
+                  className="w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500"
+                />
+                <span className="text-sm font-medium text-gray-700">
+                  🔁 Execução Contínua
+                </span>
+              </label>
+              {continuousExecution && (
+                <div className="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium animate-pulse">
+                  LOOP
+                </div>
+              )}
+            </div>
+            
             {/* Right section - Action buttons */}
             <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
               <button
@@ -417,13 +438,8 @@ export default function CreateAutomationV2() {
           className="bg-gray-50"
         >
           <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
-          <Controls />
-          <MiniMap
-            nodeColor={(node) => {
-              const data = node.data as any;
-              return data.color || '#64748b';
-            }}
-            className="bg-white border-2 border-gray-200 rounded-lg"
+          <Controls 
+            className="!bg-gray-800 !border-2 !border-gray-700 !rounded-lg [&_button]:!bg-gray-700 [&_button]:!text-white [&_button]:!border-gray-600 [&_button_svg]:!fill-white"
           />
           
           <Panel position="top-center">
