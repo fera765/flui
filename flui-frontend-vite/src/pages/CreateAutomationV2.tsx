@@ -43,6 +43,7 @@ export default function CreateAutomationV2() {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [name, setName] = useState('Nova Automação');
   const [description, setDescription] = useState('');
+  const [automationId, setAutomationId] = useState<string>('');
   
   // UI States
   const [showPalette, setShowPalette] = useState(false);
@@ -214,11 +215,18 @@ export default function CreateAutomationV2() {
       };
 
       // Salvar via API
-      await fetch('http://localhost:3001/api/automations', {
+      const response = await fetch('http://localhost:3001/api/automations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(automation),
       });
+      
+      const data = await response.json();
+      
+      // 🆕 Guardar o ID da automação salva
+      if (data.id) {
+        setAutomationId(data.id);
+      }
 
       alert('Automação salva com sucesso!');
       navigate('/');
@@ -511,6 +519,7 @@ export default function CreateAutomationV2() {
           nodeId={selectedNode.id}
           toolId={selectedNode.data.toolId}
           initialConfig={selectedNode.data.config}
+          automationId={automationId} // 🆕 Passar automationId
           previousNodes={
             edges
               .filter((e) => e.target === selectedNode.id)

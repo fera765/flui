@@ -14,6 +14,7 @@ import { FlowDefinition } from '../core/flowTypes.js';
 import { getCustomNodeManager, CustomNodeManager } from './customNodeManager.js';
 import { listTools, getToolMetadata } from './toolApi.js';
 import { registerAllTools } from '../tools/index.js';
+import { extractNodeOutputKeys } from './nodeOutputExtractor.js';
 
 const app = express();
 const PORT = 3001;
@@ -60,13 +61,88 @@ app.get('/api/automations', (_req: Request, res: Response) => {
 app.get('/api/automations/:id', (req: Request, res: Response) => {
   const automations = getAutomations();
   const automation = automations.find(a => a.id === req.params.id);
-  
+
   if (!automation) {
     return res.status(404).json({ error: 'Automação não encontrada' });
   }
-  
+
   res.json(automation);
 });
+
+// 🆕 Novo endpoint: Buscar outputs disponíveis para um node
+app.get('/api/automations/:automationId/nodes/:nodeId/available-outputs', (req: Request, res: Response) => {
+  try {
+    const { automationId, nodeId } = req.params;
+    
+    // Buscar automação
+    const automations = getAutomations();
+    const automation = automations.find(a => a.id === automationId);
+    
+    if (!automation) {
+      return res.status(404).json({ error: 'Automação não encontrada' });
+    }
+    
+    // Encontrar node target
+    const targetNode = automation.nodes?.find((n: any) => n.id === nodeId);
+    if (!targetNode) {
+      return res.status(404).json({ error: 'Node não encontrado' });
+    }
+    
+    // Calcular nodes anteriores (pais) via edges
+    const parentNodeIds = getParentNodesRecursive(automation.edges || [], nodeId);
+    
+    // Para cada node pai, extrair outputs disponíveis
+    const availableOutputs = parentNodeIds.map((parentId: string) => {
+      const parentNode = automation.nodes?.find((n: any) => n.id === parentId);
+      if (!parentNode) return null;
+      
+      const outputKeys = extractNodeOutputKeys(parentNode);
+      
+      // Node pode ter estrutura antiga (data) ou nova (config diretamente)
+      const nodeData = (parentNode as any).data || parentNode;
+      
+      return {
+        nodeId: parentId,
+        nodeName: nodeData.label || parentNode.name || 'Node',
+        toolId: nodeData.toolId || parentNode.config?.toolId,
+        outputKeys: outputKeys,
+      };
+    }).filter(Boolean);
+    
+    const targetData = (targetNode as any).data || targetNode;
+    
+    res.json({
+      nodeId,
+      nodeName: targetData.label || targetNode.name,
+      availableOutputs,
+    });
+  } catch (error: any) {
+    console.error('❌ Erro ao buscar outputs disponíveis:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Helper: Obter todos os nodes pai (recursivo)
+function getParentNodesRecursive(edges: any[], targetNodeId: string): string[] {
+  const parents = new Set<string>();
+  const visited = new Set<string>();
+  
+  function findParents(nodeId: string) {
+    if (visited.has(nodeId)) return;
+    visited.add(nodeId);
+    
+    const parentEdges = edges.filter((e: any) => e.target === nodeId);
+    parentEdges.forEach((edge: any) => {
+      if (!parents.has(edge.source)) {
+        parents.add(edge.source);
+        findParents(edge.source); // Recursivo: buscar pais dos pais
+      }
+    });
+  }
+  
+  findParents(targetNodeId);
+  return Array.from(parents).sort();
+}
 
 app.post('/api/automations', (req: Request, res: Response) => {
   const automation = req.body;

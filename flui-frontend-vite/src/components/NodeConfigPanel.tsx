@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react';
 import { X, Save, Play, AlertCircle, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import axios from 'axios';
 import { NodeInputSelector } from './NodeInputSelector';
+import { OutputSelector } from './OutputSelector';
 
 // ============= TYPES =============
 
@@ -67,6 +68,7 @@ interface NodeConfigPanelProps {
   toolId: string;
   initialConfig?: any;
   previousNodes?: Array<{ id: string; name: string }>; // Nodes anteriores conectados
+  automationId?: string; // ID da automação atual
   onClose: () => void;
   onSave: (config: any) => void;
   onTest?: (config: any) => void;
@@ -80,6 +82,7 @@ export default function NodeConfigPanel({
   toolId,
   initialConfig = {},
   previousNodes = [],
+  automationId,
   onClose,
   onSave,
   onTest,
@@ -270,23 +273,25 @@ export default function NodeConfigPanel({
     switch (ui.widgetType) {
       case 'textInput':
         return (
-          <input
-            type="text"
-            value={value || ''}
-            onChange={(e) => updateConfig(param.key, e.target.value)}
+          <OutputSelector
+            automationId={automationId}
+            currentNodeId={nodeId}
+            fieldName={param.key}
+            fieldValue={value || ''}
+            onSelect={(newValue) => updateConfig(param.key, newValue)}
             placeholder={ui.placeholder}
-            className={baseClasses}
           />
         );
 
       case 'textArea':
         return (
-          <textarea
-            value={value || ''}
-            onChange={(e) => updateConfig(param.key, e.target.value)}
+          <OutputSelector
+            automationId={automationId}
+            currentNodeId={nodeId}
+            fieldName={param.key}
+            fieldValue={value || ''}
+            onSelect={(newValue) => updateConfig(param.key, newValue)}
             placeholder={ui.placeholder}
-            rows={ui.rows || 4}
-            className={`${baseClasses} min-h-[100px] font-mono text-sm`}
           />
         );
 

@@ -29,6 +29,7 @@ import {
   convertLegacyOutput,
   extractAvailableKeys,
 } from './nodeDataTypes.js';
+import { resolveReferences, validateReferences, hasReferences } from './referenceResolver.js';
 
 export class FlowEngineV2 {
   private flow: FlowDefinition;
@@ -167,17 +168,49 @@ export class FlowEngineV2 {
       throw new Error('toolId não especificado no config');
     }
     
+    // 🆕 RESOLVER REFERÊNCIAS no config antes de executar
+    let resolvedConfig = { ...node.config };
+    
+    if (hasReferences(node.config)) {
+      const validation = validateReferences(node.config, {
+        nodeOutputs: this.nodeOutputs,
+      });
+      
+      if (!validation.valid) {
+        console.warn('⚠️  Referências inválidas encontradas:', validation.errors);
+      }
+      
+      resolvedConfig = resolveReferences(node.config, {
+        nodeOutputs: this.nodeOutputs,
+      });
+      
+      this.log(
+        node.id,
+        node.name,
+        'running',
+        'Referências resolvidas',
+        { original: node.config, resolved: resolvedConfig }
+      );
+    }
+    
+    // Merge inputData com config resolvido
+    const finalInput = { ...inputData, ...resolvedConfig };
+    
+    // Remover campos internos que não devem ser passados para a tool
+    delete finalInput.inputConfig;
+    delete finalInput.nodeId;
+    
     // Criar contexto de execução
     const context: ExecutionContext = {
       automationId: this.flow.id,
       nodeId: node.id,
       globalContext: {},
       previousResults: Object.fromEntries(this.nodeOutputs),
-      sandboxPath: node.config.sandboxPath,
+      sandboxPath: node.config.sandboxPath || finalInput.sandboxPath,
     };
     
     // Executar tool
-    const result = await ToolExecutor.execute(toolId, inputData, context);
+    const result = await ToolExecutor.execute(toolId, finalInput, context);
     
     if (!result.success) {
       throw new Error(result.error || 'Tool execution failed');

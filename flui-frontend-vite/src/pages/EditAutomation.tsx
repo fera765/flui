@@ -543,6 +543,7 @@ export default function EditAutomation() {
           nodeId={selectedNode.id}
           toolId={selectedNode.data.toolId}
           initialConfig={selectedNode.data.config}
+          automationId={id} // 🆕 Passar automationId (já temos o id da rota)
           previousNodes={
             edges
               .filter((e) => e.target === selectedNode.id)
