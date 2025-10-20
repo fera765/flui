@@ -511,6 +511,17 @@ export default function CreateAutomationV2() {
           nodeId={selectedNode.id}
           toolId={selectedNode.data.toolId}
           initialConfig={selectedNode.data.config}
+          previousNodes={
+            edges
+              .filter((e) => e.target === selectedNode.id)
+              .map((e) => {
+                const sourceNode = nodes.find((n) => n.id === e.source);
+                return sourceNode
+                  ? { id: sourceNode.id, name: sourceNode.data.label || 'Node' }
+                  : null;
+              })
+              .filter(Boolean) as Array<{ id: string; name: string }>
+          }
           onClose={() => {
             setConfigPanelOpen(false);
             setSelectedNode(null);
