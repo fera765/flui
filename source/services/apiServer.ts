@@ -10,7 +10,8 @@ import { getToolRegistry } from '../core/toolRegistry.js';
 import { ToolExecutor } from '../core/toolExecutor.js';
 import { ExecutionContext } from '../core/types.js';
 import { executeFlow } from '../core/flowEngine.js';
-import { FlowDefinition } from '../core/flowTypes.js';
+import { FlowDefinition, FlowExecutionLog } from '../core/flowTypes.js';
+import { FlowEngineV2 } from '../core/flowEngineV2.js';
 import { getCustomNodeManager, CustomNodeManager } from './customNodeManager.js';
 import { listTools, getToolMetadata } from './toolApi.js';
 import { registerAllTools } from '../tools/index.js';
@@ -714,11 +715,110 @@ app.post('/api/tools/:id/execute', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/nodes/:nodeId/test - Testar execução de um nó específico
+// POST /api/automations/:automationId/nodes/:nodeId/test - Testar node com fluxo completo
+app.post('/api/automations/:automationId/nodes/:nodeId/test', async (req: Request, res: Response) => {
+  try {
+    const { automationId, nodeId } = req.params;
+    const { nodes: bodyNodes, edges: bodyEdges } = req.body;
+    
+    console.log('🧪 [API] Teste de node iniciado:', { automationId, nodeId });
+    
+    let flowNodes = bodyNodes;
+    let flowEdges = bodyEdges;
+    
+    // Se não passou nodes/edges no body, tenta carregar da store
+    if (!flowNodes || !flowEdges) {
+      const automations = await getAutomations();
+      const automation = automations.find((a: any) => a.id === automationId);
+      if (!automation) {
+        return res.status(404).json({ error: 'Automação não encontrada' });
+      }
+      flowNodes = automation.nodes || [];
+      flowEdges = automation.edges || [];
+    }
+    
+    if (!flowNodes || flowNodes.length === 0) {
+      return res.status(400).json({ error: 'Nenhum node encontrado para teste' });
+    }
+    
+    // Converter para formato FlowDefinition
+    const firstNodeId = flowNodes[0]?.id || 'start';
+    const flowDefinition: FlowDefinition = {
+      id: automationId || 'test-flow',
+      name: 'Test Flow',
+      description: 'Test execution',
+      version: '1.0.0',
+      startNodeId: firstNodeId,
+      nodes: flowNodes.map((n: any) => ({
+        id: n.id,
+        name: n.data?.label || n.name || 'Node',
+        type: 'tool' as const,
+        config: {
+          ...n.data?.config,
+          toolId: n.data?.toolId || n.config?.toolId,
+        }
+      })),
+      edges: flowEdges.map((e: any) => ({
+        from: e.source,
+        to: e.target,
+      })),
+    };
+    
+    console.log('🔧 [API] Flow montado:', {
+      nodes: flowDefinition.nodes.length,
+      edges: flowDefinition.edges.length,
+      targetNode: nodeId
+    });
+    
+    // Criar FlowEngineV2 com logs
+    const logs: FlowExecutionLog[] = [];
+    const engine = new FlowEngineV2(flowDefinition, (log: FlowExecutionLog) => {
+      console.log('📝 [FlowEngine]', log.status, log.message, log.data);
+      logs.push(log);
+    });
+    
+    // Executar até o node de teste (incluindo ele)
+    const startTime = Date.now();
+    const execution = await engine.executeUntilNode(nodeId);
+    const executionTime = Date.now() - startTime;
+    
+    // Pegar resultado do node testado
+    const nodeOutput = engine.getNodeOutput(nodeId);
+    
+    console.log('✅ [API] Teste concluído:', {
+      status: execution.status,
+      executionTime,
+      hasOutput: !!nodeOutput
+    });
+    
+    res.json({
+      success: execution.status === 'completed',
+      nodeId,
+      result: nodeOutput,
+      execution: {
+        id: execution.id,
+        status: execution.status,
+        startedAt: execution.startedAt,
+        completedAt: execution.completedAt,
+        duration: executionTime
+      },
+      logs,
+      flowExecuted: execution.logs.length
+    });
+  } catch (error: any) {
+    console.error('❌ [API] Erro no teste:', error);
+    res.status(500).json({ error: error.message, stack: error.stack });
+  }
+});
+
+// POST /api/nodes/:nodeId/test - Testar execução de um nó específico (LEGACY)
 app.post('/api/nodes/:nodeId/test', async (req: Request, res: Response) => {
   try {
     const { nodeId } = req.params;
     const { toolId, params, context } = req.body;
+    
+    console.warn('⚠️ [API] Usando endpoint legacy /api/nodes/:nodeId/test');
+    console.warn('⚠️ [API] Use /api/automations/:automationId/nodes/:nodeId/test para resolver referências');
     
     if (!toolId) {
       return res.status(400).json({ error: 'toolId é obrigatório' });

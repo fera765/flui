@@ -230,13 +230,32 @@ export default function NodeConfigPanel({
     setTestResult(null);
     
     try {
-      const response = await axios.post(`http://localhost:3001/api/nodes/${nodeId}/test`, {
-        toolId,
-        params: config,
-      });
-      
-      setTestResult(response.data);
+      // Se tem automationId E localNodes, usar novo endpoint com fluxo completo
+      if (automationId && localNodes && localEdges) {
+        console.log('🧪 [NodeConfigPanel] Testando com fluxo completo');
+        
+        const response = await axios.post(
+          `http://localhost:3001/api/automations/${automationId}/nodes/${nodeId}/test`,
+          {
+            nodes: localNodes,
+            edges: localEdges,
+          }
+        );
+        
+        setTestResult(response.data);
+      } else {
+        // Fallback para teste simples (sem resolver referências)
+        console.warn('⚠️  [NodeConfigPanel] Testando sem fluxo (referências não serão resolvidas)');
+        
+        const response = await axios.post(`http://localhost:3001/api/nodes/${nodeId}/test`, {
+          toolId,
+          params: config,
+        });
+        
+        setTestResult(response.data);
+      }
     } catch (error: any) {
+      console.error('❌ [NodeConfigPanel] Erro no teste:', error);
       setTestResult({
         error: error.response?.data?.error || error.message,
       });

@@ -56,6 +56,65 @@ export class FlowEngineV2 {
   }
 
   /**
+   * Executar fluxo até um node específico (para testes)
+   */
+  async executeUntilNode(targetNodeId: string, initialData: Record<string, any> = {}): Promise<FlowExecution> {
+    console.log('🎯 [FlowEngineV2] Executando até node:', targetNodeId);
+    
+    this.execution.status = 'running';
+    this.execution.startedAt = new Date().toISOString();
+    this.log('flow', 'Flow Engine V2', 'running', `Iniciando execução até node: ${targetNodeId}`);
+
+    try {
+      // Validar fluxo
+      this.validateFlow();
+      
+      const executionOrder = this.getExecutionOrder();
+      console.log('📋 [FlowEngineV2] Ordem de execução:', executionOrder);
+      
+      // Encontrar índice do node alvo
+      const targetIndex = executionOrder.indexOf(targetNodeId);
+      if (targetIndex === -1) {
+        throw new Error(`Node ${targetNodeId} não encontrado na ordem de execução`);
+      }
+      
+      // Executar apenas até o node alvo (incluindo ele)
+      const nodesToExecute = executionOrder.slice(0, targetIndex + 1);
+      console.log('🎯 [FlowEngineV2] Executando nodes:', nodesToExecute);
+
+      for (const nodeId of nodesToExecute) {
+        // Verificar se foi cancelado
+        if (this.abortController.signal.aborted) {
+          throw new Error('Execução cancelada');
+        }
+        
+        const node = this.flow.nodes.find((n) => n.id === nodeId);
+        if (!node) {
+          this.log(nodeId, 'Unknown', 'failed', `Node ${nodeId} não encontrado`);
+          continue;
+        }
+
+        await this.executeNodeV2(node);
+      }
+
+      this.execution.status = 'completed';
+      this.execution.completedAt = new Date().toISOString();
+      
+      // Resultado é o output do node testado
+      this.execution.result = this.nodeOutputs.get(targetNodeId);
+      
+      this.log('flow', 'Flow Engine V2', 'completed', `Fluxo executado até node ${targetNodeId} com sucesso`);
+    } catch (error: any) {
+      this.execution.status = 'failed';
+      this.execution.completedAt = new Date().toISOString();
+      this.execution.error = error.message;
+      this.log('flow', 'Flow Engine V2', 'failed', `Erro: ${error.message}`, undefined, error.message);
+    }
+
+    return this.execution;
+  }
+
+  /**
    * Executa o fluxo completo com novo padrão
    */
   async execute(initialData: Record<string, any> = {}): Promise<FlowExecution> {
