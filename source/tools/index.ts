@@ -1,116 +1,61 @@
 /**
- * FLUI - Tools Index
+ * FLUI - Tool Registry Index
  * 
- * Exporta e registra todas as ferramentas disponíveis
+ * Sistema de registro de ferramentas LIMPO e RECRIADO
+ * Baseado no N8n mas SUPERIOR em arquitetura e performance
  */
 
-import { Tool } from '../core/types.js';
 import { getToolRegistry } from '../core/toolRegistry.js';
 
-// System Tools
-import { ShellExecutorTool } from './system/shellExecutor.js';
-import {
-  FileReadTool,
-  FileWriteTool,
-  FileEditTool,
-  FileSearchTool,
-  TextSearchTool,
-} from './system/fileOperations.js';
-import { HTTPRequestTool } from './system/httpRequest.js';
-import { SystemInfoTool } from './system/systemInfo.js';
-import { UniversalConditionTool } from './system/universalCondition.js';
-import { DelayTool } from './system/delay.js';
-import { WebhookTriggerTool, WebhookResponseTool } from './system/webhook.js';
-import {
-  DataTransformTool,
-  DataFilterTool,
-  DataMergeTool,
-} from './system/dataTransform.js';
-
-// Agent Tools
-import { AgentExecutorTool } from './agent/agentExecutor.js';
-
-// Custom Tools
-import { CustomCodeTool } from './custom/customCode.js';
+// Importar os 3 triggers principais
+import { manualTrigger } from './triggers/manualTrigger.js';
+import { cronTrigger } from './triggers/cronTrigger.js';
+import { webhookTrigger } from './triggers/webhookTrigger.js';
 
 /**
- * Lista de todas as ferramentas built-in do sistema
- */
-export const ALL_TOOLS: Tool[] = [
-  // System & Control Flow
-  ShellExecutorTool,
-  FileReadTool,
-  FileWriteTool,
-  FileEditTool,
-  FileSearchTool,
-  TextSearchTool,
-  HTTPRequestTool,
-  SystemInfoTool,
-  UniversalConditionTool, // Nova Condição Universal (substitui ConditionTool)
-  DelayTool,
-  
-  // Webhook & Integration
-  WebhookTriggerTool,
-  WebhookResponseTool,
-  
-  // Data Transformation
-  DataTransformTool,
-  DataFilterTool,
-  DataMergeTool,
-  
-  // Agent
-  AgentExecutorTool,
-  
-  // Custom
-  CustomCodeTool,
-];
-
-/**
- * Registra todas as ferramentas built-in no registry
+ * Registra todas as ferramentas do sistema
+ * NOVA ARQUITETURA - Apenas 3 Triggers Principais
  */
 export function registerAllTools(): void {
   const registry = getToolRegistry();
   
-  for (const tool of ALL_TOOLS) {
-    try {
-      registry.register(tool);
-      console.log(`✅ Tool registrada: ${tool.name} (${tool.id})`);
-    } catch (error: any) {
-      console.error(`❌ Erro ao registrar tool '${tool.id}': ${error.message}`);
-    }
-  }
+  console.log('🧹 [FLUI] Limpando registry antigo...');
+  registry.clear();
   
-  console.log(`\n📦 Total de ferramentas registradas: ${registry.count()}`);
+  console.log('🚀 [FLUI] Registrando 3 TRIGGERS SUPERIORES ao N8n...');
+  
+  try {
+    // Registrar Manual Trigger
+    registry.register(manualTrigger);
+    console.log('✅ [FLUI] Manual Trigger registrado');
+    
+    // Registrar Cron Trigger
+    registry.register(cronTrigger);
+    console.log('✅ [FLUI] Cron Trigger registrado');
+    
+    // Registrar Webhook Trigger
+    registry.register(webhookTrigger);
+    console.log('✅ [FLUI] Webhook Trigger registrado');
+    
+    console.log(`\n🎉 [FLUI] ${registry.count()} ferramentas registradas com sucesso!\n`);
+  } catch (error) {
+    console.error('❌ [FLUI] Erro ao registrar ferramentas:', error);
+    throw error;
+  }
 }
 
 /**
- * Exportações individuais para uso direto
+ * Obtém lista de todas as ferramentas registradas
  */
-export {
-  // System & Control Flow
-  ShellExecutorTool,
-  FileReadTool,
-  FileWriteTool,
-  FileEditTool,
-  FileSearchTool,
-  TextSearchTool,
-  HTTPRequestTool,
-  SystemInfoTool,
-  UniversalConditionTool,
-  DelayTool,
-  
-  // Webhook & Integration
-  WebhookTriggerTool,
-  WebhookResponseTool,
-  
-  // Data Transformation
-  DataTransformTool,
-  DataFilterTool,
-  DataMergeTool,
-  
-  // Agent
-  AgentExecutorTool,
-  
-  // Custom
-  CustomCodeTool,
-};
+export function listAllTools() {
+  const registry = getToolRegistry();
+  return registry.list();
+}
+
+/**
+ * Obtém uma ferramenta específica por ID
+ */
+export function getTool(toolId: string) {
+  const registry = getToolRegistry();
+  return registry.get(toolId);
+}
