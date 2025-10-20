@@ -8,7 +8,6 @@
 import { useState, useEffect } from 'react';
 import { X, Save, Play, AlertCircle, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import axios from 'axios';
-import { NodeInputSelector } from './NodeInputSelector';
 import { OutputSelector } from './OutputSelector';
 
 // ============= TYPES =============
@@ -67,7 +66,6 @@ interface NodeConfigPanelProps {
   nodeId: string;
   toolId: string;
   initialConfig?: any;
-  previousNodes?: Array<{ id: string; name: string }>; // Nodes anteriores conectados
   automationId?: string; // ID da automação atual
   onClose: () => void;
   onSave: (config: any) => void;
@@ -81,7 +79,6 @@ export default function NodeConfigPanel({
   nodeId,
   toolId,
   initialConfig = {},
-  previousNodes = [],
   automationId,
   onClose,
   onSave,
@@ -414,30 +411,6 @@ export default function NodeConfigPanel({
             </div>
           ) : tool ? (
             <div className="space-y-6">
-              {/* Input Selector Section (NEW) */}
-              {previousNodes.length > 0 && (
-                <div className="bg-slate-700/50 rounded-lg p-4 border border-blue-500/20">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Info className="w-5 h-5 text-blue-400" />
-                    <h3 className="font-semibold text-blue-300">Dados de Entrada</h3>
-                  </div>
-                  <NodeInputSelector
-                    currentNodeId={nodeId}
-                    previousNodes={previousNodes}
-                    currentMappings={config.inputConfig?.mappings || []}
-                    onChange={(mappings) => {
-                      setConfig((prev: any) => ({
-                        ...prev,
-                        inputConfig: {
-                          ...prev.inputConfig,
-                          mappings,
-                        },
-                      }));
-                    }}
-                  />
-                </div>
-              )}
-
               {/* Examples */}
               {tool.ui.examples && tool.ui.examples.length > 0 && (
                 <div className="bg-slate-700/50 rounded-lg p-4 border border-purple-500/20">

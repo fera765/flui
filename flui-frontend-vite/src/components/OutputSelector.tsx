@@ -62,22 +62,33 @@ export const OutputSelector: React.FC<OutputSelectorProps> = ({
   }, [isOpen]);
 
   const loadAvailableOutputs = async () => {
-    if (!automationId || !currentNodeId) {
-      setError('ID de automação ou node não disponível');
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
 
     try {
+      // Se não tem automationId, avisar usuário para salvar primeiro
+      if (!automationId || !currentNodeId) {
+        console.warn('⚠️  automationId ou currentNodeId não disponível');
+        setAvailableOutputs([]);
+        setError('💾 Salve a automação primeiro para ativar a seleção de outputs dos nodes anteriores');
+        return;
+      }
+
       const response = await axios.get(
         `http://localhost:3001/api/automations/${automationId}/nodes/${currentNodeId}/available-outputs`
       );
-      setAvailableOutputs(response.data.availableOutputs || []);
+      
+      const outputs = response.data.availableOutputs || [];
+      
+      if (outputs.length === 0) {
+        setError('📭 Nenhum node anterior encontrado.\n\n💡 Adicione nodes antes deste na automação.');
+      }
+      
+      setAvailableOutputs(outputs);
     } catch (error: any) {
       console.error('Erro ao carregar outputs:', error);
-      setError(error.response?.data?.error || 'Erro ao carregar outputs disponíveis');
+      const errorMsg = error.response?.data?.error || error.message || 'Erro ao carregar outputs disponíveis';
+      setError(errorMsg);
       setAvailableOutputs([]);
     } finally {
       setIsLoading(false);
@@ -182,62 +193,71 @@ export const OutputSelector: React.FC<OutputSelectorProps> = ({
                 Carregando outputs...
               </div>
             ) : error ? (
-              <div className="p-4 text-center text-red-400 text-sm">
-                <div className="mb-2">⚠️ {error}</div>
-                <button
-                  onClick={loadAvailableOutputs}
-                  className="text-xs text-blue-400 hover:text-blue-300 underline"
-                >
-                  Tentar novamente
-                </button>
+              <div className="p-4 text-center">
+                <div className="mb-3 text-yellow-400 text-sm whitespace-pre-line">
+                  {error}
+                </div>
+                {!error.includes('Salve a automação') && (
+                  <button
+                    onClick={loadAvailableOutputs}
+                    className="text-xs text-blue-400 hover:text-blue-300 underline"
+                  >
+                    Tentar novamente
+                  </button>
+                )}
               </div>
             ) : filteredOutputs.length === 0 ? (
-              <div className="p-4 text-center text-gray-400 text-sm">
+              <div className="p-4 text-center text-gray-400 text-sm whitespace-pre-line">
                 {availableOutputs.length === 0
-                  ? '📭 Nenhum node pai encontrado.\nAdicione nodes antes deste para usar seus outputs.'
+                  ? '📭 Nenhum node pai encontrado.\n\n💡 Adicione nodes antes deste na automação.'
                   : '🔍 Nenhum resultado encontrado para sua busca.'}
               </div>
             ) : (
-              filteredOutputs.map((output) => (
-                <div key={output.nodeId} className="border-b border-slate-700 last:border-b-0">
-                  {/* Node Name */}
-                  <div className="px-3 py-2 bg-slate-750 sticky top-0">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-purple-400 uppercase tracking-wide">
-                        {output.nodeName}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {output.outputKeys.length} chave{output.outputKeys.length !== 1 ? 's' : ''}
-                      </span>
-                    </div>
-                    {output.toolId && (
-                      <span className="text-xs text-gray-500">
-                        {output.toolId}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Output Keys */}
-                  <div className="py-1">
-                    {output.outputKeys.map((key) => (
-                      <button
-                        key={key}
-                        onClick={() => handleSelectOutput(output.nodeId, key)}
-                        className="w-full px-4 py-2 text-left hover:bg-slate-700 transition-colors flex items-center justify-between group"
-                        type="button"
-                      >
+              <div className="divide-y divide-slate-700">
+                {filteredOutputs.map((output) => (
+                  <div key={output.nodeId} className="py-2">
+                    {/* Node Name - Mais destacado e separado */}
+                    <div className="px-4 py-2 bg-gradient-to-r from-purple-900/30 to-transparent">
+                      <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-blue-400"></div>
-                          <code className="text-sm font-mono text-blue-300">{key}</code>
+                          <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                          <span className="text-sm font-bold text-purple-300">
+                            {output.nodeName}
+                          </span>
                         </div>
-                        <code className="text-xs font-mono text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {`{{${output.nodeId}.${key}}}`}
-                        </code>
-                      </button>
-                    ))}
+                        <span className="text-xs text-gray-500 bg-slate-800 px-2 py-0.5 rounded">
+                          {output.outputKeys.length} chave{output.outputKeys.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      {output.toolId && (
+                        <span className="text-xs text-gray-500 ml-4">
+                          {output.toolId}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Output Keys - Bem separado e indentado */}
+                    <div className="px-4 py-1 space-y-1">
+                      {output.outputKeys.map((key) => (
+                        <button
+                          key={key}
+                          onClick={() => handleSelectOutput(output.nodeId, key)}
+                          className="w-full px-3 py-2 text-left hover:bg-slate-700 rounded transition-colors flex items-center justify-between group"
+                          type="button"
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
+                            <code className="text-sm font-mono text-blue-300">{key}</code>
+                          </div>
+                          <code className="text-xs font-mono text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {`{{${output.nodeId}.${key}}}`}
+                          </code>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </div>
 
