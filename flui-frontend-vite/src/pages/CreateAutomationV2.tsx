@@ -170,77 +170,6 @@ export default function CreateAutomationV2() {
     // A lógica de teste já está no NodeConfigPanel
   };
 
-  // Salvar automação
-  const handleSave = async () => {
-    if (!name.trim()) {
-      alert('Digite um nome para a automação');
-      return;
-    }
-
-    if (nodes.length === 0) {
-      alert('Adicione pelo menos um nó à automação');
-      return;
-    }
-
-    setIsSaving(true);
-
-    try {
-      // Converter para formato de FlowDefinition
-      const flowNodes = nodes.map((node) => ({
-        id: node.id,
-        type: 'tool',
-        name: node.data.label,
-        description: node.data.description,
-        config: {
-          toolId: node.data.toolId,
-          params: {}, // TODO: Pegar params configurados
-        },
-        position: node.position,
-      }));
-
-      const flowEdges = edges.map((edge) => ({
-        id: edge.id,
-        source: edge.source,
-        target: edge.target,
-      }));
-
-      const automation = {
-        id: Date.now().toString(),
-        name,
-        description,
-        version: '2.0.0',
-        nodes: flowNodes,
-        edges: flowEdges,
-        startNodeId: nodes[0]?.id || '',
-        metadata: {
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-      };
-
-      // Salvar via API
-      const response = await fetch('http://localhost:3001/api/automations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(automation),
-      });
-      
-      const data = await response.json();
-      
-      // 🆕 Guardar o ID da automação salva
-      if (data.id) {
-        setAutomationId(data.id);
-      }
-
-      alert('Automação salva com sucesso!');
-      navigate('/');
-    } catch (error) {
-      console.error('Erro ao salvar:', error);
-      alert('Erro ao salvar automação');
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   // Executar automação (teste) - EXECUÇÃO REAL COM LOGS DETALHADOS
   const handleExecute = async () => {
@@ -407,30 +336,6 @@ export default function CreateAutomationV2() {
     }
   };
 
-  // Função antiga do handleSave (removida para usar a nova)
-  const oldHandleExecute_REMOVED = async () => {
-    if (false) {
-      const node: any = null;
-      setExecutionLogs((logs) => [
-        ...logs,
-        {
-            nodeId: node.id,
-            nodeName: node.data.label,
-            status: 'completed',
-            message: `${node.data.label} concluído`,
-            timestamp: new Date().toISOString(),
-          },
-        ]);
-      }
-
-      alert('Execução concluída!');
-    } catch (error) {
-      console.error('Erro na execução:', error);
-      alert('Erro na execução');
-    } finally {
-      setIsExecuting(false);
-    }
-  };
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
@@ -541,44 +446,15 @@ export default function CreateAutomationV2() {
         </ReactFlow>
       </div>
 
-      {/* Logs Panel */}
+      {/* Logs Panel - NOVO SISTEMA SUPERIOR */}
       {showLogs && (
-        <div className="bg-white border-t p-4 h-64 overflow-y-auto">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-900">Logs de Execução</h3>
-            <button
-              onClick={() => setShowLogs(false)}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              Fechar
-            </button>
-          </div>
-          
-          <div className="space-y-2 font-mono text-sm">
-            {executionLogs.length === 0 ? (
-              <p className="text-gray-500">Nenhum log disponível</p>
-            ) : (
-              executionLogs.map((log, i) => (
-                <div
-                  key={i}
-                  className={`p-2 rounded ${
-                    log.status === 'running'
-                      ? 'bg-blue-50 text-blue-700'
-                      : log.status === 'completed'
-                      ? 'bg-green-50 text-green-700'
-                      : 'bg-gray-50 text-gray-700'
-                  }`}
-                >
-                  <span className="text-gray-500">
-                    [{new Date(log.timestamp).toLocaleTimeString()}]
-                  </span>{' '}
-                  <span className="font-medium">{log.nodeName}:</span>{' '}
-                  {log.message}
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+        <ExecutionLogs
+          nodes={executionNodes}
+          logs={executionLogs}
+          status={executionStatus}
+          duration={executionDuration}
+          onClose={() => setShowLogs(false)}
+        />
       )}
 
       {/* Tool Palette Modal */}
