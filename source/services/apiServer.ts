@@ -4,7 +4,7 @@ import { createServer } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
-import { getAutomations, saveAutomation, deleteAutomation } from '../store/automationStorage.js';
+import { getAutomations, getAutomation, saveAutomation, deleteAutomation } from '../store/automationStorage.js';
 import { useStore } from '../store/store.js';
 import { getToolRegistry } from '../core/toolRegistry.js';
 import { ToolExecutor } from '../core/toolExecutor.js';
@@ -146,65 +146,68 @@ function getParentNodesRecursive(edges: any[], targetNodeId: string): string[] {
 }
 
 app.post('/api/automations', (req: Request, res: Response) => {
-  const automation = req.body;
-  const newAutomation = {
-    ...automation,
-    id: automation.id || Date.now().toString(),
-    startNodeId: automation.startNodeId || automation.nodes[0]?.id || '',
-    enabled: automation.enabled !== undefined ? automation.enabled : true,
-    runCount: automation.runCount || 0,
-    edges: automation.edges || [],
-    metadata: {
-      createdAt: automation.metadata?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-  };
-  saveAutomation(newAutomation);
-  res.json({ success: true, id: newAutomation.id });
+  console.log('📝 [API] POST /api/automations');
+  try {
+    // saveAutomation agora faz validação e normalização
+    const saved = saveAutomation(req.body);
+    console.log('✅ [API] Automação salva:', saved.id);
+    res.json({ success: true, id: saved.id, automation: saved });
+  } catch (error: any) {
+    console.error('❌ [API] Erro ao salvar automação:', error);
+    res.status(400).json({ error: error.message });
+  }
 });
 
 app.put('/api/automations/:id', (req: Request, res: Response) => {
-  const automations = getAutomations();
-  const existing = automations.find(a => a.id === req.params.id);
-  
-  if (!existing) {
-    return res.status(404).json({ error: 'Automação não encontrada' });
+  console.log('📝 [API] PUT /api/automations/:id', req.params.id);
+  try {
+    // Verificar se existe
+    const existing = getAutomation(req.params.id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Automação não encontrada' });
+    }
+    
+    // Merge com dados existentes
+    const toUpdate = {
+      ...req.body,
+      id: req.params.id,
+      createdAt: existing.createdAt, // Preservar createdAt original
+    };
+    
+    // saveAutomation faz validação e normalização
+    const saved = saveAutomation(toUpdate);
+    console.log('✅ [API] Automação atualizada:', saved.id);
+    res.json({ success: true, id: saved.id, automation: saved });
+  } catch (error: any) {
+    console.error('❌ [API] Erro ao atualizar automação:', error);
+    res.status(400).json({ error: error.message });
   }
-  
-  const updated = {
-    ...req.body,
-    id: req.params.id,
-    metadata: {
-      ...existing.metadata,
-      ...req.body.metadata,
-      createdAt: existing.metadata?.createdAt || existing.createdAt,
-      updatedAt: new Date().toISOString(),
-    },
-  };
-  
-  saveAutomation(updated);
-  res.json({ success: true, id: req.params.id });
 });
 
 app.patch('/api/automations/:id', (req: Request, res: Response) => {
-  const automations = getAutomations();
-  const existing = automations.find(a => a.id === req.params.id);
-  
-  if (!existing) {
-    return res.status(404).json({ error: 'Automação não encontrada' });
+  console.log('📝 [API] PATCH /api/automations/:id', req.params.id);
+  try {
+    const existing = getAutomation(req.params.id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Automação não encontrada' });
+    }
+    
+    // Merge parcial (PATCH)
+    const updated = {
+      ...existing,
+      ...req.body,
+      id: req.params.id, // Garantir que ID não muda
+      createdAt: existing.createdAt, // Preservar createdAt original
+    };
+    
+    // saveAutomation faz validação e normalização
+    const saved = saveAutomation(updated);
+    console.log('✅ [API] Automação atualizada (patch):', saved.id);
+    res.json({ success: true, id: saved.id, automation: saved });
+  } catch (error: any) {
+    console.error('❌ [API] Erro ao atualizar automação:', error);
+    res.status(400).json({ error: error.message });
   }
-  
-  const updated = {
-    ...existing,
-    ...req.body,
-    metadata: {
-      ...existing.metadata,
-      updatedAt: new Date().toISOString(),
-    },
-  };
-  
-  saveAutomation(updated);
-  res.json({ success: true, id: req.params.id });
 });
 
 app.delete('/api/automations/:id', (req: Request, res: Response) => {
