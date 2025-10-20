@@ -216,7 +216,7 @@ app.delete('/api/automations/:id', (req: Request, res: Response) => {
 });
 
 app.post('/api/automations/:id/execute', async (req: Request, res: Response) => {
-  console.log('🚀 [API] POST /api/automations/:id/execute', req.params.id);
+  console.log('🚀🚀🚀 [API] POST /api/automations/:id/execute - USANDO EXECUTIONENGINE V3!', req.params.id);
   
   try {
     const automations = getAutomations();
@@ -226,15 +226,17 @@ app.post('/api/automations/:id/execute', async (req: Request, res: Response) => 
       return res.status(404).json({ error: 'Automação não encontrada' });
     }
 
+    console.log('✨ [API] Importando ExecutionEngineV3...');
     // Converter para ExecutionFlow (formato do novo engine)
     const { ExecutionEngineV3 } = await import('./executionEngine.js');
+    console.log('✅ [API] ExecutionEngineV3 importado com sucesso!');
     
     const executionFlow = {
       id: automation.id,
       name: automation.name,
       nodes: automation.nodes.map(node => ({
         id: node.id,
-        type: node.type || 'tool',
+        type: node.config?.toolId || node.type || 'shell-executor', // Usar toolId como type
         name: node.name,
         config: node.config || {},
         position: node.position,

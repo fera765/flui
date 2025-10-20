@@ -228,7 +228,9 @@ export class ExecutionEngineV3 {
       this.execution.status = 'completed';
       this.execution.endTime = new Date().toISOString();
       this.execution.duration = this.calculateDuration();
-      this.execution.finalOutput = this.nodeOutputs.get(targetNodeId);
+      // Pegar o output do target node (extrair do formato NodeOutput)
+      const targetNodeOutput = this.nodeOutputs.get(targetNodeId);
+      this.execution.finalOutput = targetNodeOutput ? targetNodeOutput[targetNodeOutput.length - 1].json : null;
 
       this.log('info', `Execução até node concluída`, { targetNodeId });
     } catch (error: any) {
@@ -277,7 +279,17 @@ export class ExecutionEngineV3 {
           result.output = cachedResult;
           result.status = 'completed';
           result.metadata = { cached: true };
-          this.nodeOutputs.set(node.id, cachedResult);
+          
+          // Armazenar no formato NodeOutput
+          const nodeOutput = [{
+            json: cachedResult,
+            meta: {
+              nodeId: node.id,
+              timestamp: Date.now(),
+              cached: true,
+            },
+          }];
+          this.nodeOutputs.set(node.id, nodeOutput);
           
           result.endTime = new Date().toISOString();
           result.duration = this.calculateNodeDuration(result);
@@ -292,8 +304,16 @@ export class ExecutionEngineV3 {
       result.output = output;
       result.status = 'completed';
       
-      // Armazenar output
-      this.nodeOutputs.set(node.id, output);
+      // Armazenar output no formato NodeOutput esperado pelo referenceResolver
+      // Formato: [{ json: {...}, meta: {...} }]
+      const nodeOutput = [{
+        json: output,
+        meta: {
+          nodeId: node.id,
+          timestamp: Date.now(),
+        },
+      }];
+      this.nodeOutputs.set(node.id, nodeOutput);
       
       // Cachear resultado
       if (this.options.enableCache) {
@@ -390,10 +410,18 @@ export class ExecutionEngineV3 {
     const config = node.config || {};
     const params = { ...config.params };
 
+    console.log(`🔍 [ExecutionEngineV3] prepareNodeInput para ${node.id}:`, {
+      params,
+      nodeOutputsSize: this.nodeOutputs.size,
+      availableNodes: Array.from(this.nodeOutputs.keys()),
+    });
+
     // Resolver referências {{nodeId.key}}
     const resolvedParams = resolveReferences(params, {
       nodeOutputs: this.nodeOutputs,
     });
+    
+    console.log(`✅ [ExecutionEngineV3] Referências resolvidas:`, resolvedParams);
 
     // Se o node não é o primeiro, incluir outputs dos nodes anteriores
     const parentNodes = this.getParentNodes(node.id);
@@ -401,15 +429,22 @@ export class ExecutionEngineV3 {
 
     for (const parentId of parentNodes) {
       const parentOutput = this.nodeOutputs.get(parentId);
-      if (parentOutput) {
-        parentOutputs[parentId] = parentOutput;
+      if (parentOutput && parentOutput.length > 0) {
+        // Extrair o JSON do formato NodeOutput
+        parentOutputs[parentId] = parentOutput[parentOutput.length - 1].json;
       }
     }
+
+    // Pegar output do node anterior (para $previousNode)
+    const previousNodeOutput = parentNodes.length > 0 ? this.nodeOutputs.get(parentNodes[0]) : null;
+    const previousNodeData = previousNodeOutput && previousNodeOutput.length > 0 
+      ? previousNodeOutput[previousNodeOutput.length - 1].json 
+      : null;
 
     return {
       ...resolvedParams,
       $parentOutputs: parentOutputs,
-      $previousNode: parentNodes.length > 0 ? this.nodeOutputs.get(parentNodes[0]) : null,
+      $previousNode: previousNodeData,
     };
   }
 
@@ -569,7 +604,11 @@ export class ExecutionEngineV3 {
    * Obter resultado de um node específico
    */
   getNodeOutput(nodeId: string): any {
-    return this.nodeOutputs.get(nodeId);
+    const nodeOutput = this.nodeOutputs.get(nodeId);
+    if (nodeOutput && nodeOutput.length > 0) {
+      return nodeOutput[nodeOutput.length - 1].json;
+    }
+    return null;
   }
 
   /**
