@@ -63,10 +63,13 @@ export const OutputSelector: React.FC<OutputSelectorProps> = ({
 
   // Carregar outputs disponíveis
   useEffect(() => {
-    if (isOpen && currentNodeId && automationId) {
-      loadAvailableOutputs();
+    if (isOpen && currentNodeId) {
+      // Dispara se tem automationId OU se tem localNodes+localEdges
+      if (automationId || (localNodes && localEdges)) {
+        loadAvailableOutputs();
+      }
     }
-  }, [isOpen, currentNodeId, automationId]);
+  }, [isOpen, currentNodeId, automationId, localNodes, localEdges]);
 
   // Fechar ao clicar fora
   useEffect(() => {
@@ -83,6 +86,15 @@ export const OutputSelector: React.FC<OutputSelectorProps> = ({
   }, [isOpen]);
 
   const loadAvailableOutputs = async () => {
+    console.log('🔍 [OutputSelector] loadAvailableOutputs iniciado', {
+      automationId,
+      currentNodeId,
+      hasLocalNodes: !!localNodes,
+      localNodesCount: localNodes?.length || 0,
+      hasLocalEdges: !!localEdges,
+      localEdgesCount: localEdges?.length || 0
+    });
+
     setIsLoading(true);
     setError(null);
     setUsingLocalMode(false);
@@ -91,6 +103,8 @@ export const OutputSelector: React.FC<OutputSelectorProps> = ({
       // 🆕 MODO HÍBRIDO: Tenta API primeiro, se falhar usa cálculo local
       
       if (automationId && currentNodeId) {
+        console.log('🌐 [OutputSelector] Tentando modo API...');
+
         // Modo 1: Automação já salva - usar API
         try {
           const response = await axios.get(

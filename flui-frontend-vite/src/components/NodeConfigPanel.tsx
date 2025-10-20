@@ -274,6 +274,17 @@ export default function NodeConfigPanel({
 
     switch (ui.widgetType) {
       case 'textInput':
+        // Debug: log props sendo passadas
+        console.log('🔧 [NodeConfigPanel] Rendering OutputSelector:', {
+          automationId,
+          currentNodeId: nodeId,
+          fieldName: param.key,
+          hasLocalNodes: !!localNodes,
+          localNodesLength: localNodes?.length,
+          hasLocalEdges: !!localEdges,
+          localEdgesLength: localEdges?.length
+        });
+        
         return (
           <OutputSelector
             automationId={automationId}

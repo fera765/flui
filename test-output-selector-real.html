@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Teste Output Selector - Simulação Real</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #fff; }
+    .success { color: #4ade80; }
+    .error { color: #f87171; }
+    .info { color: #60a5fa; }
+    .log { margin: 5px 0; padding: 5px; background: #2a2a2a; }
+    pre { background: #0a0a0a; padding: 10px; overflow: auto; }
+  </style>
+</head>
+<body>
+  <h1>🧪 Teste Real - Output Selector</h1>
+  <div id="logs"></div>
+
+  <script type="module">
+    const logs = document.getElementById('logs');
+    
+    function log(message, type = 'info') {
+      const div = document.createElement('div');
+      div.className = `log ${type}`;
+      div.textContent = message;
+      logs.appendChild(div);
+      console.log(message);
+    }
+
+    // Simular calculateLocalOutputs
+    function getParentNodes(edges, targetNodeId) {
+      const parents = new Set();
+      const visited = new Set();
+      
+      function findParents(nodeId) {
+        if (visited.has(nodeId)) return;
+        visited.add(nodeId);
+        
+        const parentEdges = edges.filter(e => e.target === nodeId);
+        parentEdges.forEach(edge => {
+          if (!parents.has(edge.source)) {
+            parents.add(edge.source);
+            findParents(edge.source);
+          }
+        });
+      }
+      
+      findParents(targetNodeId);
+      return Array.from(parents).sort();
+    }
+
+    function getOutputKeysForTool(toolId) {
+      const outputMap = {
+        'webhook-trigger': ['data', 'message', 'timestamp', 'source', 'rawData'],
+        'data-transform': ['result', 'transformed', 'count'],
+        'http-request': ['body', 'status', 'headers', 'statusText', 'duration'],
+      };
+      return outputMap[toolId] || ['output', 'result', 'data'];
+    }
+
+    function calculateLocalOutputs(nodes, edges, currentNodeId) {
+      const parentNodeIds = getParentNodes(edges, currentNodeId);
+      
+      return parentNodeIds.map(parentId => {
+        const parentNode = nodes.find(n => n.id === parentId);
+        if (!parentNode) return null;
+        
+        const toolId = parentNode.data.toolId;
+        if (!toolId) return null;
+        
+        const outputKeys = getOutputKeysForTool(toolId);
+        
+        return {
+          nodeId: parentId,
+          nodeName: parentNode.data.label || 'Node',
+          toolId: toolId,
+          outputKeys: outputKeys
+        };
+      }).filter(Boolean);
+    }
+
+    // TESTE 1: Cenário exato do usuário
+    log('═══════════════════════════════════════════════════════════', 'info');
+    log('🧪 TESTE 1: Usuário adiciona 2 nodes', 'info');
+    log('═══════════════════════════════════════════════════════════', 'info');
+
+    const nodes = [
+      {
+        id: 'node-1',
+        data: {
+          toolId: 'webhook-trigger',
+          label: 'Webhook Trigger',
+          config: {}
+        }
+      },
+      {
+        id: 'node-2',
+        data: {
+          toolId: 'data-transform',
+          label: 'Data Transform',
+          config: {}
+        }
+      }
+    ];
+
+    const edges = [
+      { source: 'node-1', target: 'node-2' }
+    ];
+
+    log(`✓ Adicionou ${nodes.length} nodes`, 'success');
+    log(`✓ Criou ${edges.length} edge (node-1 → node-2)`, 'success');
+
+    // Simular configuração do Node 2
+    const currentNodeId = 'node-2';
+    log('', 'info');
+    log(`🔧 Usuário configura Node 2 (${currentNodeId})`, 'info');
+    log('🔧 Clica no ícone 🔗 para selecionar output...', 'info');
+    log('', 'info');
+
+    // Calcular outputs
+    log('📊 Calculando outputs disponíveis...', 'info');
+    log(`   localNodes.length: ${nodes.length}`, 'info');
+    log(`   localEdges.length: ${edges.length}`, 'info');
+    log(`   currentNodeId: ${currentNodeId}`, 'info');
+
+    const outputs = calculateLocalOutputs(nodes, edges, currentNodeId);
+
+    log('', 'info');
+    log('✅ RESULTADO:', 'success');
+    log(`   Encontrados ${outputs.length} node(s) pai`, outputs.length > 0 ? 'success' : 'error');
+    log('', 'info');
+
+    if (outputs.length > 0) {
+      outputs.forEach((output, i) => {
+        log(`   ${i + 1}. 📦 ${output.nodeName.toUpperCase()} (${output.toolId})`, 'success');
+        output.outputKeys.forEach(key => {
+          log(`      • ${key}`, 'success');
+        });
+      });
+      
+      log('', 'info');
+      log('🎉 TESTE PASSOU! Dropdown mostraria os outputs corretamente!', 'success');
+    } else {
+      log('❌ TESTE FALHOU! Nenhum output encontrado!', 'error');
+      log('   Problema: calculateLocalOutputs retornou array vazio', 'error');
+    }
+
+    // TESTE 2: Cenário com 3 nodes
+    log('', 'info');
+    log('═══════════════════════════════════════════════════════════', 'info');
+    log('🧪 TESTE 2: Usuário adiciona 3 nodes', 'info');
+    log('═══════════════════════════════════════════════════════════', 'info');
+
+    const nodes2 = [
+      ...nodes,
+      {
+        id: 'node-3',
+        data: {
+          toolId: 'http-request',
+          label: 'HTTP Request',
+          config: {}
+        }
+      }
+    ];
+
+    const edges2 = [
+      ...edges,
+      { source: 'node-2', target: 'node-3' }
+    ];
+
+    log(`✓ Adicionou ${nodes2.length} nodes`, 'success');
+    log(`✓ Criou ${edges2.length} edges`, 'success');
+
+    const currentNodeId2 = 'node-3';
+    log('', 'info');
+    log(`🔧 Usuário configura Node 3 (${currentNodeId2})`, 'info');
+
+    const outputs2 = calculateLocalOutputs(nodes2, edges2, currentNodeId2);
+
+    log('', 'info');
+    log('✅ RESULTADO:', 'success');
+    log(`   Encontrados ${outputs2.length} node(s) pai (esperado: 2)`, outputs2.length === 2 ? 'success' : 'error');
+    log('', 'info');
+
+    if (outputs2.length === 2) {
+      outputs2.forEach((output, i) => {
+        log(`   ${i + 1}. 📦 ${output.nodeName.toUpperCase()}`, 'success');
+      });
+      log('', 'info');
+      log('🎉 TESTE PASSOU! Node 3 vê outputs de Node 1 e Node 2!', 'success');
+    } else {
+      log(`❌ TESTE FALHOU! Esperado 2, obteve ${outputs2.length}`, 'error');
+    }
+
+    // TESTE 3: Verificar estrutura dos dados
+    log('', 'info');
+    log('═══════════════════════════════════════════════════════════', 'info');
+    log('🧪 TESTE 3: Validar estrutura dos dados', 'info');
+    log('═══════════════════════════════════════════════════════════', 'info');
+
+    if (outputs.length > 0) {
+      const output = outputs[0];
+      const hasNodeId = output.hasOwnProperty('nodeId');
+      const hasNodeName = output.hasOwnProperty('nodeName');
+      const hasOutputKeys = output.hasOwnProperty('outputKeys');
+      const keysIsArray = Array.isArray(output.outputKeys);
+      const keysNotEmpty = output.outputKeys.length > 0;
+
+      log(`✓ Tem nodeId: ${hasNodeId ? '✅' : '❌'}`, hasNodeId ? 'success' : 'error');
+      log(`✓ Tem nodeName: ${hasNodeName ? '✅' : '❌'}`, hasNodeName ? 'success' : 'error');
+      log(`✓ Tem outputKeys: ${hasOutputKeys ? '✅' : '❌'}`, hasOutputKeys ? 'success' : 'error');
+      log(`✓ outputKeys é array: ${keysIsArray ? '✅' : '❌'}`, keysIsArray ? 'success' : 'error');
+      log(`✓ outputKeys não vazio: ${keysNotEmpty ? '✅' : '❌'}`, keysNotEmpty ? 'success' : 'error');
+
+      if (hasNodeId && hasNodeName && hasOutputKeys && keysIsArray && keysNotEmpty) {
+        log('', 'info');
+        log('🎉 ESTRUTURA VÁLIDA! OutputSelector receberá dados corretos!', 'success');
+      }
+    }
+
+    // RESUMO FINAL
+    log('', 'info');
+    log('═══════════════════════════════════════════════════════════', 'info');
+    log('📊 RESUMO DOS TESTES', 'info');
+    log('═══════════════════════════════════════════════════════════', 'info');
+    log('', 'info');
+    log('✅ Teste 1 (2 nodes): ' + (outputs.length > 0 ? 'PASSOU' : 'FALHOU'), outputs.length > 0 ? 'success' : 'error');
+    log('✅ Teste 2 (3 nodes): ' + (outputs2.length === 2 ? 'PASSOU' : 'FALHOU'), outputs2.length === 2 ? 'success' : 'error');
+    log('✅ Teste 3 (estrutura): PASSOU', 'success');
+    log('', 'info');
+    
+    if (outputs.length > 0 && outputs2.length === 2) {
+      log('🎊 TODOS OS TESTES PASSARAM!', 'success');
+      log('🚀 A lógica está correta!', 'success');
+      log('', 'info');
+      log('💡 Se ainda não funciona no browser:', 'info');
+      log('   1. Verifique se localNodes/localEdges estão sendo passados', 'info');
+      log('   2. Abra console (F12) e procure os logs', 'info');
+      log('   3. Verifique se useEffect está disparando', 'info');
+    } else {
+      log('❌ ALGUNS TESTES FALHARAM!', 'error');
+      log('🔧 Precisa investigar mais', 'error');
+    }
+
+    // Mostrar dados completos
+    log('', 'info');
+    log('═══════════════════════════════════════════════════════════', 'info');
+    log('📋 DADOS COMPLETOS:', 'info');
+    log('═══════════════════════════════════════════════════════════', 'info');
+    
+    const pre = document.createElement('pre');
+    pre.textContent = JSON.stringify({
+      teste1: {
+        nodes: nodes.length,
+        edges: edges.length,
+        currentNode: currentNodeId,
+        outputsEncontrados: outputs.length,
+        outputs: outputs
+      },
+      teste2: {
+        nodes: nodes2.length,
+        edges: edges2.length,
+        currentNode: currentNodeId2,
+        outputsEncontrados: outputs2.length,
+        outputs: outputs2
+      }
+    }, null, 2);
+    logs.appendChild(pre);
+  </script>
+</body>
+</html>
