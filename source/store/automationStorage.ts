@@ -76,10 +76,22 @@ function migrateAutomation(automation: any): Automation {
   }
   
   // Migration de versão 1.x para 2.0
+  let edges = automation.edges || [];
+  
+  // Se não tem edges mas tem connections (formato antigo), converter
+  if (edges.length === 0 && automation.connections) {
+    console.log('🔄 [Storage] Convertendo connections → edges');
+    edges = automation.connections.map((conn: any, index: number) => ({
+      id: conn.id || `edge-${index}`,
+      source: conn.from || conn.source,
+      target: conn.to || conn.target,
+    }));
+  }
+  
   const migrated: any = {
     ...automation,
     version: '2.0.0',
-    edges: automation.edges || automation.connections || [],
+    edges,
     startNodeId: automation.startNodeId || automation.nodes?.[0]?.id || '',
     metadata: automation.metadata || {
       createdAt: automation.createdAt || new Date().toISOString(),
@@ -87,7 +99,10 @@ function migrateAutomation(automation: any): Automation {
     },
   };
   
-  console.log('✅ [Storage] Migração concluída');
+  // Remover campo 'connections' se existir
+  delete migrated.connections;
+  
+  console.log('✅ [Storage] Migração concluída', { edgesCount: edges.length });
   return validateAndNormalizeAutomation(migrated);
 }
 
@@ -112,8 +127,11 @@ export const getAutomation = (id: string): Automation | null => {
 export const saveAutomation = (automation: any): Automation => {
   console.log('💾 [Storage] Salvando automação:', automation.id || 'nova');
   
-  // Validar e normalizar antes de salvar
-  const validated = validateAndNormalizeAutomation(automation);
+  // Migrar PRIMEIRO (se necessário) para converter schemas antigos
+  const migrated = automation.version !== '2.0.0' ? migrateAutomation(automation) : automation;
+  
+  // Depois validar e normalizar
+  const validated = validateAndNormalizeAutomation(migrated);
   
   const automations = (config.get('automations') as any[]) || [];
   const index = automations.findIndex((a) => a.id === validated.id);
