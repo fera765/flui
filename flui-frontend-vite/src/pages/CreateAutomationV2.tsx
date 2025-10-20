@@ -520,6 +520,8 @@ export default function CreateAutomationV2() {
           toolId={selectedNode.data.toolId}
           initialConfig={selectedNode.data.config}
           automationId={automationId}
+          localNodes={nodes}
+          localEdges={edges}
           onClose={() => {
             setConfigPanelOpen(false);
             setSelectedNode(null);

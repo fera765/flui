@@ -67,6 +67,9 @@ interface NodeConfigPanelProps {
   toolId: string;
   initialConfig?: any;
   automationId?: string; // ID da automação atual
+  // 🆕 Para automações não salvas
+  localNodes?: any[];
+  localEdges?: any[];
   onClose: () => void;
   onSave: (config: any) => void;
   onTest?: (config: any) => void;
@@ -80,6 +83,8 @@ export default function NodeConfigPanel({
   toolId,
   initialConfig = {},
   automationId,
+  localNodes,
+  localEdges,
   onClose,
   onSave,
   onTest,
@@ -277,6 +282,8 @@ export default function NodeConfigPanel({
             fieldValue={value || ''}
             onSelect={(newValue) => updateConfig(param.key, newValue)}
             placeholder={ui.placeholder}
+            localNodes={localNodes}
+            localEdges={localEdges}
           />
         );
 
@@ -289,6 +296,8 @@ export default function NodeConfigPanel({
             fieldValue={value || ''}
             onSelect={(newValue) => updateConfig(param.key, newValue)}
             placeholder={ui.placeholder}
+            localNodes={localNodes}
+            localEdges={localEdges}
           />
         );
 

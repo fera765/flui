@@ -6,12 +6,27 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link2, X, Search } from 'lucide-react';
 import axios from 'axios';
+import { calculateLocalOutputs } from '../utils/localOutputExtractor';
 
 interface OutputOption {
   nodeId: string;
   nodeName: string;
   toolId?: string;
   outputKeys: string[];
+}
+
+interface LocalNode {
+  id: string;
+  data: {
+    label?: string;
+    toolId?: string;
+    config?: any;
+  };
+}
+
+interface LocalEdge {
+  source: string;
+  target: string;
 }
 
 interface OutputSelectorProps {
@@ -22,6 +37,9 @@ interface OutputSelectorProps {
   onSelect: (value: string) => void;
   placeholder?: string;
   disabled?: boolean;
+  // 🆕 Para automações não salvas (em criação)
+  localNodes?: LocalNode[];
+  localEdges?: LocalEdge[];
 }
 
 export const OutputSelector: React.FC<OutputSelectorProps> = ({
@@ -32,12 +50,15 @@ export const OutputSelector: React.FC<OutputSelectorProps> = ({
   onSelect,
   placeholder = 'Digite ou selecione...',
   disabled = false,
+  localNodes,
+  localEdges,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [availableOutputs, setAvailableOutputs] = useState<OutputOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [usingLocalMode, setUsingLocalMode] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Carregar outputs disponíveis
@@ -64,27 +85,51 @@ export const OutputSelector: React.FC<OutputSelectorProps> = ({
   const loadAvailableOutputs = async () => {
     setIsLoading(true);
     setError(null);
+    setUsingLocalMode(false);
 
     try {
-      // Se não tem automationId, avisar usuário para salvar primeiro
-      if (!automationId || !currentNodeId) {
-        console.warn('⚠️  automationId ou currentNodeId não disponível');
-        setAvailableOutputs([]);
-        setError('💾 Salve a automação primeiro para ativar a seleção de outputs dos nodes anteriores');
+      // 🆕 MODO HÍBRIDO: Tenta API primeiro, se falhar usa cálculo local
+      
+      if (automationId && currentNodeId) {
+        // Modo 1: Automação já salva - usar API
+        try {
+          const response = await axios.get(
+            `http://localhost:3001/api/automations/${automationId}/nodes/${currentNodeId}/available-outputs`
+          );
+          
+          const outputs = response.data.availableOutputs || [];
+          
+          if (outputs.length === 0) {
+            setError('📭 Nenhum node anterior encontrado.\n\n💡 Adicione nodes antes deste na automação.');
+          }
+          
+          setAvailableOutputs(outputs);
+          return; // Success via API
+        } catch (apiError) {
+          console.warn('⚠️  API falhou, tentando modo local...', apiError);
+          // Continua para modo local abaixo
+        }
+      }
+      
+      // Modo 2: Automação em criação - calcular localmente
+      if (localNodes && localEdges && currentNodeId) {
+        console.log('🔧 Usando modo local (automação ainda não salva)');
+        const outputs = calculateLocalOutputs(localNodes, localEdges, currentNodeId);
+        
+        if (outputs.length === 0) {
+          setError('📭 Nenhum node anterior conectado.\n\n💡 Adicione e conecte nodes antes deste para usar seus outputs.');
+        } else {
+          setUsingLocalMode(true);
+        }
+        
+        setAvailableOutputs(outputs);
         return;
       }
-
-      const response = await axios.get(
-        `http://localhost:3001/api/automations/${automationId}/nodes/${currentNodeId}/available-outputs`
-      );
       
-      const outputs = response.data.availableOutputs || [];
-      
-      if (outputs.length === 0) {
-        setError('📭 Nenhum node anterior encontrado.\n\n💡 Adicione nodes antes deste na automação.');
-      }
-      
-      setAvailableOutputs(outputs);
+      // Modo 3: Nenhum modo disponível
+      console.warn('⚠️  Nem automationId nem localNodes disponíveis');
+      setAvailableOutputs([]);
+      setError('⚠️ Configure a automação corretamente.\n\nAdicione nodes anteriores e tente novamente.');
     } catch (error: any) {
       console.error('Erro ao carregar outputs:', error);
       const errorMsg = error.response?.data?.error || error.message || 'Erro ao carregar outputs disponíveis';
@@ -266,6 +311,11 @@ export const OutputSelector: React.FC<OutputSelectorProps> = ({
             <div className="p-2 border-t border-slate-700 bg-slate-750">
               <p className="text-xs text-gray-400 text-center">
                 💡 Clique em uma chave para inserir a referência
+                {usingLocalMode && (
+                  <span className="block mt-1 text-yellow-400">
+                    ⚠️ Salve a automação para garantir dados reais
+                  </span>
+                )}
               </p>
             </div>
           )}

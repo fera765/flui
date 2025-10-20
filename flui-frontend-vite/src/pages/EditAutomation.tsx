@@ -544,6 +544,8 @@ export default function EditAutomation() {
           toolId={selectedNode.data.toolId}
           initialConfig={selectedNode.data.config}
           automationId={id}
+          localNodes={nodes}
+          localEdges={edges}
           onClose={() => {
             setConfigPanelOpen(false);
             setSelectedNode(null);
