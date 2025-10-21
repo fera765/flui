@@ -1,0 +1,46 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - button [ref=e8] [cursor=pointer]:
+        - img [ref=e9]
+      - generic [ref=e11]:
+        - textbox "Nome da automação" [ref=e12]: Nova Automação
+        - textbox "Descrição (opcional)" [ref=e13]
+    - generic [ref=e15] [cursor=pointer]:
+      - checkbox "🔁 Execução Contínua" [ref=e16]
+      - generic [ref=e17]: 🔁 Execução Contínua
+    - generic [ref=e18]:
+      - button "Logs" [ref=e19] [cursor=pointer]:
+        - img [ref=e20]
+        - generic [ref=e23]: Logs
+      - button "Executar" [disabled] [ref=e24]:
+        - img [ref=e25]
+        - generic [ref=e27]: Executar
+      - button "Salvar" [ref=e28] [cursor=pointer]:
+        - img [ref=e29]
+        - generic [ref=e33]: Salvar
+  - generic [ref=e35]:
+    - generic [ref=e37]:
+      - generic:
+        - img
+    - img [ref=e38]
+    - generic [ref=e40]:
+      - button "zoom in" [ref=e41] [cursor=pointer]:
+        - img [ref=e42]
+      - button "zoom out" [ref=e44] [cursor=pointer]:
+        - img [ref=e45]
+      - button "fit view" [ref=e47] [cursor=pointer]:
+        - img [ref=e48]
+      - button "toggle interactivity" [ref=e50] [cursor=pointer]:
+        - img [ref=e51]
+    - generic [ref=e55]: 0 nó(s) • 0 conexão(ões)
+    - button "Adicionar Ferramenta" [ref=e57] [cursor=pointer]:
+      - img [ref=e58]
+      - text: Adicionar Ferramenta
+    - link "React Flow attribution" [ref=e60] [cursor=pointer]:
+      - /url: https://reactflow.dev
+      - text: React Flow
+```

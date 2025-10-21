@@ -316,7 +316,7 @@ test.describe('BLOCO 1 - Automação Simples', () => {
         // Abrir aba de logs se não estiver aberta
         const logsTab = page.locator('button:has-text("Logs")').or(
           page.locator('[role="tab"]:has-text("Logs")')
-        );
+        ).first(); // Usar first() pois há múltiplos botões de Logs
         
         if (await logsTab.count() > 0) {
           await logsTab.click();

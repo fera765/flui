@@ -238,7 +238,7 @@ test.describe('BLOCO 2 - MCP Integration', () => {
     await wait(2000);
     
     // Abrir palette
-    const addNodeButton = page.locator('button:has-text("Adicionar Nó")');
+    const addNodeButton = page.locator('button:has-text("Adicionar Ferramenta")');
     await addNodeButton.click();
     await wait(500);
     
