@@ -58,8 +58,8 @@ export default function FieldLinker({
   const filteredOutputs = compatibleOutputs.filter(item => {
     const searchLower = searchTerm.toLowerCase();
     return (
-      item.nodeName.toLowerCase().includes(searchLower) ||
-      item.field.key.toLowerCase().includes(searchLower) ||
+      item.nodeName?.toLowerCase().includes(searchLower) ||
+      item.field.key?.toLowerCase().includes(searchLower) ||
       item.field.label?.toLowerCase().includes(searchLower)
     );
   });
