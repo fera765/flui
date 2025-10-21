@@ -341,8 +341,15 @@ export class MCPExecutor {
         // Formato: "  command-name    Description here"
         const match = line.match(/^\s+(\S+)\s+(.+)$/);
         if (match) {
+          // Normalizar ID
+          const safeName = match[1]
+            .toLowerCase()
+            .replace(/[^a-z0-9-_]/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '');
+          
           tools.push({
-            id: `${mcpName}-${match[1]}`,
+            id: `${mcpName}-${safeName}`,
             name: match[1],
             description: match[2].trim(),
             handler: match[1],
@@ -365,10 +372,17 @@ export class MCPExecutor {
       // Não é JSON válido
     }
 
-    // Se não encontrou nenhuma tool, criar uma genérica
+      // Se não encontrou nenhuma tool, criar uma genérica
     if (tools.length === 0) {
+      // Normalizar nome para ID válido (só lowercase, números, -, _)
+      const safeId = mcpName
+        .toLowerCase()
+        .replace(/[^a-z0-9-_]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+      
       tools.push({
-        id: `${mcpName}-default`,
+        id: `${safeId}-default`,
         name: mcpName,
         description: `Tool principal de ${mcpName}`,
         handler: 'execute',
