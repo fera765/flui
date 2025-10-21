@@ -31,6 +31,7 @@ export default function MCPsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [installType, setInstallType] = useState<'github' | 'npx' | 'npm' | 'local'>('github');
   const [newMcp, setNewMcp] = useState<Partial<MCP>>({
     name: '',
     description: '',
@@ -129,14 +130,22 @@ export default function MCPsPage() {
 
   const handleSync = async (id: string) => {
     try {
-      await fetch(`http://localhost:3001/api/mcps/${id}/sync`, {
+      const response = await fetch(`http://localhost:3001/api/mcps/${id}/sync`, {
         method: 'POST',
       });
-      alert('MCP sincronizado com sucesso!');
+      const result = await response.json();
+      
+      if (response.ok) {
+        const toolCount = result.toolsRegistered || result.tools?.length || 0;
+        alert(`✅ MCP sincronizado com sucesso!\n\n${toolCount} ferramenta${toolCount !== 1 ? 's' : ''} disponível${toolCount !== 1 ? 'is' : ''} no Tool Registry.`);
+      } else {
+        throw new Error(result.error || 'Erro ao sincronizar');
+      }
+      
       await loadMcps();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erro ao sincronizar MCP:', err);
-      alert('Erro ao sincronizar MCP');
+      alert(`❌ Erro ao sincronizar MCP: ${err.message}`);
     }
   };
 
@@ -175,6 +184,38 @@ export default function MCPsPage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
+        {/* Info Banner */}
+        <div className="mb-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl p-6">
+          <div className="flex items-start gap-4">
+            <div className="text-3xl">💡</div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-white mb-2">
+                Ferramentas MCP Automaticamente Integradas
+              </h3>
+              <p className="text-blue-200 text-sm">
+                Quando você adiciona ou sincroniza um MCP, todas as suas ferramentas ficam 
+                <strong className="text-white"> automaticamente disponíveis</strong> no 
+                <strong className="text-white"> Tool Registry</strong>. 
+                Você pode usá-las imediatamente ao criar automações, adicionando-as do painel de ferramentas.
+              </p>
+              <div className="mt-3 flex items-center gap-4 text-xs text-blue-300">
+                <div className="flex items-center gap-1">
+                  <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                  <span>Auto-sync após instalação</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+                  <span>Disponível no NodePalette</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
+                  <span>Type-safe e validado</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
@@ -248,12 +289,18 @@ export default function MCPsPage() {
                   {/* Tools List */}
                   {mcp.tools && mcp.tools.length > 0 && (
                     <div className="mt-4 pt-4 border-t border-purple-500/10">
-                      <p className="text-xs text-purple-400 mb-2">Ferramentas disponíveis:</p>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs text-purple-400">Ferramentas disponíveis:</p>
+                        <span className="flex items-center gap-1 text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full border border-green-500/30">
+                          <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
+                          <span>No Tool Registry</span>
+                        </span>
+                      </div>
                       <div className="flex flex-wrap gap-1">
                         {mcp.tools.slice(0, 5).map((tool) => (
                           <span
                             key={tool.id}
-                            className="text-xs bg-purple-500/10 text-purple-300 px-2 py-1 rounded"
+                            className="text-xs bg-purple-500/10 text-purple-300 px-2 py-1 rounded hover:bg-purple-500/20 transition cursor-pointer"
                             title={tool.description}
                           >
                             {tool.name}
@@ -318,7 +365,7 @@ export default function MCPsPage() {
       {/* Create Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-purple-500/20">
+          <div className="bg-slate-800 rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-purple-500/20">
             <div className="p-6 border-b border-purple-500/20">
               <h2 className="text-2xl font-bold text-white">Adicionar Novo MCP</h2>
               <p className="text-sm text-purple-400 mt-1">
@@ -326,60 +373,236 @@ export default function MCPsPage() {
               </p>
             </div>
             
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-6">
+              {/* Install Type Tabs */}
               <div>
-                <label className="block text-sm font-medium text-purple-300 mb-2">
-                  Nome *
+                <label className="block text-sm font-medium text-purple-300 mb-3">
+                  Tipo de Instalação
                 </label>
-                <input
-                  type="text"
-                  value={newMcp.name}
-                  onChange={(e) => setNewMcp({ ...newMcp, name: e.target.value })}
-                  className="w-full bg-slate-900/50 border border-purple-500/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Ex: GitHub MCP"
-                />
+                <div className="grid grid-cols-4 gap-2">
+                  <button
+                    onClick={() => setInstallType('github')}
+                    className={`px-4 py-3 rounded-lg font-medium transition-all ${
+                      installType === 'github'
+                        ? 'bg-purple-600 text-white shadow-lg'
+                        : 'bg-slate-700 text-purple-300 hover:bg-slate-600'
+                    }`}
+                  >
+                    <div className="text-2xl mb-1">🐙</div>
+                    <div className="text-xs">GitHub</div>
+                  </button>
+                  <button
+                    onClick={() => setInstallType('npx')}
+                    className={`px-4 py-3 rounded-lg font-medium transition-all ${
+                      installType === 'npx'
+                        ? 'bg-purple-600 text-white shadow-lg'
+                        : 'bg-slate-700 text-purple-300 hover:bg-slate-600'
+                    }`}
+                  >
+                    <div className="text-2xl mb-1">📦</div>
+                    <div className="text-xs">NPX</div>
+                  </button>
+                  <button
+                    onClick={() => setInstallType('npm')}
+                    className={`px-4 py-3 rounded-lg font-medium transition-all ${
+                      installType === 'npm'
+                        ? 'bg-purple-600 text-white shadow-lg'
+                        : 'bg-slate-700 text-purple-300 hover:bg-slate-600'
+                    }`}
+                  >
+                    <div className="text-2xl mb-1">📚</div>
+                    <div className="text-xs">NPM</div>
+                  </button>
+                  <button
+                    onClick={() => setInstallType('local')}
+                    className={`px-4 py-3 rounded-lg font-medium transition-all ${
+                      installType === 'local'
+                        ? 'bg-purple-600 text-white shadow-lg'
+                        : 'bg-slate-700 text-purple-300 hover:bg-slate-600'
+                    }`}
+                  >
+                    <div className="text-2xl mb-1">💻</div>
+                    <div className="text-xs">Local</div>
+                  </button>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-purple-300 mb-2">
-                  Descrição
-                </label>
-                <input
-                  type="text"
-                  value={newMcp.description}
-                  onChange={(e) => setNewMcp({ ...newMcp, description: e.target.value })}
-                  className="w-full bg-slate-900/50 border border-purple-500/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Breve descrição do MCP"
-                />
-              </div>
+              {/* GitHub */}
+              {installType === 'github' && (
+                <div className="space-y-4">
+                  <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
+                    <p className="text-sm text-purple-300">
+                      <strong>GitHub MCP</strong>: Clone e execute um MCP diretamente de um repositório GitHub
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-purple-300 mb-2">
+                      Repositório GitHub *
+                    </label>
+                    <input
+                      type="text"
+                      value={newMcp.server}
+                      onChange={(e) => setNewMcp({ ...newMcp, server: e.target.value })}
+                      className="w-full bg-slate-900/50 border border-purple-500/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm"
+                      placeholder="username/repository ou https://github.com/username/repository"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-purple-300 mb-2">
+                        Branch (opcional)
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full bg-slate-900/50 border border-purple-500/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="main"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-purple-300 mb-2">
+                        Subdiretório (opcional)
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full bg-slate-900/50 border border-purple-500/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="packages/mcp-server"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
-              <div>
-                <label className="block text-sm font-medium text-purple-300 mb-2">
-                  Servidor *
-                </label>
-                <input
-                  type="text"
-                  value={newMcp.server}
-                  onChange={(e) => setNewMcp({ ...newMcp, server: e.target.value })}
-                  className="w-full bg-slate-900/50 border border-purple-500/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm"
-                  placeholder="http://localhost:8080 ou npx @modelcontextprotocol/server-github"
-                />
-                <p className="text-xs text-purple-400/70 mt-1">
-                  URL do servidor MCP ou comando para iniciar o servidor
-                </p>
-              </div>
+              {/* NPX */}
+              {installType === 'npx' && (
+                <div className="space-y-4">
+                  <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
+                    <p className="text-sm text-purple-300">
+                      <strong>NPX</strong>: Execute um pacote NPM diretamente sem instalação permanente
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-purple-300 mb-2">
+                      Pacote NPM *
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-purple-400 font-mono text-sm">
+                        npx
+                      </span>
+                      <input
+                        type="text"
+                        value={newMcp.server}
+                        onChange={(e) => setNewMcp({ ...newMcp, server: `npx ${e.target.value}` })}
+                        className="w-full bg-slate-900/50 border border-purple-500/20 rounded-lg pl-16 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm"
+                        placeholder="@modelcontextprotocol/server-github"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-purple-300 mb-2">
+                      Argumentos (opcional)
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full bg-slate-900/50 border border-purple-500/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm"
+                      placeholder="--port 3000 --token abc123"
+                    />
+                  </div>
+                </div>
+              )}
 
-              <div>
-                <label className="block text-sm font-medium text-purple-300 mb-2">
-                  Versão
-                </label>
-                <input
-                  type="text"
-                  value={newMcp.version}
-                  onChange={(e) => setNewMcp({ ...newMcp, version: e.target.value })}
-                  className="w-full bg-slate-900/50 border border-purple-500/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="1.0.0"
-                />
+              {/* NPM */}
+              {installType === 'npm' && (
+                <div className="space-y-4">
+                  <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
+                    <p className="text-sm text-purple-300">
+                      <strong>NPM</strong>: Instale permanentemente um pacote NPM
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-purple-300 mb-2">
+                      Pacote NPM *
+                    </label>
+                    <input
+                      type="text"
+                      value={newMcp.server}
+                      onChange={(e) => setNewMcp({ ...newMcp, server: e.target.value })}
+                      className="w-full bg-slate-900/50 border border-purple-500/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm"
+                      placeholder="@modelcontextprotocol/server-github"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-purple-300 mb-2">
+                      Comando de Start
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full bg-slate-900/50 border border-purple-500/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm"
+                      placeholder="mcp-server-github start"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Local */}
+              {installType === 'local' && (
+                <div className="space-y-4">
+                  <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
+                    <p className="text-sm text-purple-300">
+                      <strong>Local</strong>: Aponte para um servidor MCP já em execução localmente
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-purple-300 mb-2">
+                      URL do Servidor *
+                    </label>
+                    <input
+                      type="text"
+                      value={newMcp.server}
+                      onChange={(e) => setNewMcp({ ...newMcp, server: e.target.value })}
+                      className="w-full bg-slate-900/50 border border-purple-500/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm"
+                      placeholder="http://localhost:8080"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-purple-300 mb-2">
+                      Caminho Executável (opcional)
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full bg-slate-900/50 border border-purple-500/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm"
+                      placeholder="/path/to/mcp-server"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Common Fields */}
+              <div className="border-t border-purple-500/20 pt-4 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-purple-300 mb-2">
+                    Nome *
+                  </label>
+                  <input
+                    type="text"
+                    value={newMcp.name}
+                    onChange={(e) => setNewMcp({ ...newMcp, name: e.target.value })}
+                    className="w-full bg-slate-900/50 border border-purple-500/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Ex: GitHub MCP"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-purple-300 mb-2">
+                    Descrição
+                  </label>
+                  <textarea
+                    value={newMcp.description}
+                    onChange={(e) => setNewMcp({ ...newMcp, description: e.target.value })}
+                    className="w-full bg-slate-900/50 border border-purple-500/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                    placeholder="Breve descrição do MCP"
+                    rows={2}
+                  />
+                </div>
               </div>
 
               <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
@@ -392,7 +615,10 @@ export default function MCPsPage() {
 
             <div className="p-6 border-t border-purple-500/20 flex items-center justify-end gap-3">
               <button
-                onClick={() => setShowCreateModal(false)}
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setInstallType('github');
+                }}
                 className="px-4 py-2 text-purple-300 hover:bg-purple-500/10 rounded-lg transition"
               >
                 Cancelar
