@@ -182,6 +182,13 @@ export default function Home() {
                     >
                       ✏️ Editar
                     </Link>
+                    <Link
+                      to={`/automations/${auto.id}/logs`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 hover:text-purple-200 rounded-lg transition-all text-xs font-medium"
+                    >
+                      📊 Logs
+                    </Link>
                     <button
                       onClick={async (e) => {
                         e.stopPropagation();

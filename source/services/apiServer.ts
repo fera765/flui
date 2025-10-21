@@ -511,8 +511,8 @@ app.post('/api/mcps', async (req: Request, res: Response) => {
         const toolsToRegister = (result.success && result.tools && result.tools.length > 0) 
           ? result.tools 
           : [{
-              id: `${newMcp.server.replace(/[@\/]/g, '-').replace(/^-+/, '')}-default`,
-              name: newMcp.server,
+              id: `${(newMcp.server || '').replace(/[@\/]/g, '-').replace(/^-+/, '')}-default`,
+              name: newMcp.server || 'unknown',
               description: `Tool principal de ${newMcp.name}`,
               handler: 'execute',
               parameters: {},
@@ -1431,6 +1431,147 @@ app.get('/api/custom-nodes/:fingerprint/versions', (req: Request, res: Response)
     }
     
     res.json(node.versions);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ==================== LOGS & CHAT ENDPOINTS ====================
+
+// GET /api/automations/:id/executions - Listar execuções de uma automação
+app.get('/api/automations/:id/executions', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    // Mock data - em produção, isso viria de um banco de dados
+    const executions = [
+      {
+        id: `exec-${id}-1`,
+        automationId: id,
+        status: 'completed',
+        startedAt: new Date(Date.now() - 3600000).toISOString(),
+        completedAt: new Date(Date.now() - 3000000).toISOString(),
+      },
+      {
+        id: `exec-${id}-2`,
+        automationId: id,
+        status: 'failed',
+        startedAt: new Date(Date.now() - 7200000).toISOString(),
+        completedAt: new Date(Date.now() - 6600000).toISOString(),
+      },
+    ];
+    
+    res.json(executions);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/automations/:id/logs - Obter logs de execução de uma automação
+app.get('/api/automations/:id/logs', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const automation = getAutomation(id);
+    
+    if (!automation) {
+      return res.status(404).json({ error: 'Automação não encontrada' });
+    }
+    
+    // Mock data - em produção, isso viria de um banco de dados
+    const logs = [
+      {
+        id: '1',
+        timestamp: new Date().toISOString(),
+        level: 'info',
+        message: 'Iniciando execução da automação',
+        nodeId: 'node-1',
+        nodeName: 'Manual Trigger'
+      },
+      {
+        id: '2',
+        timestamp: new Date(Date.now() + 1000).toISOString(),
+        level: 'success',
+        message: 'Node Manual Trigger executado com sucesso',
+        nodeId: 'node-1',
+        nodeName: 'Manual Trigger'
+      },
+      {
+        id: '3',
+        timestamp: new Date(Date.now() + 2000).toISOString(),
+        level: 'info',
+        message: 'Executando próximo node...',
+        nodeId: 'node-2',
+        nodeName: 'Tool Executor'
+      }
+    ];
+    
+    res.json({
+      id: `exec-${id}`,
+      automationId: id,
+      automationName: automation.name,
+      status: 'running',
+      startedAt: new Date().toISOString(),
+      logs,
+      context: {
+        nodes: automation.nodes,
+        edges: automation.edges,
+        results: {
+          'node-1': { success: true, data: { triggered: true } }
+        },
+        globalContext: {
+          executionId: `exec-${id}`,
+          startTime: new Date().toISOString()
+        }
+      }
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/automations/:id/chat - Chat contextual sobre execução de automação
+app.post('/api/automations/:id/chat', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { message, context } = req.body;
+    
+    const automation = getAutomation(id);
+    
+    if (!automation) {
+      return res.status(404).json({ error: 'Automação não encontrada' });
+    }
+    
+    // Construir resposta contextual baseada na mensagem do usuário
+    const msg = message.toLowerCase();
+    let response = '';
+    
+    if (msg.includes('status') || msg.includes('como está')) {
+      response = `A automação "${automation.name}" possui ${automation.nodes?.length || 0} nodes configurados e está ${automation.enabled ? 'ativa' : 'inativa'}.`;
+    } else if (msg.includes('erro') || msg.includes('problema')) {
+      const errorLogs = context?.logs?.filter((log: any) => log.level === 'error') || [];
+      if (errorLogs.length === 0) {
+        response = 'Até o momento, não foram detectados erros na execução desta automação. Tudo está funcionando conforme esperado! ✅';
+      } else {
+        response = `Foram detectados ${errorLogs.length} erro(s) durante a execução:\n\n${errorLogs.map((e: any) => `• ${e.message}`).join('\n')}`;
+      }
+    } else if (msg.includes('node') || msg.includes('nó')) {
+      const nodeNames = automation.nodes?.map((n: any) => n.data?.label || 'Sem nome') || [];
+      response = `Esta automação possui os seguintes nodes:\n\n${nodeNames.map((n: string, i: number) => `${i + 1}. ${n}`).join('\n')}`;
+    } else if (msg.includes('último') || msg.includes('ultima') || msg.includes('recente')) {
+      const lastLog = context?.logs?.[context.logs.length - 1];
+      if (!lastLog) {
+        response = 'Ainda não há logs registrados para esta execução.';
+      } else {
+        response = `O último evento foi: "${lastLog.message}" (${lastLog.level}) registrado em ${new Date(lastLog.timestamp).toLocaleTimeString()}.`;
+      }
+    } else {
+      response = `Com base no contexto da automação "${automation.name}", posso fornecer informações sobre status, erros, nodes executados ou eventos específicos. Como posso ajudar?`;
+    }
+    
+    res.json({
+      response,
+      timestamp: new Date().toISOString()
+    });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
