@@ -43,7 +43,7 @@ echo "📍 ETAPA 1 - TESTE DE AUTOMAÇÃO SIMPLES" >> /tmp/playwright-execution.
 cd /workspace/flui-frontend-vite
 
 echo "🧪 Executando BLOCO 1..." >> /tmp/playwright-execution.log
-npm run test:bloco1 > /tmp/bloco1-test.log 2>&1
+timeout 120 npm run test:bloco1 -- --reporter=line > /tmp/bloco1-test.log 2>&1
 BLOCO1_EXIT=$?
 
 echo "📊 Resultado BLOCO 1: Exit Code $BLOCO1_EXIT" >> /tmp/playwright-execution.log
@@ -62,7 +62,7 @@ echo "" >> /tmp/playwright-execution.log
 echo "📍 ETAPA 2 - TESTE DE INTEGRAÇÃO MCP" >> /tmp/playwright-execution.log
 
 echo "🧪 Executando BLOCO 2..." >> /tmp/playwright-execution.log
-npm run test:bloco2 > /tmp/bloco2-test.log 2>&1
+timeout 120 npm run test:bloco2 -- --reporter=line > /tmp/bloco2-test.log 2>&1
 BLOCO2_EXIT=$?
 
 echo "📊 Resultado BLOCO 2: Exit Code $BLOCO2_EXIT" >> /tmp/playwright-execution.log
@@ -80,7 +80,7 @@ echo "" >> /tmp/playwright-execution.log
 echo "📍 ETAPA 3 - TESTE DE LOGS MELHORADOS" >> /tmp/playwright-execution.log
 
 echo "🧪 Executando BLOCO 3..." >> /tmp/playwright-execution.log
-npm run test:bloco3 > /tmp/bloco3-test.log 2>&1
+timeout 120 npm run test:bloco3 -- --reporter=line > /tmp/bloco3-test.log 2>&1
 BLOCO3_EXIT=$?
 
 echo "📊 Resultado BLOCO 3: Exit Code $BLOCO3_EXIT" >> /tmp/playwright-execution.log

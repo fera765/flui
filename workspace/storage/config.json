@@ -1,12 +1,49 @@
 {
 	"automations": [
 		{
-			"id": "automation-1761073128964",
+			"id": "automation-1761073279701",
+			"name": "Teste BLOCO 3 - Logs Detalhados",
+			"description": "",
+			"nodes": [
+				{
+					"id": "node-1761073278376",
+					"type": "tool",
+					"name": "Manual Trigger",
+					"description": "Dispara automações manualmente sob demanda. Ideal para testes, debugging e execuções únicas.",
+					"config": {
+						"toolId": "manual-trigger",
+						"category": "system",
+						"color": "#10b981",
+						"icon": "▶️",
+						"params": {}
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [],
+			"startNodeId": "node-1761073278376",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-21T19:01:19.715Z",
+			"updatedAt": "2025-10-21T19:01:19.715Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-21T19:01:19.701Z",
+				"updatedAt": "2025-10-21T19:01:19.701Z"
+			}
+		},
+		{
+			"id": "automation-1761073296602",
 			"name": "Teste BLOCO 1 - Automação Simples",
 			"description": "",
 			"nodes": [
 				{
-					"id": "node-1761073110646",
+					"id": "node-1761073278459",
 					"type": "tool",
 					"name": "Manual Trigger",
 					"description": "Dispara automações manualmente sob demanda. Ideal para testes, debugging e execuções únicas.",
@@ -24,7 +61,7 @@
 					"nextNodes": []
 				},
 				{
-					"id": "node-1761073120121",
+					"id": "node-1761073287882",
 					"type": "tool",
 					"name": "Webhook Trigger",
 					"description": "Recebe requisições HTTP de sistemas externos para disparar automações. Suporta autenticação, validação e rate limiting.",
@@ -44,26 +81,81 @@
 			],
 			"edges": [
 				{
-					"id": "edge-node-1761073110646-node-1761073120121",
-					"source": "node-1761073110646",
-					"target": "node-1761073120121"
+					"id": "edge-node-1761073278459-node-1761073287882",
+					"source": "node-1761073278459",
+					"target": "node-1761073287882"
 				}
 			],
-			"startNodeId": "node-1761073110646",
+			"startNodeId": "node-1761073278459",
 			"enabled": true,
 			"continuousExecution": false,
 			"version": "2.0.0",
-			"createdAt": "2025-10-21T18:58:49.051Z",
-			"updatedAt": "2025-10-21T18:58:53.150Z",
+			"createdAt": "2025-10-21T19:01:36.621Z",
+			"updatedAt": "2025-10-21T19:01:36.622Z",
 			"runCount": 0,
 			"metadata": {
-				"createdAt": "2025-10-21T18:58:48.964Z",
-				"updatedAt": "2025-10-21T18:58:48.965Z"
+				"createdAt": "2025-10-21T19:01:36.602Z",
+				"updatedAt": "2025-10-21T19:01:36.606Z"
+			}
+		},
+		{
+			"id": "automation-1761073341898",
+			"name": "Teste BLOCO 3 - Logs Detalhados",
+			"description": "",
+			"nodes": [
+				{
+					"id": "node-1761073340535",
+					"type": "tool",
+					"name": "Manual Trigger",
+					"description": "Dispara automações manualmente sob demanda. Ideal para testes, debugging e execuções únicas.",
+					"config": {
+						"toolId": "manual-trigger",
+						"category": "system",
+						"color": "#10b981",
+						"icon": "▶️",
+						"params": {}
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [],
+			"startNodeId": "node-1761073340535",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-21T19:02:21.912Z",
+			"updatedAt": "2025-10-21T19:02:21.912Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-21T19:02:21.898Z",
+				"updatedAt": "2025-10-21T19:02:21.898Z"
 			}
 		}
 	],
 	"executions": [],
 	"agents": [],
-	"mcps": [],
+	"mcps": [
+		{
+			"name": "Test MCP",
+			"command": "npx",
+			"args": [
+				"@modelcontextprotocol/server-everything"
+			],
+			"description": "MCP de teste para validação",
+			"enabled": true,
+			"version": "1.0.0",
+			"id": "o_cfwAVeDKx1Fw0_uFyC5",
+			"tools": [],
+			"metadata": {
+				"createdAt": "2025-10-21T19:01:50.330Z",
+				"updatedAt": "2025-10-21T19:01:50.330Z",
+				"lastSyncedAt": null
+			}
+		}
+	],
 	"sessions": []
 }
