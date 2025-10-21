@@ -29,17 +29,18 @@ test.describe('BLOCO 3 - Logs Melhorados', () => {
     
     // Adicionar 3 nós conectados
     const addNode = async (toolName: string) => {
-      await page.click('button:has-text("Adicionar Nó")');
-      await wait(500);
+      await page.click('button:has-text("Adicionar Ferramenta")');
+      await wait(1000);
       
       const searchInput = page.locator('input[placeholder*="Buscar"]');
       if (await searchInput.count() > 0) {
         await searchInput.fill(toolName);
-        await wait(300);
+        await wait(500);
       }
       
-      await page.locator(`button:has-text("${toolName}")`).first().click();
-      await wait(800);
+      const toolButton = page.locator('button').filter({ has: page.locator(`h3:has-text("${toolName}")`) }).first();
+      await toolButton.click();
+      await wait(1000);
     };
     
     await addNode('HTTP Request');
