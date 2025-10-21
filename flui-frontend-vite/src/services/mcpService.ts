@@ -124,12 +124,27 @@ export async function fetchMCPMetadata(
 // ==================== MCP OPERATIONS ====================
 
 /**
- * Instalar e testar MCP
+ * Instalar MCP
  */
-export async function installMCP(installation: MCPInstallation): Promise<MCPInstallation> {
+export async function installMCP(installation: MCPInstallation): Promise<any> {
   try {
-    const response = await axios.post(`${API_BASE_URL}/mcps`, installation);
-    return response.data;
+    // Criar MCP no backend
+    const createResponse = await axios.post(`${API_BASE_URL}/mcps`, {
+      id: installation.id || `mcp-${Date.now()}`,
+      name: installation.name,
+      description: installation.description,
+      version: installation.version,
+      server: installation.server,
+      installType: installation.installType,
+      enabled: installation.enabled,
+      tools: [], // Será preenchido na sincronização
+      metadata: {
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    });
+
+    return createResponse.data;
   } catch (error: any) {
     throw new Error(error.response?.data?.error || 'Erro ao instalar MCP');
   }
@@ -251,35 +266,45 @@ export async function verifyMCPTools(mcpId: string): Promise<{
 export async function installAndTestMCP(
   installation: MCPInstallation
 ): Promise<{
-  mcp: MCPInstallation;
+  mcp: any;
   testResult: MCPTestResult;
   toolsInRegistry: { registered: boolean; toolsCount: number; tools: string[] };
 }> {
   try {
     console.log('📦 Instalando MCP:', installation.name);
     
-    // 1. Instalar MCP
-    const mcp = await installMCP(installation);
-    console.log('✅ MCP instalado:', mcp.id);
+    // 1. Criar MCP no backend
+    const createResponse = await installMCP(installation);
+    const mcpId = createResponse.id;
+    console.log('✅ MCP criado:', mcpId);
     
-    // 2. Sincronizar e carregar tools
+    // 2. Sincronizar e carregar tools (isso executa o MCP e extrai as tools)
     console.log('🔄 Sincronizando MCP...');
-    const syncResult = await syncMCP(mcp.id!);
-    console.log('✅ Sincronização concluída:', syncResult);
+    const syncResponse = await axios.post(`${API_BASE_URL}/mcps/${mcpId}/sync`);
+    console.log('✅ Sincronização concluída:', syncResponse.data);
     
     // 3. Testar MCP
     console.log('🧪 Testando MCP...');
-    const testResult = await testMCP(mcp.id!);
+    const testResponse = await axios.post(`${API_BASE_URL}/mcps/${mcpId}/test`);
+    const testResult = testResponse.data;
     console.log('✅ Teste concluído:', testResult);
     
     // 4. Verificar se tools estão no registry
     console.log('🔍 Verificando Tool Registry...');
-    const toolsInRegistry = await verifyMCPTools(mcp.id!);
+    const toolsInRegistry = await verifyMCPTools(mcpId);
     console.log('✅ Verificação concluída:', toolsInRegistry);
     
+    // 5. Buscar MCP atualizado
+    const updatedMCP = await getMCP(mcpId);
+    
     return {
-      mcp,
-      testResult,
+      mcp: updatedMCP,
+      testResult: {
+        success: testResult.success,
+        message: testResult.message,
+        toolsFound: syncResponse.data.toolsFound || 0,
+        tools: syncResponse.data.tools || [],
+      },
       toolsInRegistry,
     };
   } catch (error: any) {

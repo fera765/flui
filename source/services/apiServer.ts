@@ -538,23 +538,93 @@ app.post('/api/mcps/:id/sync', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'MCP não encontrado' });
     }
 
-    // Aqui você implementaria a lógica de sincronização com o servidor MCP
-    // Por enquanto, apenas atualiza o timestamp
+    console.log('🔄 [API] Sincronizando MCP:', mcp.name);
+
+    // Importar MCPExecutor
+    const { MCPExecutor } = await import('./mcpExecutor.js');
+    
+    // Executar MCP e extrair tools atualizadas
+    const result = await MCPExecutor.installMCP({
+      name: mcp.name,
+      description: mcp.description,
+      version: mcp.version,
+      server: mcp.server || '',
+      installType: (mcp as any).installType || 'npx',
+    });
+
+    if (!result.success) {
+      return res.status(500).json({ 
+        error: result.error,
+        success: false,
+      });
+    }
+
+    // Atualizar tools no MCP
+    const updatedTools = result.tools || [];
+    
     store.updateMCP(req.params.id, {
+      tools: updatedTools,
       metadata: {
         createdAt: mcp.metadata?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         lastSyncedAt: new Date().toISOString(),
       },
     });
+
+    // Registrar tools no Tool Registry
+    const { MCPLoader } = await import('./mcpLoader.js');
+    const updatedMCP = store.mcps.find(m => m.id === req.params.id);
+    if (updatedMCP) {
+      await MCPLoader.loadMCP(updatedMCP);
+    }
+
+    console.log(`✅ [API] MCP sincronizado: ${updatedTools.length} tools`);
     
     res.json({ 
       success: true, 
       message: 'MCP sincronizado com sucesso',
       syncedAt: new Date().toISOString(),
+      toolsFound: updatedTools.length,
+      tools: updatedTools,
     });
   } catch (error: any) {
+    console.error('❌ [API] Erro ao sincronizar MCP:', error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/mcps/:id/test - Testar MCP
+app.post('/api/mcps/:id/test', async (req: Request, res: Response) => {
+  try {
+    const store = useStore.getState();
+    const mcp = store.mcps.find(m => m.id === req.params.id);
+    
+    if (!mcp) {
+      return res.status(404).json({ error: 'MCP não encontrado' });
+    }
+
+    console.log('🧪 [API] Testando MCP:', mcp.name);
+
+    // Importar MCPExecutor
+    const { MCPExecutor } = await import('./mcpExecutor.js');
+    
+    // Testar MCP
+    const result = await MCPExecutor.testMCP(
+      mcp.id,
+      mcp.server || '',
+      (mcp as any).installType || 'npx'
+    );
+
+    console.log(`${result.success ? '✅' : '❌'} [API] Teste de MCP concluído`);
+    
+    res.json(result);
+  } catch (error: any) {
+    console.error('❌ [API] Erro ao testar MCP:', error);
+    res.status(500).json({ 
+      success: false,
+      message: error.message,
+      toolsFound: 0,
+    });
   }
 });
 
@@ -911,6 +981,111 @@ app.post('/api/nodes/:nodeId/test', async (req: Request, res: Response) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============= NODE CONFIGURATION ENDPOINTS =============
+
+// GET /api/automations/:automationId/nodes/:nodeId - Obter configuração de um nó
+app.get('/api/automations/:automationId/nodes/:nodeId', (req: Request, res: Response) => {
+  try {
+    const { automationId, nodeId } = req.params;
+    
+    const automations = getAutomations();
+    const automation = automations.find(a => a.id === automationId);
+    
+    if (!automation) {
+      return res.status(404).json({ error: 'Automação não encontrada' });
+    }
+    
+    const node = automation.nodes?.find((n: any) => n.id === nodeId);
+    if (!node) {
+      return res.status(404).json({ error: 'Node não encontrado' });
+    }
+    
+    res.json(node);
+  } catch (error: any) {
+    console.error('❌ Erro ao buscar node:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// PUT /api/automations/:automationId/nodes/:nodeId - Atualizar configuração de um nó
+app.put('/api/automations/:automationId/nodes/:nodeId', (req: Request, res: Response) => {
+  try {
+    const { automationId, nodeId } = req.params;
+    const nodeUpdates = req.body;
+    
+    const automations = getAutomations();
+    const automation = automations.find(a => a.id === automationId);
+    
+    if (!automation) {
+      return res.status(404).json({ error: 'Automação não encontrada' });
+    }
+    
+    const nodeIndex = automation.nodes?.findIndex((n: any) => n.id === nodeId);
+    if (nodeIndex === -1 || nodeIndex === undefined) {
+      return res.status(404).json({ error: 'Node não encontrado' });
+    }
+    
+    // Atualizar node preservando campos não editados
+    automation.nodes[nodeIndex] = {
+      ...automation.nodes[nodeIndex],
+      ...nodeUpdates,
+      id: nodeId, // Garantir que ID não muda
+    };
+    
+    // Salvar automação
+    const saved = saveAutomation(automation);
+    
+    console.log('✅ Node atualizado:', nodeId);
+    res.json({ 
+      success: true, 
+      node: saved.nodes[nodeIndex],
+      message: 'Node atualizado com sucesso' 
+    });
+  } catch (error: any) {
+    console.error('❌ Erro ao atualizar node:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// PATCH /api/automations/:automationId/nodes/:nodeId/config - Atualizar apenas config do nó
+app.patch('/api/automations/:automationId/nodes/:nodeId/config', (req: Request, res: Response) => {
+  try {
+    const { automationId, nodeId } = req.params;
+    const configUpdates = req.body;
+    
+    const automations = getAutomations();
+    const automation = automations.find(a => a.id === automationId);
+    
+    if (!automation) {
+      return res.status(404).json({ error: 'Automação não encontrada' });
+    }
+    
+    const nodeIndex = automation.nodes?.findIndex((n: any) => n.id === nodeId);
+    if (nodeIndex === -1 || nodeIndex === undefined) {
+      return res.status(404).json({ error: 'Node não encontrado' });
+    }
+    
+    // Atualizar apenas o config, fazendo merge
+    automation.nodes[nodeIndex].config = {
+      ...automation.nodes[nodeIndex].config,
+      ...configUpdates,
+    };
+    
+    // Salvar automação
+    const saved = saveAutomation(automation);
+    
+    console.log('✅ Config do node atualizado:', nodeId);
+    res.json({ 
+      success: true, 
+      config: saved.nodes[nodeIndex].config,
+      message: 'Configuração atualizada com sucesso' 
+    });
+  } catch (error: any) {
+    console.error('❌ Erro ao atualizar config:', error);
     res.status(500).json({ error: error.message });
   }
 });
