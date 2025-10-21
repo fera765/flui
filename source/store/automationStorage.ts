@@ -1,9 +1,15 @@
 import Conf from 'conf';
+import { join } from 'path';
 import { nanoid } from 'nanoid';
 import { Automation, AutomationExecution, AutomationSchema } from '../types/automation.js';
 
+// 🎯 STORAGE CENTRALIZADO: workspace/storage/config.json
+const STORAGE_PATH = join(process.cwd(), 'workspace', 'storage');
+
 const config = new Conf({
   projectName: 'flui',
+  cwd: STORAGE_PATH,
+  configName: 'config',
 });
 
 // 🧹 LIMPAR automações antigas no startup

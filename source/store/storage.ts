@@ -1,12 +1,14 @@
 import Conf from 'conf';
+import { join } from 'path';
 import { Config, Agent, MCP, Session, Automation } from '../types/index.js';
 
-// 🧹 LIMPEZA AUTOMÁTICA NO BUILD/INIT
-// Remove persistência antiga se existir
-const configPath = process.env.NODE_ENV === 'production' ? undefined : '.flui-dev';
+// 🎯 STORAGE CENTRALIZADO: workspace/storage/config.json
+const STORAGE_PATH = join(process.cwd(), 'workspace', 'storage');
 
 const config = new Conf({
-  projectName: configPath || 'flui',
+  projectName: 'flui',
+  cwd: STORAGE_PATH,
+  configName: 'config',
   schema: {
     config: {
       type: 'object',
