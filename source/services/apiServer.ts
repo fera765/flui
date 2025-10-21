@@ -16,6 +16,7 @@ import { getCustomNodeManager, CustomNodeManager } from './customNodeManager.js'
 import { listTools, getToolMetadata } from './toolApi.js';
 import { registerAllTools } from '../tools/index.js';
 import { extractNodeOutputKeys } from './nodeOutputExtractor.js';
+import { MCPExecutor, testPollinationsMCP } from './mcpExecutor.js';
 
 const app = express();
 const PORT = 3001;
@@ -538,20 +539,156 @@ app.post('/api/mcps/:id/sync', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'MCP não encontrado' });
     }
 
-    // Aqui você implementaria a lógica de sincronização com o servidor MCP
-    // Por enquanto, apenas atualiza o timestamp
-    store.updateMCP(req.params.id, {
+    console.log(`🔄 Sincronizando MCP: ${mcp.name} (${mcp.server})`);
+
+    // Testar e carregar tools do MCP
+    const testResult = await MCPExecutor.testMCP(mcp);
+    
+    if (!testResult.success) {
+      return res.status(400).json({ 
+        error: `Falha ao sincronizar MCP: ${testResult.error}`,
+        details: testResult
+      });
+    }
+
+    // Atualizar MCP com as tools encontradas
+    const updatedMcp = {
+      ...mcp,
+      tools: testResult.tools,
       metadata: {
+        ...mcp.metadata,
         createdAt: mcp.metadata?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         lastSyncedAt: new Date().toISOString(),
       },
-    });
+    };
+
+    store.updateMCP(req.params.id, updatedMcp);
+
+    // Registrar tools no Tool Registry
+    const registry = getToolRegistry();
+    let toolsRegistered = 0;
+
+    for (const mcpTool of testResult.tools) {
+      const toolId = `mcp-${mcp.id}-${mcpTool.id}`;
+      
+      // Converter parâmetros do MCP para ToolParam
+      const params = Object.entries(mcpTool.parameters).map(([name, type]) => ({
+        name,
+        type: typeof type === 'string' ? type : 'string',
+        description: `Parâmetro ${name}`,
+        required: true,
+      }));
+
+      // Criar Tool baseada no MCP Tool
+      const tool = {
+        id: toolId,
+        name: `${mcp.name}: ${mcpTool.name}`,
+        description: mcpTool.description,
+        category: 'mcp',
+        version: mcp.version,
+        params,
+        output: {
+          type: 'object',
+          description: 'Resultado da execução da tool MCP',
+        },
+        
+        // Função de execução que delega para o handler do MCP
+        async execute(args: any, context: any) {
+          try {
+            // Para MCPs via npx, executar novamente com os parâmetros
+            if (mcp.server.startsWith('npx ')) {
+              const packageName = mcp.server.replace('npx ', '').split(' ')[0];
+              const result = await MCPExecutor.executeNPX(packageName, [JSON.stringify(args)]);
+              
+              return {
+                success: result.success,
+                result: result.tools,
+                error: result.error,
+              };
+            }
+            
+            // Para outros tipos de MCP, retornar mock por enquanto
+            return {
+              success: true,
+              result: { message: `Executado ${mcpTool.name} com args:`, args },
+            };
+          } catch (error: any) {
+            return {
+              success: false,
+              error: `Erro ao executar tool MCP: ${error.message}`,
+            };
+          }
+        },
+
+        ui: {
+          icon: 'Package',
+          color: '#a855f7', // purple
+          tags: ['mcp', mcp.name.toLowerCase()],
+        },
+
+        config: {
+          timeout: 30000,
+          sandbox: true,
+        },
+      };
+
+      // Registrar no registry
+      registry.register(tool);
+      toolsRegistered++;
+      console.log(`✅ MCP Tool registrada: ${tool.name} (${toolId})`);
+    }
     
     res.json({ 
       success: true, 
       message: 'MCP sincronizado com sucesso',
       syncedAt: new Date().toISOString(),
+      toolsFound: testResult.tools.length,
+      toolsRegistered,
+    });
+  } catch (error: any) {
+    console.error('❌ Erro ao sincronizar MCP:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Testar MCP específico
+app.post('/api/mcps/:id/test', async (req: Request, res: Response) => {
+  try {
+    const store = useStore.getState();
+    const mcp = store.mcps.find(m => m.id === req.params.id);
+    
+    if (!mcp) {
+      return res.status(404).json({ error: 'MCP não encontrado' });
+    }
+
+    console.log(`🧪 Testando MCP: ${mcp.name}`);
+    const testResult = await MCPExecutor.testMCP(mcp);
+    
+    res.json({
+      success: testResult.success,
+      message: testResult.success ? 'MCP funcionando corretamente' : 'MCP com problemas',
+      toolsFound: testResult.tools.length,
+      tools: testResult.tools,
+      error: testResult.error,
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Testar Pollinations MCP especificamente
+app.post('/api/mcps/test-pollinations', async (req: Request, res: Response) => {
+  try {
+    console.log('🧪 Testando Pollinations MCP...');
+    const result = await testPollinationsMCP();
+    
+    res.json({
+      success: result.success,
+      message: result.success ? 'Pollinations MCP funcionando!' : 'Pollinations MCP com problemas',
+      toolsFound: result.tools.length,
+      tools: result.tools,
+      error: result.error,
     });
   } catch (error: any) {
     res.status(500).json({ error: error.message });

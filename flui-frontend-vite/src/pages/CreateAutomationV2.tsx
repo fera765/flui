@@ -21,7 +21,7 @@ import 'reactflow/dist/style.css';
 import { ArrowLeft, Save, Plus, Play, Eye } from 'lucide-react';
 import ToolNode from '../components/ToolNode';
 import ToolPalette from '../components/ToolPalette';
-import NodeConfigPanel from '../components/NodeConfigPanel';
+import NodeConfigModalComplete from '../components/NodeConfigModalComplete';
 import ExecutionLogs from '../components/ExecutionLogs';
 
 interface Tool {
@@ -55,7 +55,7 @@ export default function CreateAutomationV2() {
   const [executionStatus, setExecutionStatus] = useState<'running' | 'completed' | 'failed' | 'cancelled'>('running');
   const [executionDuration, setExecutionDuration] = useState<number | undefined>();
   const [showLogs, setShowLogs] = useState(false);
-  const [configPanelOpen, setConfigPanelOpen] = useState(false);
+  const [configModalOpen, setConfigModalOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
   // Tipos de nó customizados
@@ -67,7 +67,7 @@ export default function CreateAutomationV2() {
       const node = currentNodes.find((n) => n.id === nodeId);
       if (node) {
         setSelectedNode(node);
-        setConfigPanelOpen(true);
+        setConfigModalOpen(true);
       }
       return currentNodes;
     });
@@ -158,7 +158,7 @@ export default function CreateAutomationV2() {
       )
     );
     
-    setConfigPanelOpen(false);
+    setConfigModalOpen(false);
     setSelectedNode(null);
   };
 
@@ -481,10 +481,10 @@ export default function CreateAutomationV2() {
         />
       )}
 
-      {/* Node Config Panel */}
+      {/* Node Config Modal */}
       {selectedNode && (
-        <NodeConfigPanel
-          isOpen={configPanelOpen}
+        <NodeConfigModalComplete
+          isOpen={configModalOpen}
           nodeId={selectedNode.id}
           toolId={selectedNode.data.toolId}
           initialConfig={selectedNode.data.config}
@@ -492,7 +492,7 @@ export default function CreateAutomationV2() {
           localNodes={nodes}
           localEdges={edges}
           onClose={() => {
-            setConfigPanelOpen(false);
+            setConfigModalOpen(false);
             setSelectedNode(null);
           }}
           onSave={handleSaveNodeConfig}
