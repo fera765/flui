@@ -20,13 +20,14 @@ export class ToolValidator {
 
     // Validar cada parâmetro definido
     for (const param of params) {
-      const value = args[param.name];
+      const paramKey = param.key || param.name;
+      const value = args[paramKey];
 
       // Verificar obrigatoriedade
-      if (param.required && (value === undefined || value === null)) {
+      if (param.required && (value === undefined || value === null || value === '')) {
         errors.push({
-          param: param.name,
-          message: `Parâmetro '${param.name}' é obrigatório`,
+          param: param.name || paramKey,
+          message: `Parâmetro '${param.name || paramKey}' é obrigatório`,
           code: 'required',
         });
         continue;
@@ -50,15 +51,15 @@ export class ToolValidator {
           const isValid = param.validation(value);
           if (!isValid) {
             errors.push({
-              param: param.name,
-              message: `Valor inválido para '${param.name}'`,
+              param: param.name || paramKey,
+              message: `Valor inválido para '${param.name || paramKey}'`,
               code: 'custom',
             });
           }
         } catch (error: any) {
           errors.push({
-            param: param.name,
-            message: `Erro na validação de '${param.name}': ${error.message}`,
+            param: param.name || paramKey,
+            message: `Erro na validação de '${param.name || paramKey}': ${error.message}`,
             code: 'custom',
           });
         }
@@ -68,8 +69,8 @@ export class ToolValidator {
       if (param.options && param.options.length > 0) {
         if (!param.options.includes(value)) {
           errors.push({
-            param: param.name,
-            message: `'${param.name}' deve ser um de: ${param.options.join(', ')}`,
+            param: param.name || paramKey,
+            message: `'${param.name || paramKey}' deve ser um de: ${param.options.join(', ')}`,
             code: 'invalid_value',
           });
         }
@@ -180,8 +181,9 @@ export class ToolValidator {
     const result = { ...args };
 
     for (const param of params) {
-      if (result[param.name] === undefined && param.default !== undefined) {
-        result[param.name] = param.default;
+      const paramKey = param.key || param.name;
+      if (result[paramKey] === undefined && param.default !== undefined) {
+        result[paramKey] = param.default;
       }
     }
 

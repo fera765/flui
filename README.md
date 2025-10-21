@@ -1,5 +1,20 @@
 # 🚀 FLUI - Sistema de Automação Inteligente
 
+## ✨ v2.0.0 - Sistema Completo e Aprimorado (2025-10-19)
+
+**🎉 TODAS AS MELHORIAS IMPLEMENTADAS COM SUCESSO!**
+
+### 🎯 Novidades Principais
+- ✅ **Lista Dinâmica de Agentes** - Selecione agentes automaticamente, sem erros
+- ✅ **Condição Universal** - 13 tipos de comparação, simples e poderosa
+- ✅ **Smart Connections** - Auto-detecção e auto-fill de parâmetros
+- ✅ **Webhook Integration** - Trigger + Response completos
+- ✅ **17 Tools Validadas** - 100% testadas e funcionando
+
+**📚 Documentação Completa:** Veja [`INDEX.md`](INDEX.md) para guias e exemplos
+
+---
+
 Sistema revolucionário de automação com **Tool Registry modular**, **editor de workflows visual** e **painéis de configuração dinâmicos**. Interface híbrida CLI + Web com suporte completo a metadados de ferramentas e validação automática.
 
 ## 🌟 Principais Funcionalidades

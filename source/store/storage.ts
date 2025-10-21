@@ -1,9 +1,14 @@
 import Conf from 'conf';
+import { join } from 'path';
 import { Config, Agent, MCP, Session, Automation } from '../types/index.js';
 
-// Configuração do Conf para persistência
+// 🎯 STORAGE CENTRALIZADO: workspace/storage/config.json
+const STORAGE_PATH = join(process.cwd(), 'workspace', 'storage');
+
 const config = new Conf({
   projectName: 'flui',
+  cwd: STORAGE_PATH,
+  configName: 'config',
   schema: {
     config: {
       type: 'object',
@@ -29,6 +34,14 @@ const config = new Conf({
     activeSessionId: { type: 'string' },
   },
 });
+
+// 🧹 LIMPAR TUDO NO STARTUP
+console.log('🧹 [Storage] Limpando dados antigos...');
+config.set('agents', []);
+config.set('mcps', []);
+config.set('automations', []);
+config.set('sessions', []);
+console.log('✅ [Storage] Dados limpos (agentes: 0, mcps: 0, automações: 0)');
 
 // ============= CONFIG =============
 export const getConfig = (): Config | null => {
@@ -79,6 +92,12 @@ export const deleteAgent = (id: string): void => {
   );
 };
 
+export const clearAllAgents = (): void => {
+  console.log('🗑️  Limpando todos os agentes...');
+  config.set('agents', []);
+  console.log('✅ Todos os agentes removidos');
+};
+
 // ============= MCPs =============
 export const getMCPs = (): MCP[] => {
   return (config.get('mcps') as MCP[]) || [];
@@ -106,6 +125,12 @@ export const deleteMCP = (id: string): void => {
     'mcps',
     mcps.filter((m) => m.id !== id)
   );
+};
+
+export const clearAllMCPs = (): void => {
+  console.log('🗑️  Limpando todos os MCPs...');
+  config.set('mcps', []);
+  console.log('✅ Todos os MCPs removidos');
 };
 
 // ============= SESSÕES =============

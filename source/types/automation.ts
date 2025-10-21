@@ -48,6 +48,7 @@ export const AutomationSchema = z.object({
   edges: z.array(AutomationEdgeSchema).optional().default([]),
   startNodeId: z.string(),
   enabled: z.boolean().default(true),
+  continuousExecution: z.boolean().optional(), // 🔁 Execução contínua
   schedule: z.string().optional(), // Cron expression
   version: z.string().optional().default('2.0.0'),
   createdAt: z.string(),
@@ -62,7 +63,7 @@ export const AutomationSchema = z.object({
 });
 
 export type Automation = z.infer<typeof AutomationSchema> & {
-  runMode?: 'once' | 'continuous';
+  runMode?: 'once' | 'continuous'; // Legacy support para views CLI
 };
 
 // ============= EXECUTION =============

@@ -4,14 +4,18 @@ import { createServer } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
-import { getAutomations, saveAutomation, deleteAutomation } from '../store/automationStorage.js';
+import { getAutomations, getAutomation, saveAutomation, deleteAutomation } from '../store/automationStorage.js';
 import { useStore } from '../store/store.js';
 import { getToolRegistry } from '../core/toolRegistry.js';
 import { ToolExecutor } from '../core/toolExecutor.js';
 import { ExecutionContext } from '../core/types.js';
 import { executeFlow } from '../core/flowEngine.js';
-import { FlowDefinition } from '../core/flowTypes.js';
+import { FlowDefinition, FlowExecutionLog } from '../core/flowTypes.js';
+import { FlowEngineV2 } from '../core/flowEngineV2.js';
 import { getCustomNodeManager, CustomNodeManager } from './customNodeManager.js';
+import { listTools, getToolMetadata } from './toolApi.js';
+import { registerAllTools } from '../tools/index.js';
+import { extractNodeOutputKeys } from './nodeOutputExtractor.js';
 
 const app = express();
 const PORT = 3001;
@@ -58,74 +62,152 @@ app.get('/api/automations', (_req: Request, res: Response) => {
 app.get('/api/automations/:id', (req: Request, res: Response) => {
   const automations = getAutomations();
   const automation = automations.find(a => a.id === req.params.id);
-  
+
   if (!automation) {
     return res.status(404).json({ error: 'Automação não encontrada' });
   }
-  
+
   res.json(automation);
 });
 
+// 🆕 Novo endpoint: Buscar outputs disponíveis para um node
+app.get('/api/automations/:automationId/nodes/:nodeId/available-outputs', (req: Request, res: Response) => {
+  try {
+    const { automationId, nodeId } = req.params;
+    
+    // Buscar automação
+    const automations = getAutomations();
+    const automation = automations.find(a => a.id === automationId);
+    
+    if (!automation) {
+      return res.status(404).json({ error: 'Automação não encontrada' });
+    }
+    
+    // Encontrar node target
+    const targetNode = automation.nodes?.find((n: any) => n.id === nodeId);
+    if (!targetNode) {
+      return res.status(404).json({ error: 'Node não encontrado' });
+    }
+    
+    // Calcular nodes anteriores (pais) via edges
+    const parentNodeIds = getParentNodesRecursive(automation.edges || [], nodeId);
+    
+    // Para cada node pai, extrair outputs disponíveis
+    const availableOutputs = parentNodeIds.map((parentId: string) => {
+      const parentNode = automation.nodes?.find((n: any) => n.id === parentId);
+      if (!parentNode) return null;
+      
+      const outputKeys = extractNodeOutputKeys(parentNode);
+      
+      // Node pode ter estrutura antiga (data) ou nova (config diretamente)
+      const nodeData = (parentNode as any).data || parentNode;
+      
+      return {
+        nodeId: parentId,
+        nodeName: nodeData.label || parentNode.name || 'Node',
+        toolId: nodeData.toolId || parentNode.config?.toolId,
+        outputKeys: outputKeys,
+      };
+    }).filter(Boolean);
+    
+    const targetData = (targetNode as any).data || targetNode;
+    
+    res.json({
+      nodeId,
+      nodeName: targetData.label || targetNode.name,
+      availableOutputs,
+    });
+  } catch (error: any) {
+    console.error('❌ Erro ao buscar outputs disponíveis:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Helper: Obter todos os nodes pai (recursivo)
+function getParentNodesRecursive(edges: any[], targetNodeId: string): string[] {
+  const parents = new Set<string>();
+  const visited = new Set<string>();
+  
+  function findParents(nodeId: string) {
+    if (visited.has(nodeId)) return;
+    visited.add(nodeId);
+    
+    const parentEdges = edges.filter((e: any) => e.target === nodeId);
+    parentEdges.forEach((edge: any) => {
+      if (!parents.has(edge.source)) {
+        parents.add(edge.source);
+        findParents(edge.source); // Recursivo: buscar pais dos pais
+      }
+    });
+  }
+  
+  findParents(targetNodeId);
+  return Array.from(parents).sort();
+}
+
 app.post('/api/automations', (req: Request, res: Response) => {
-  const automation = req.body;
-  const newAutomation = {
-    ...automation,
-    id: automation.id || Date.now().toString(),
-    startNodeId: automation.startNodeId || automation.nodes[0]?.id || '',
-    enabled: automation.enabled !== undefined ? automation.enabled : true,
-    runCount: automation.runCount || 0,
-    edges: automation.edges || [],
-    metadata: {
-      createdAt: automation.metadata?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-  };
-  saveAutomation(newAutomation);
-  res.json({ success: true, id: newAutomation.id });
+  console.log('📝 [API] POST /api/automations');
+  try {
+    // saveAutomation agora faz validação e normalização
+    const saved = saveAutomation(req.body);
+    console.log('✅ [API] Automação salva:', saved.id);
+    res.json({ success: true, id: saved.id, automation: saved });
+  } catch (error: any) {
+    console.error('❌ [API] Erro ao salvar automação:', error);
+    res.status(400).json({ error: error.message });
+  }
 });
 
 app.put('/api/automations/:id', (req: Request, res: Response) => {
-  const automations = getAutomations();
-  const existing = automations.find(a => a.id === req.params.id);
-  
-  if (!existing) {
-    return res.status(404).json({ error: 'Automação não encontrada' });
+  console.log('📝 [API] PUT /api/automations/:id', req.params.id);
+  try {
+    // Verificar se existe
+    const existing = getAutomation(req.params.id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Automação não encontrada' });
+    }
+    
+    // Merge com dados existentes
+    const toUpdate = {
+      ...req.body,
+      id: req.params.id,
+      createdAt: existing.createdAt, // Preservar createdAt original
+    };
+    
+    // saveAutomation faz validação e normalização
+    const saved = saveAutomation(toUpdate);
+    console.log('✅ [API] Automação atualizada:', saved.id);
+    res.json({ success: true, id: saved.id, automation: saved });
+  } catch (error: any) {
+    console.error('❌ [API] Erro ao atualizar automação:', error);
+    res.status(400).json({ error: error.message });
   }
-  
-  const updated = {
-    ...req.body,
-    id: req.params.id,
-    metadata: {
-      ...existing.metadata,
-      ...req.body.metadata,
-      createdAt: existing.metadata?.createdAt || existing.createdAt,
-      updatedAt: new Date().toISOString(),
-    },
-  };
-  
-  saveAutomation(updated);
-  res.json({ success: true, id: req.params.id });
 });
 
 app.patch('/api/automations/:id', (req: Request, res: Response) => {
-  const automations = getAutomations();
-  const existing = automations.find(a => a.id === req.params.id);
-  
-  if (!existing) {
-    return res.status(404).json({ error: 'Automação não encontrada' });
+  console.log('📝 [API] PATCH /api/automations/:id', req.params.id);
+  try {
+    const existing = getAutomation(req.params.id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Automação não encontrada' });
+    }
+    
+    // Merge parcial (PATCH)
+    const updated = {
+      ...existing,
+      ...req.body,
+      id: req.params.id, // Garantir que ID não muda
+      createdAt: existing.createdAt, // Preservar createdAt original
+    };
+    
+    // saveAutomation faz validação e normalização
+    const saved = saveAutomation(updated);
+    console.log('✅ [API] Automação atualizada (patch):', saved.id);
+    res.json({ success: true, id: saved.id, automation: saved });
+  } catch (error: any) {
+    console.error('❌ [API] Erro ao atualizar automação:', error);
+    res.status(400).json({ error: error.message });
   }
-  
-  const updated = {
-    ...existing,
-    ...req.body,
-    metadata: {
-      ...existing.metadata,
-      updatedAt: new Date().toISOString(),
-    },
-  };
-  
-  saveAutomation(updated);
-  res.json({ success: true, id: req.params.id });
 });
 
 app.delete('/api/automations/:id', (req: Request, res: Response) => {
@@ -134,6 +216,8 @@ app.delete('/api/automations/:id', (req: Request, res: Response) => {
 });
 
 app.post('/api/automations/:id/execute', async (req: Request, res: Response) => {
+  console.log('🚀🚀🚀 [API] POST /api/automations/:id/execute - USANDO EXECUTIONENGINE V3!', req.params.id);
+  
   try {
     const automations = getAutomations();
     const automation = automations.find(a => a.id === req.params.id);
@@ -142,41 +226,71 @@ app.post('/api/automations/:id/execute', async (req: Request, res: Response) => 
       return res.status(404).json({ error: 'Automação não encontrada' });
     }
 
-    // Converter automação para FlowDefinition
-    const flow: FlowDefinition = {
+    console.log('✨ [API] Importando ExecutionEngineV3...');
+    // Converter para ExecutionFlow (formato do novo engine)
+    const { ExecutionEngineV3 } = await import('./executionEngine.js');
+    console.log('✅ [API] ExecutionEngineV3 importado com sucesso!');
+    
+    const executionFlow = {
       id: automation.id,
       name: automation.name,
-      description: automation.description,
-      version: '2.0.0',
       nodes: automation.nodes.map(node => ({
         id: node.id,
-        type: 'tool',
+        type: node.config?.toolId || node.type || 'shell-executor', // Usar toolId como type
         name: node.name,
-        description: node.description,
         config: node.config || {},
         position: node.position,
       })),
       edges: automation.edges || [],
-      startNodeId: automation.startNodeId,
-      metadata: automation.metadata,
+      startNodeId: automation.startNodeId || automation.nodes[0]?.id,
     };
 
-    // Executar flow
-    const logs: any[] = [];
-    const execution = await executeFlow(
-      flow,
-      req.body.initialData || {},
+    console.log('📊 [API] Execução iniciada:', { 
+      flowId: executionFlow.id,
+      nodesCount: executionFlow.nodes.length
+    });
+
+    // Coletar logs e atualizações de nodes em tempo real
+    const allLogs: any[] = [];
+    const nodeResults: any[] = [];
+
+    const engine = new ExecutionEngineV3(
+      executionFlow,
+      {
+        debugMode: req.body.debugMode || false,
+        enableCache: req.body.enableCache !== false,
+        maxRetries: req.body.maxRetries || 3,
+      },
       (log) => {
-        logs.push(log);
+        allLogs.push(log);
+        // Broadcast em tempo real via WebSocket
         broadcast({
           type: 'execution-log',
           automationId: automation.id,
           log,
         });
+      },
+      (nodeResult) => {
+        nodeResults.push(nodeResult);
+        // Broadcast atualização de node em tempo real
+        broadcast({
+          type: 'node-update',
+          automationId: automation.id,
+          nodeResult,
+        });
       }
     );
 
-    // Atualizar runCount
+    // Executar automação
+    const result = await engine.execute(req.body.initialData || {});
+
+    console.log('✅ [API] Execução concluída:', {
+      status: result.status,
+      duration: result.duration,
+      nodesExecuted: result.nodes.size,
+    });
+
+    // Atualizar runCount e metadata
     saveAutomation({
       ...automation,
       runCount: (automation.runCount || 0) + 1,
@@ -187,27 +301,47 @@ app.post('/api/automations/:id/execute', async (req: Request, res: Response) => 
       },
     });
 
+    // Broadcast conclusão
     broadcast({
       type: 'execution-complete',
       automationId: automation.id,
-      execution,
+      result,
     });
 
+    // Responder com resultado detalhado
     res.json({
-      success: execution.status === 'completed',
-      result: execution.result,
-      error: execution.error,
-      logs,
-      executionTime: execution.completedAt 
-        ? new Date(execution.completedAt).getTime() - new Date(execution.startedAt).getTime()
-        : undefined,
+      success: result.status === 'completed',
+      executionId: result.id,
+      status: result.status,
+      startTime: result.startTime,
+      endTime: result.endTime,
+      duration: result.duration,
+      finalOutput: result.finalOutput,
+      error: result.error,
+      logs: allLogs,
+      nodes: Array.from(result.nodes.values()),
     });
   } catch (error: any) {
+    console.error('❌ [API] Erro na execução:', error);
     res.status(500).json({ 
       success: false,
-      error: error.message 
+      error: error.message,
+      stack: error.stack,
     });
   }
+});
+
+// ============= TOOLS ENDPOINTS (via toolApi) =============
+
+// GET /api/tools/:toolId/agents-options - Obter opções de agentes para select
+app.get('/api/tools/:toolId/agents-options', (_req: Request, res: Response) => {
+  const store = useStore.getState();
+  const agents = store.agents.map(agent => ({
+    label: agent.name,
+    value: agent.id,
+    description: agent.systemPrompt?.substring(0, 100) || 'Sem descrição',
+  }));
+  res.json(agents);
 });
 
 // ============= AGENTS ENDPOINTS =============
@@ -426,61 +560,68 @@ app.post('/api/mcps/:id/sync', async (req: Request, res: Response) => {
 
 // ============= TOOLS REGISTRY ENDPOINTS =============
 
-// GET /api/tools - Listar todas as ferramentas (com paginação)
+// GET /api/tools - Listar todas as ferramentas (compatível com frontend)
 app.get('/api/tools', (req: Request, res: Response) => {
   try {
-    const registry = getToolRegistry();
-    const category = req.query.category as string | undefined;
-    const search = req.query.search as string | undefined;
-    const page = parseInt(req.query.page as string) || 1;
-    const pageSize = parseInt(req.query.pageSize as string) || 20;
-    const tags = req.query.tags ? (req.query.tags as string).split(',') : undefined;
-    
-    const result = registry.list({
-      category: category as any,
-      search,
-      tags,
-      page,
-      pageSize,
-    });
-    
-    // Adicionar links de paginação
-    const baseUrl = `${req.protocol}://${req.get('host')}${req.path}`;
-    const queryParams = new URLSearchParams(req.query as any);
-    
-    const links: any = {};
-    
-    // First
-    queryParams.set('page', '1');
-    links.first = `${baseUrl}?${queryParams}`;
-    
-    // Last
-    queryParams.set('page', result.totalPages.toString());
-    links.last = `${baseUrl}?${queryParams}`;
-    
-    // Prev
-    if (result.page > 1) {
-      queryParams.set('page', (result.page - 1).toString());
-      links.prev = `${baseUrl}?${queryParams}`;
+    // Se tem query params de paginação, usar API avançada
+    if (req.query.page || req.query.pageSize) {
+      const registry = getToolRegistry();
+      const category = req.query.category as string | undefined;
+      const search = req.query.search as string | undefined;
+      const page = parseInt(req.query.page as string) || 1;
+      const pageSize = parseInt(req.query.pageSize as string) || 20;
+      const tags = req.query.tags ? (req.query.tags as string).split(',') : undefined;
+      
+      const result = registry.list({
+        category: category as any,
+        search,
+        tags,
+        page,
+        pageSize,
+      });
+      
+      // Adicionar links de paginação
+      const baseUrl = `${req.protocol}://${req.get('host')}${req.path}`;
+      const queryParams = new URLSearchParams(req.query as any);
+      
+      const links: any = {};
+      
+      // First
+      queryParams.set('page', '1');
+      links.first = `${baseUrl}?${queryParams}`;
+      
+      // Last
+      queryParams.set('page', result.totalPages.toString());
+      links.last = `${baseUrl}?${queryParams}`;
+      
+      // Prev
+      if (result.page > 1) {
+        queryParams.set('page', (result.page - 1).toString());
+        links.prev = `${baseUrl}?${queryParams}`;
+      }
+      
+      // Next
+      if (result.page < result.totalPages) {
+        queryParams.set('page', (result.page + 1).toString());
+        links.next = `${baseUrl}?${queryParams}`;
+      }
+      
+      return res.json({
+        data: result.tools,
+        pagination: {
+          page: result.page,
+          pageSize: result.pageSize,
+          total: result.total,
+          totalPages: result.totalPages,
+        },
+        links,
+      });
     }
     
-    // Next
-    if (result.page < result.totalPages) {
-      queryParams.set('page', (result.page + 1).toString());
-      links.next = `${baseUrl}?${queryParams}`;
-    }
-    
-    res.json({
-      data: result.tools,
-      pagination: {
-        page: result.page,
-        pageSize: result.pageSize,
-        total: result.total,
-        totalPages: result.totalPages,
-      },
-      links,
-    });
+    // Sem paginação, usar toolApi (compatível com frontend)
+    res.json(listTools());
   } catch (error: any) {
+    console.error('❌ Erro ao listar tools:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -616,11 +757,121 @@ app.post('/api/tools/:id/execute', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/nodes/:nodeId/test - Testar execução de um nó específico
+// POST /api/automations/:automationId/nodes/:nodeId/test - Testar node com fluxo completo V3
+app.post('/api/automations/:automationId/nodes/:nodeId/test', async (req: Request, res: Response) => {
+  console.log('🧪 [API] POST /api/automations/:automationId/nodes/:nodeId/test', {
+    automationId: req.params.automationId,
+    nodeId: req.params.nodeId,
+  });
+  
+  try {
+    const { automationId, nodeId } = req.params;
+    const { nodes: bodyNodes, edges: bodyEdges } = req.body;
+    
+    let flowNodes = bodyNodes;
+    let flowEdges = bodyEdges;
+    
+    // Se não passou nodes/edges no body, tenta carregar da store
+    if (!flowNodes || !flowEdges) {
+      const automations = getAutomations();
+      const automation = automations.find((a: any) => a.id === automationId);
+      if (!automation) {
+        return res.status(404).json({ error: 'Automação não encontrada' });
+      }
+      flowNodes = automation.nodes || [];
+      flowEdges = automation.edges || [];
+    }
+    
+    if (!flowNodes || flowNodes.length === 0) {
+      return res.status(400).json({ error: 'Nenhum node encontrado para teste' });
+    }
+    
+    // Converter para ExecutionFlow (formato do ExecutionEngineV3)
+    const { ExecutionEngineV3 } = await import('./executionEngine.js');
+    
+    const executionFlow = {
+      id: automationId || 'test-flow',
+      name: 'Test Node Flow',
+      nodes: flowNodes.map((n: any) => ({
+        id: n.id,
+        type: n.type || 'tool',
+        name: n.data?.label || n.name || 'Node',
+        config: {
+          toolId: n.data?.toolId || n.config?.toolId,
+          params: n.data?.config || n.config?.params || {},
+        },
+        position: n.position,
+      })),
+      edges: flowEdges.map((e: any) => ({
+        id: e.id || `${e.source}-${e.target}`,
+        source: e.source,
+        target: e.target,
+      })),
+      startNodeId: flowNodes[0]?.id || 'start',
+    };
+    
+    console.log('🔧 [API] Flow montado para teste:', {
+      nodes: executionFlow.nodes.length,
+      edges: executionFlow.edges.length,
+      targetNode: nodeId,
+    });
+    
+    // Coletar logs e atualizações
+    const allLogs: any[] = [];
+    const nodeResults: any[] = [];
+    
+    const engine = new ExecutionEngineV3(
+      executionFlow,
+      {
+        debugMode: true,
+        enableCache: false, // Desabilitar cache para testes
+        maxRetries: 0, // Sem retry em testes
+      },
+      (log) => {
+        allLogs.push(log);
+      },
+      (nodeResult) => {
+        nodeResults.push(nodeResult);
+      }
+    );
+    
+    // Executar até o node de teste
+    const result = await engine.executeUntilNode(nodeId, req.body.initialData || {});
+    
+    console.log('✅ [API] Teste de node concluído:', {
+      status: result.status,
+      duration: result.duration,
+      nodesExecuted: result.nodes.size,
+    });
+    
+    // Pegar resultado específico do node testado
+    const nodeOutput = engine.getNodeOutput(nodeId);
+    
+    res.json({
+      success: result.status === 'completed',
+      nodeId,
+      result: nodeOutput,
+      status: result.status,
+      duration: result.duration,
+      logs: allLogs,
+      nodes: Array.from(result.nodes.values()),
+      finalOutput: result.finalOutput,
+      error: result.error,
+    });
+  } catch (error: any) {
+    console.error('❌ [API] Erro no teste de node:', error);
+    res.status(500).json({ error: error.message, stack: error.stack });
+  }
+});
+
+// POST /api/nodes/:nodeId/test - Testar execução de um nó específico (LEGACY)
 app.post('/api/nodes/:nodeId/test', async (req: Request, res: Response) => {
   try {
     const { nodeId } = req.params;
     const { toolId, params, context } = req.body;
+    
+    console.warn('⚠️ [API] Usando endpoint legacy /api/nodes/:nodeId/test');
+    console.warn('⚠️ [API] Use /api/automations/:automationId/nodes/:nodeId/test para resolver referências');
     
     if (!toolId) {
       return res.status(400).json({ error: 'toolId é obrigatório' });
@@ -911,6 +1162,13 @@ app.get('/api/custom-nodes/:fingerprint/versions', (req: Request, res: Response)
 });
 
 export const startApiServer = async () => {
+  // Registrar todas as ferramentas
+  console.log('🔧 Registrando ferramentas...');
+  registerAllTools();
+  const registry = getToolRegistry();
+  const toolsCount = registry.list().tools.length;
+  console.log(`✅ ${toolsCount} ferramentas registradas`);
+  
   // Inicializar custom node manager
   try {
     const manager = getCustomNodeManager();
@@ -925,3 +1183,6 @@ export const startApiServer = async () => {
     console.log(`📡 WebSocket Server rodando em ws://localhost:${PORT}`);
   });
 };
+
+// Export for manual start (don't auto-start)
+export default startApiServer;

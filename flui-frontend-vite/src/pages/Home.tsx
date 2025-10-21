@@ -112,9 +112,8 @@ export default function Home() {
             </div>
           ) : (
             automations.map(auto => (
-              <Link 
+              <div 
                 key={auto.id}
-                to={`/automations/${auto.id}`}
                 className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6 hover:border-purple-500/50 transition group"
               >
                 <div className="flex items-start justify-between mb-4">
@@ -133,11 +132,35 @@ export default function Home() {
                 <p className="text-purple-300/70 text-sm mb-4">{auto.description}</p>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-purple-400">{auto.nodes.length} nós</span>
-                  <span className="text-purple-400 group-hover:text-white transition">
-                    Ver →
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      to={`/automations/${auto.id}/edit`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 hover:text-blue-200 rounded-lg transition-all text-xs font-medium"
+                    >
+                      ✏️ Editar
+                    </Link>
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          await fetch(`http://localhost:3001/api/automations/${auto.id}/execute`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ debugMode: true }),
+                          });
+                          alert('Automação executada!');
+                        } catch (err) {
+                          alert('Erro ao executar');
+                        }
+                      }}
+                      className="px-3 py-1.5 bg-green-500/20 hover:bg-green-500/30 text-green-300 hover:text-green-200 rounded-lg transition-all text-xs font-medium"
+                    >
+                      ▶️ Executar
+                    </button>
+                  </div>
                 </div>
-              </Link>
+              </div>
             ))
           )}
         </div>

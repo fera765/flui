@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  PlusCircle, Package, Upload, Trash2, ArrowLeft, Download, 
-  CheckCircle, XCircle, AlertCircle, FileCode, Eye
+  Package, Upload, Trash2, ArrowLeft,
+  CheckCircle, XCircle, AlertCircle, FileCode
 } from 'lucide-react';
 
 interface CustomNodeVersion {

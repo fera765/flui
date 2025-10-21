@@ -6,8 +6,11 @@
  */
 
 import { useState, useEffect } from 'react';
-import { X, Save, Play, AlertCircle, Info, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Save, Play, AlertCircle, Info, ChevronDown, ChevronUp, Link2 } from 'lucide-react';
 import axios from 'axios';
+import VisualFieldEditor from './VisualFieldEditor';
+import SmartFieldLinker from './SmartFieldLinker';
+import { extractNodeInputs, extractNodeOutputs, type InputField } from '../utils/typeMatching';
 
 // ============= TYPES =============
 
@@ -65,6 +68,10 @@ interface NodeConfigPanelProps {
   nodeId: string;
   toolId: string;
   initialConfig?: any;
+  automationId?: string; // ID da automação atual
+  // 🆕 Para automações não salvas
+  localNodes?: any[];
+  localEdges?: any[];
   onClose: () => void;
   onSave: (config: any) => void;
   onTest?: (config: any) => void;
@@ -77,6 +84,9 @@ export default function NodeConfigPanel({
   nodeId,
   toolId,
   initialConfig = {},
+  automationId,
+  localNodes,
+  localEdges,
   onClose,
   onSave,
   onTest,
@@ -89,6 +99,12 @@ export default function NodeConfigPanel({
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<any>(null);
   const [selectedExample, setSelectedExample] = useState<number>(-1);
+  const [visualFields, setVisualFields] = useState<InputField[]>([]);
+  const [useVisualEditor, setUseVisualEditor] = useState(true); // 🆕 Toggle entre visual e JSON
+  
+  // 🔗 Linker state
+  const [showLinker, setShowLinker] = useState(false);
+  const [linkingField, setLinkingField] = useState<{ key: string; label: string; type: any } | null>(null);
 
   // Carregar metadados da tool
   useEffect(() => {
@@ -96,17 +112,55 @@ export default function NodeConfigPanel({
       loadToolMetadata();
     }
   }, [isOpen, toolId]);
+  
+  // Inicializar visualFields quando tool carrega
+  useEffect(() => {
+    if (tool) {
+      const fields = extractNodeInputs({ data: { toolId: tool.id }, type: tool.id });
+      setVisualFields(fields);
+    }
+  }, [tool]);
 
   const loadToolMetadata = async () => {
     setIsLoading(true);
     try {
       const response = await axios.get(`http://localhost:3001/api/tools/${toolId}`);
-      setTool(response.data);
+      let toolData = response.data;
+      
+      // Para agent-executor, carregar agentes disponíveis dinamicamente
+      if (toolId === 'agent-executor') {
+        try {
+          const agentsResponse = await axios.get('http://localhost:3001/api/agents');
+          const agents = agentsResponse.data;
+          
+          // Atualizar opções do parâmetro agentId
+          toolData.params = toolData.params.map((param: any) => {
+            if (param.key === 'agentId') {
+              return {
+                ...param,
+                ui: {
+                  ...param.ui,
+                  options: agents.map((agent: any) => ({
+                    label: agent.name,
+                    value: agent.id,
+                    description: agent.systemPrompt?.substring(0, 80) + '...' || 'Sem descrição',
+                  })),
+                },
+              };
+            }
+            return param;
+          });
+        } catch (error) {
+          console.error('Erro ao carregar agentes:', error);
+        }
+      }
+      
+      setTool(toolData);
       
       // Inicializar config com defaults se vazio
-      if (Object.keys(config).length === 0 && response.data.params) {
+      if (Object.keys(config).length === 0 && toolData.params) {
         const defaultConfig: any = {};
-        response.data.params.forEach((param: ToolParam) => {
+        toolData.params.forEach((param: ToolParam) => {
           if (param.default !== undefined) {
             defaultConfig[param.key] = param.default;
           }
@@ -192,13 +246,32 @@ export default function NodeConfigPanel({
     setTestResult(null);
     
     try {
-      const response = await axios.post(`http://localhost:3001/api/nodes/${nodeId}/test`, {
-        toolId,
-        params: config,
-      });
-      
-      setTestResult(response.data);
+      // Se tem automationId E localNodes, usar novo endpoint com fluxo completo
+      if (automationId && localNodes && localEdges) {
+        console.log('🧪 [NodeConfigPanel] Testando com fluxo completo');
+        
+        const response = await axios.post(
+          `http://localhost:3001/api/automations/${automationId}/nodes/${nodeId}/test`,
+          {
+            nodes: localNodes,
+            edges: localEdges,
+          }
+        );
+        
+        setTestResult(response.data);
+      } else {
+        // Fallback para teste simples (sem resolver referências)
+        console.warn('⚠️  [NodeConfigPanel] Testando sem fluxo (referências não serão resolvidas)');
+        
+        const response = await axios.post(`http://localhost:3001/api/nodes/${nodeId}/test`, {
+          toolId,
+          params: config,
+        });
+        
+        setTestResult(response.data);
+      }
     } catch (error: any) {
+      console.error('❌ [NodeConfigPanel] Erro no teste:', error);
       setTestResult({
         error: error.response?.data?.error || error.message,
       });
@@ -230,31 +303,76 @@ export default function NodeConfigPanel({
       }
     }
 
-    const baseClasses = `w-full bg-slate-700 text-white px-4 py-3 rounded-lg border ${
-      error ? 'border-red-500' : 'border-purple-500/30'
-    } focus:border-purple-500 outline-none transition-colors`;
+    const isLinked = typeof value === 'string' && value.startsWith('{{') && value.endsWith('}}');
+    
+    const baseClasses = `w-full px-4 py-3 rounded-lg border transition-colors font-medium ${
+      error 
+        ? 'border-red-500 bg-red-50 text-red-900' 
+        : isLinked
+          ? 'border-green-500 bg-green-50 text-green-900'
+          : 'border-gray-300 bg-white text-gray-900'
+    } focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none placeholder:text-gray-500`;
 
     switch (ui.widgetType) {
       case 'textInput':
+        // Debug: log props sendo passadas
         return (
-          <input
-            type="text"
-            value={value || ''}
-            onChange={(e) => updateConfig(param.key, e.target.value)}
-            placeholder={ui.placeholder}
-            className={baseClasses}
-          />
+          <div className="relative">
+            <input
+              type="text"
+              value={value || ''}
+              onChange={(e) => updateConfig(param.key, e.target.value)}
+              placeholder={ui.placeholder}
+              className={baseClasses}
+            />
+            {localNodes && localNodes.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setLinkingField({ key: param.key, label: param.name, type: param.type });
+                  setShowLinker(true);
+                }}
+                className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition ${
+                  isLinked
+                    ? 'bg-green-500 text-white hover:bg-green-600'
+                    : 'bg-purple-500 text-white hover:bg-purple-600'
+                }`}
+                title="Conectar com node anterior"
+              >
+                <Link2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         );
 
       case 'textArea':
         return (
-          <textarea
-            value={value || ''}
-            onChange={(e) => updateConfig(param.key, e.target.value)}
-            placeholder={ui.placeholder}
-            rows={ui.rows || 4}
-            className={`${baseClasses} min-h-[100px] font-mono text-sm`}
-          />
+          <div className="relative">
+            <textarea
+              value={value || ''}
+              onChange={(e) => updateConfig(param.key, e.target.value)}
+              placeholder={ui.placeholder}
+              rows={ui.rows || 4}
+              className={`${baseClasses} min-h-[100px] resize-y`}
+            />
+            {localNodes && localNodes.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setLinkingField({ key: param.key, label: param.name, type: param.type });
+                  setShowLinker(true);
+                }}
+                className={`absolute right-2 top-2 p-2 rounded-lg transition ${
+                  isLinked
+                    ? 'bg-green-500 text-white hover:bg-green-600'
+                    : 'bg-purple-500 text-white hover:bg-purple-600'
+                }`}
+                title="Conectar com node anterior"
+              >
+                <Link2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         );
 
       case 'number':
@@ -376,8 +494,42 @@ export default function NodeConfigPanel({
             </div>
           ) : tool ? (
             <div className="space-y-6">
+              {/* Mode Toggle - Visual vs JSON */}
+              <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg p-4 border border-purple-500/30">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-white mb-1">Modo de Configuração</h3>
+                    <p className="text-xs text-purple-300">
+                      {useVisualEditor ? '🎨 Visual (Sem JSON)' : '💻 Avançado (JSON)'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setUseVisualEditor(!useVisualEditor)}
+                    className={`px-4 py-2 rounded-lg font-medium transition ${
+                      useVisualEditor
+                        ? 'bg-purple-500 text-white'
+                        : 'bg-slate-700 text-purple-300 hover:bg-slate-600'
+                    }`}
+                  >
+                    {useVisualEditor ? '🎨 Visual' : '💻 Avançado'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Visual Field Editor (Para Não-Técnicos) */}
+              {useVisualEditor && (
+                <div className="bg-white rounded-lg p-4">
+                  <VisualFieldEditor
+                    fields={visualFields}
+                    onChange={setVisualFields}
+                    parentNodes={localNodes || []}
+                    isFirstNode={!localNodes || localNodes.length === 0}
+                  />
+                </div>
+              )}
+
               {/* Examples */}
-              {tool.ui.examples && tool.ui.examples.length > 0 && (
+              {!useVisualEditor && tool.ui.examples && tool.ui.examples.length > 0 && (
                 <div className="bg-slate-700/50 rounded-lg p-4 border border-purple-500/20">
                   <div className="flex items-center gap-2 mb-3">
                     <Info className="w-5 h-5 text-purple-400" />
@@ -402,8 +554,8 @@ export default function NodeConfigPanel({
                 </div>
               )}
 
-              {/* Basic Fields */}
-              {tool.params
+              {/* Basic Fields (Modo Avançado) */}
+              {!useVisualEditor && tool.params
                 .filter((p) => !p.ui.advanced)
                 .map((param) => (
                   <div key={param.key}>
@@ -512,6 +664,35 @@ export default function NodeConfigPanel({
           </div>
         </div>
       </div>
+      
+      {/* SmartFieldLinker Modal */}
+      {showLinker && linkingField && (
+        <SmartFieldLinker
+          isOpen={showLinker}
+          onClose={() => {
+            setShowLinker(false);
+            setLinkingField(null);
+          }}
+          fieldKey={linkingField.key}
+          fieldLabel={linkingField.label}
+          fieldType={linkingField.type}
+          currentValue={config[linkingField.key]}
+          availableOutputs={
+            (localNodes || []).flatMap(node => 
+              extractNodeOutputs(node).map(field => ({
+                ...field,
+                nodeId: node.id,
+                nodeName: node.data?.label || node.type || 'Node',
+              }))
+            )
+          }
+          onLink={(reference) => {
+            updateConfig(linkingField.key, reference);
+            setShowLinker(false);
+            setLinkingField(null);
+          }}
+        />
+      )}
     </div>
   );
 }
