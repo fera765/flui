@@ -1,5 +1,67 @@
 {
-	"automations": [],
+	"automations": [
+		{
+			"id": "automation-1761050262443",
+			"name": "Teste Completo - 1761050261836",
+			"description": "",
+			"nodes": [
+				{
+					"id": "node-1761050242420",
+					"type": "tool",
+					"name": "Manual Trigger",
+					"description": "Dispara automações manualmente sob demanda. Ideal para testes, debugging e execuções únicas.",
+					"config": {
+						"toolId": "manual-trigger",
+						"category": "system",
+						"color": "#10b981",
+						"icon": "▶️",
+						"params": {}
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-1761050245170",
+					"type": "tool",
+					"name": "Cron Trigger",
+					"description": "Agenda execuções automáticas baseadas em intervalos ou horários específicos usando cron expressions.",
+					"config": {
+						"toolId": "cron-trigger",
+						"category": "system",
+						"color": "#3b82f6",
+						"icon": "⏰",
+						"params": {}
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "edge-node-1761050242420-node-1761050245170",
+					"source": "node-1761050242420",
+					"target": "node-1761050245170"
+				}
+			],
+			"startNodeId": "node-1761050242420",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-21T12:37:42.464Z",
+			"updatedAt": "2025-10-21T12:37:42.464Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-21T12:37:42.443Z",
+				"updatedAt": "2025-10-21T12:37:42.444Z"
+			}
+		}
+	],
 	"executions": [],
 	"agents": [],
 	"mcps": [],

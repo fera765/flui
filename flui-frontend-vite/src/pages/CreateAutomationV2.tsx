@@ -3,7 +3,7 @@
  * Usa ToolNode, ToolPalette e FlowEngine
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReactFlow, {
   Controls,
@@ -18,11 +18,14 @@ import ReactFlow, {
   type Connection,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { ArrowLeft, Save, Plus, Play, Eye } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Play, Eye, Clock } from 'lucide-react';
 import ToolNode from '../components/ToolNode';
 import ToolPalette from '../components/ToolPalette';
 import NodeConfigurationModalV2 from '../components/NodeConfigurationModalV2';
 import ExecutionLogs from '../components/ExecutionLogs';
+import axios from 'axios';
+
+const API_BASE_URL = 'http://localhost:3001/api';
 
 interface Tool {
   id: string;
@@ -59,6 +62,10 @@ export default function CreateAutomationV2() {
   const [showLogs, setShowLogs] = useState(false);
   const [configPanelOpen, setConfigPanelOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  
+  // Auto-save
+  const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Tipos de nó customizados
   const nodeTypes = useMemo(() => ({ tool: ToolNode }), []);
@@ -139,29 +146,48 @@ export default function CreateAutomationV2() {
     }
   }, [nodes, setNodes, setEdges, handleConfigureNode, handleDeleteNode]);
 
-  // Salvar configuração do nó
-  const handleSaveNodeConfig = (config: any) => {
+  // Salvar configuração do nó (INDEPENDENTE da automação)
+  const handleSaveNodeConfig = async (config: any) => {
     if (!selectedNode) return;
 
-    setNodes((nds) =>
-      nds.map((n) =>
-        n.id === selectedNode.id
-          ? {
-              ...n,
-              data: {
-                ...n.data,
-                config,
-                // Preserve callbacks explicitly
-                onConfigure: n.data.onConfigure,
-                onDelete: n.data.onDelete,
-              },
-            }
-          : n
-      )
-    );
-    
-    setConfigPanelOpen(false);
-    setSelectedNode(null);
+    try {
+      // Atualizar node localmente
+      setNodes((nds) =>
+        nds.map((n) =>
+          n.id === selectedNode.id
+            ? {
+                ...n,
+                data: {
+                  ...n.data,
+                  config,
+                  // Preserve callbacks explicitly
+                  onConfigure: n.data.onConfigure,
+                  onDelete: n.data.onDelete,
+                },
+              }
+            : n
+        )
+      );
+
+      // Se automação já foi salva (não é temp-), persistir no backend
+      if (!automationId.startsWith('temp-')) {
+        console.log('💾 Salvando config do node no backend:', selectedNode.id);
+        await axios.patch(
+          `${API_BASE_URL}/automations/${automationId}/nodes/${selectedNode.id}/config`,
+          { config }
+        );
+        console.log('✅ Config do node salva no backend');
+      } else {
+        console.log('⚠️ Automação temporária - config salvo localmente');
+        setHasUnsavedChanges(true);
+      }
+      
+      setConfigPanelOpen(false);
+      setSelectedNode(null);
+    } catch (error) {
+      console.error('❌ Erro ao salvar config do node:', error);
+      alert('Erro ao salvar configuração do nó');
+    }
   };
 
   // Testar nó
@@ -335,6 +361,8 @@ export default function CreateAutomationV2() {
     setIsSaving(true);
     try {
       await doSave();
+      setHasUnsavedChanges(false);
+      setLastAutoSave(new Date());
       alert('Automação salva com sucesso!');
       // Não navegar imediatamente se foi salvo para executar
     } catch (error: any) {
@@ -344,6 +372,35 @@ export default function CreateAutomationV2() {
       setIsSaving(false);
     }
   };
+
+  // Auto-save a cada 30 segundos
+  useEffect(() => {
+    if (nodes.length === 0) return; // Não auto-salvar se não tem nodes
+    if (automationId.startsWith('temp-')) return; // Não auto-salvar automações temporárias
+
+    const interval = setInterval(async () => {
+      if (hasUnsavedChanges && !isSaving) {
+        console.log('💾 Auto-save executando...');
+        try {
+          await doSave();
+          setHasUnsavedChanges(false);
+          setLastAutoSave(new Date());
+          console.log('✅ Auto-save concluído');
+        } catch (error) {
+          console.error('❌ Erro no auto-save:', error);
+        }
+      }
+    }, 30000); // 30 segundos
+
+    return () => clearInterval(interval);
+  }, [nodes, edges, name, description, hasUnsavedChanges, isSaving, automationId]);
+
+  // Marcar como modificado quando nodes ou edges mudam
+  useEffect(() => {
+    if (nodes.length > 0 || edges.length > 0) {
+      setHasUnsavedChanges(true);
+    }
+  }, [nodes, edges]);
 
 
   return (
@@ -419,6 +476,18 @@ export default function CreateAutomationV2() {
                 <span className="hidden sm:inline">{isExecuting ? 'Executando...' : 'Executar'}</span>
               </button>
               
+              {/* Indicador de auto-save */}
+              {lastAutoSave && (
+                <span className="hidden lg:flex items-center gap-1 text-xs text-gray-500">
+                  <Clock className="w-3 h-3" />
+                  <span data-testid="auto-save-indicator">Auto-salvo</span>
+                </span>
+              )}
+              {hasUnsavedChanges && !isSaving && (
+                <span className="hidden md:inline text-xs text-orange-600 font-medium" data-testid="unsaved-changes">
+                  • Não salvo
+                </span>
+              )}
               <button
                 onClick={handleSave}
                 disabled={isSaving}
