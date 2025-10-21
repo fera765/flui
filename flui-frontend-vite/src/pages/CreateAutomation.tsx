@@ -13,7 +13,7 @@ import type { Node, Connection } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { ArrowLeft, Save, Plus } from 'lucide-react';
 import NodePaletteNew from '../components/NodePaletteNew';
-import NodeConfigSimple from '../components/NodeConfigSimple';
+import NodeConfigurationModal from '../components/NodeConfigurationModal';
 import ToolNode from '../components/ToolNode';
 
 export default function CreateAutomation() {
@@ -295,7 +295,7 @@ export default function CreateAutomation() {
       />
 
       {configNode && (
-        <NodeConfigSimple
+        <NodeConfigurationModal
           isOpen={configPanelOpen}
           nodeId={configNode.id}
           toolId={configNode.data.toolId}
