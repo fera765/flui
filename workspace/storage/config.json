@@ -123,6 +123,68 @@
 				"updatedAt": "2025-10-21T16:07:42.683Z",
 				"lastRunAt": "2025-10-21T16:07:42.683Z"
 			}
+		},
+		{
+			"id": "automation-1761063096780",
+			"name": "Teste BLOCO 1 - Automação Simples",
+			"description": "",
+			"nodes": [
+				{
+					"id": "node-1761063078291",
+					"type": "tool",
+					"name": "Manual Trigger",
+					"description": "Dispara automações manualmente sob demanda. Ideal para testes, debugging e execuções únicas.",
+					"config": {
+						"toolId": "manual-trigger",
+						"category": "system",
+						"color": "#10b981",
+						"icon": "▶️",
+						"params": {}
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-1761063087824",
+					"type": "tool",
+					"name": "Webhook Trigger",
+					"description": "Recebe requisições HTTP de sistemas externos para disparar automações. Suporta autenticação, validação e rate limiting.",
+					"config": {
+						"toolId": "webhook-trigger",
+						"category": "http",
+						"color": "#f59e0b",
+						"icon": "🔗",
+						"params": {}
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "edge-node-1761063078291-node-1761063087824",
+					"source": "node-1761063078291",
+					"target": "node-1761063087824"
+				}
+			],
+			"startNodeId": "node-1761063078291",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-21T16:11:36.858Z",
+			"updatedAt": "2025-10-21T16:11:44.274Z",
+			"runCount": 1,
+			"metadata": {
+				"createdAt": "2025-10-21T16:11:36.780Z",
+				"updatedAt": "2025-10-21T16:11:44.274Z",
+				"lastRunAt": "2025-10-21T16:11:44.274Z"
+			}
 		}
 	],
 	"executions": [],
@@ -176,6 +238,23 @@
 			"metadata": {
 				"createdAt": "2025-10-21T16:07:39.056Z",
 				"updatedAt": "2025-10-21T16:07:39.056Z",
+				"lastSyncedAt": null
+			}
+		},
+		{
+			"name": "Test MCP",
+			"command": "npx",
+			"args": [
+				"@modelcontextprotocol/server-everything"
+			],
+			"description": "MCP de teste para validação",
+			"enabled": true,
+			"version": "1.0.0",
+			"id": "sjpw4H-dVpzkcAgB_G2e4",
+			"tools": [],
+			"metadata": {
+				"createdAt": "2025-10-21T16:11:40.888Z",
+				"updatedAt": "2025-10-21T16:11:40.888Z",
 				"lastSyncedAt": null
 			}
 		}
