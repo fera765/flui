@@ -63,10 +63,12 @@ export default function ExecutionLogs({
   duration,
   onClose,
 }: ExecutionLogsProps) {
-  const [view, setView] = useState<'nodes' | 'logs' | 'timeline'>('nodes');
+  const [view, setView] = useState<'nodes' | 'logs' | 'timeline' | 'files' | 'links' | 'chat'>('nodes');
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const [levelFilter, setLevelFilter] = useState<string[]>([]);
+  const [chatMessages, setChatMessages] = useState<Array<{role: 'user' | 'assistant', content: string}>>([]);
+  const [chatInput, setChatInput] = useState('');
 
   // Filtrar logs
   const filteredLogs = useMemo(() => {
@@ -179,6 +181,36 @@ export default function ExecutionLogs({
               }`}
             >
               Timeline
+            </button>
+            <button
+              onClick={() => setView('files')}
+              className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+                view === 'files'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              📎 Arquivos
+            </button>
+            <button
+              onClick={() => setView('links')}
+              className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+                view === 'links'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              🔗 Links
+            </button>
+            <button
+              onClick={() => setView('chat')}
+              className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+                view === 'chat'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              💬 Chat
             </button>
           </div>
         </div>
@@ -458,6 +490,178 @@ export default function ExecutionLogs({
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Files View */}
+        {view === 'files' && (
+          <div className="p-4">
+            <div className="space-y-3">
+              {nodes.filter(n => n.output?.files || n.output?.file).length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <div className="text-6xl mb-4">📁</div>
+                  <div className="font-medium">Nenhum arquivo gerado</div>
+                  <div className="text-sm mt-2">Esta execução não gerou arquivos</div>
+                </div>
+              ) : (
+                nodes.filter(n => n.output?.files || n.output?.file).map((node) => {
+                  const files = node.output.files || [node.output.file];
+                  return files.map((file: any, idx: number) => (
+                    <div key={`${node.nodeId}-${idx}`} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start gap-3 flex-1">
+                          <div className="text-4xl">📄</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-gray-900 truncate">
+                              {file.name || file.filename || `arquivo-${idx + 1}`}
+                            </div>
+                            <div className="text-sm text-gray-500 mt-1">
+                              Gerado por: <span className="font-medium">{node.nodeName}</span>
+                            </div>
+                            {file.size && (
+                              <div className="text-xs text-gray-400 mt-1">
+                                Tamanho: {(file.size / 1024).toFixed(2)} KB
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            // Download file
+                            if (file.url || file.data) {
+                              const url = file.url || `data:${file.type};base64,${file.data}`;
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = file.name || `download-${Date.now()}`;
+                              a.click();
+                            }
+                          }}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                        >
+                          <Download className="w-4 h-4 inline mr-2" />
+                          Baixar
+                        </button>
+                      </div>
+                    </div>
+                  ));
+                })
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Links View */}
+        {view === 'links' && (
+          <div className="p-4">
+            <div className="space-y-3">
+              {nodes.filter(n => n.output?.url || n.output?.link || n.output?.links).length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <div className="text-6xl mb-4">🔗</div>
+                  <div className="font-medium">Nenhum link gerado</div>
+                  <div className="text-sm mt-2">Esta execução não gerou links</div>
+                </div>
+              ) : (
+                nodes.filter(n => n.output?.url || n.output?.link || n.output?.links).map((node) => {
+                  const links = node.output.links || [node.output.url || node.output.link];
+                  return links.map((link: any, idx: number) => {
+                    const url = typeof link === 'string' ? link : link.url;
+                    const title = typeof link === 'object' ? link.title : url;
+                    
+                    return (
+                      <div key={`${node.nodeId}-${idx}`} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-start gap-3">
+                          <div className="text-3xl">🔗</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-gray-900 truncate">
+                              {title}
+                            </div>
+                            <div className="text-sm text-blue-600 hover:underline mt-1 break-all">
+                              <a href={url} target="_blank" rel="noopener noreferrer">
+                                {url}
+                              </a>
+                            </div>
+                            <div className="text-xs text-gray-500 mt-2">
+                              Gerado por: <span className="font-medium">{node.nodeName}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  });
+                })
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Chat View */}
+        {view === 'chat' && (
+          <div className="flex flex-col h-full">
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {chatMessages.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <div className="text-6xl mb-4">💬</div>
+                  <div className="font-medium">Chat sobre a execução</div>
+                  <div className="text-sm mt-2">Faça perguntas sobre esta execução</div>
+                </div>
+              ) : (
+                chatMessages.map((msg, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`max-w-[80%] rounded-lg p-3 ${
+                        msg.role === 'user'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-900'
+                      }`}
+                    >
+                      <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+            <div className="border-t p-4 bg-white">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!chatInput.trim()) return;
+                  
+                  // Add user message
+                  setChatMessages([...chatMessages, { role: 'user', content: chatInput }]);
+                  
+                  // Simulate AI response
+                  setTimeout(() => {
+                    const response = `Com base nos logs, posso ver que a execução ${
+                      status === 'completed' ? 'foi concluída com sucesso' : 'falhou'
+                    }${duration ? ` em ${duration}ms` : ''}. ${
+                      nodes.length
+                    } nós foram executados. Como posso ajudar?`;
+                    
+                    setChatMessages(prev => [...prev, { role: 'assistant', content: response }]);
+                  }, 1000);
+                  
+                  setChatInput('');
+                }}
+                className="flex items-center gap-2"
+              >
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  placeholder="Pergunte sobre a execução..."
+                  className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  Enviar
+                </button>
+              </form>
             </div>
           </div>
         )}

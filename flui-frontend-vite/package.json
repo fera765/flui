@@ -7,7 +7,14 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:bloco1": "playwright test bloco1-automacao-simples",
+    "test:bloco2": "playwright test bloco2-mcp-integration",
+    "test:bloco3": "playwright test bloco3-logs-melhorados",
+    "test:report": "playwright show-report"
   },
   "dependencies": {
     "axios": "^1.12.2",
