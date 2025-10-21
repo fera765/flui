@@ -66,6 +66,8 @@ export default function NodeConfigurationModalV2({
   automationId,
   nodeId,
   nodeData,
+  allNodes,
+  allEdges,
   onClose,
   onSave,
 }: NodeConfigurationModalProps) {
@@ -83,6 +85,93 @@ export default function NodeConfigurationModalV2({
       loadNodeData();
     }
   }, [isOpen, automationId, nodeId]);
+
+  // Carregar outputs disponíveis dos nodes pais
+  const loadAvailableOutputs = async () => {
+    try {
+      // Se temos nodes e edges locais (automação temporária), calcular localmente
+      if ((automationId.startsWith('temp-') || nodeData) && allNodes && allEdges) {
+        console.log('🔗 [NodeConfigModalV2] Calculando availableOutputs localmente');
+        
+        // Encontrar nodes pais (nodes que têm edges conectadas a este node)
+        const parentNodeIds = allEdges
+          .filter((edge: any) => edge.target === nodeId)
+          .map((edge: any) => edge.source);
+        
+        console.log('🔗 Parent nodes:', parentNodeIds);
+        
+        // Para cada node pai, buscar seus outputs (params da tool)
+        const allOutputs: LinkedOutputField[] = [];
+        
+        for (const parentId of parentNodeIds) {
+          const parentNode = allNodes.find((n: any) => n.id === parentId);
+          if (parentNode) {
+            const parentToolId = parentNode.data?.toolId || parentNode.toolId;
+            
+            // Buscar tool metadata do node pai
+            try {
+              const toolResponse = await axios.get(`${API_BASE_URL}/tools/${parentToolId}`);
+              const parentTool = toolResponse.data;
+              
+              // Adicionar todos os params como outputs disponíveis
+              parentTool.params?.forEach((param: any) => {
+                allOutputs.push({
+                  nodeId: parentId,
+                  nodeName: parentNode.data?.label || parentTool.name,
+                  key: param.name,
+                  label: param.name,
+                  type: param.type,
+                  description: param.description,
+                });
+              });
+              
+              // Adicionar outputs padrão de qualquer tool
+              ['result', 'output', 'data', 'response'].forEach((key) => {
+                allOutputs.push({
+                  nodeId: parentId,
+                  nodeName: parentNode.data?.label || parentTool.name,
+                  key,
+                  label: key,
+                  type: 'string',
+                  description: `Output padrão: ${key}`,
+                });
+              });
+            } catch (err) {
+              console.error('❌ Erro ao carregar tool do node pai:', parentId, err);
+            }
+          }
+        }
+        
+        console.log('✅ [NodeConfigModalV2] AvailableOutputs:', allOutputs.length);
+        setAvailableOutputs(allOutputs);
+        
+      } else if (!automationId.startsWith('temp-')) {
+        // Automação salva - buscar do backend
+        console.log('🔗 [NodeConfigModalV2] Buscando availableOutputs do backend');
+        const outputsResponse = await axios.get(
+          `${API_BASE_URL}/automations/${automationId}/nodes/${nodeId}/available-outputs`
+        );
+        
+        // Flatten outputs de todos os nodes pais
+        const allOutputs: LinkedOutputField[] = [];
+        for (const parentOutput of outputsResponse.data.availableOutputs || []) {
+          for (const key of parentOutput.outputKeys || []) {
+            allOutputs.push({
+              nodeId: parentOutput.nodeId,
+              nodeName: parentOutput.nodeName,
+              key,
+              label: key,
+              type: 'string',
+              description: `Output de ${parentOutput.nodeName}`,
+            });
+          }
+        }
+        setAvailableOutputs(allOutputs);
+      }
+    } catch (err) {
+      console.error('❌ Erro ao carregar outputs:', err);
+    }
+  };
 
   const loadNodeData = async () => {
     console.log('📥 [NodeConfigModalV2] loadNodeData started');
@@ -117,29 +206,7 @@ export default function NodeConfigurationModalV2({
         console.log('✅ [NodeConfigModalV2] Tool loaded:', toolResponse.data.name);
         
         // 4. Carregar outputs disponíveis dos nodes pais
-        try {
-          const outputsResponse = await axios.get(
-            `${API_BASE_URL}/automations/${automationId}/nodes/${nodeId}/available-outputs`
-          );
-          
-          // Flatten outputs de todos os nodes pais
-          const allOutputs: LinkedOutputField[] = [];
-          for (const parentOutput of outputsResponse.data.availableOutputs || []) {
-            for (const key of parentOutput.outputKeys || []) {
-              allOutputs.push({
-                nodeId: parentOutput.nodeId,
-                nodeName: parentOutput.nodeName,
-                key,
-                label: key,
-                type: 'string', // Default type
-                description: `Output de ${parentOutput.nodeName}`,
-              });
-            }
-          }
-          setAvailableOutputs(allOutputs);
-        } catch (err) {
-          console.error('❌ Erro ao carregar outputs:', err);
-        }
+        await loadAvailableOutputs();
       }
     } catch (error: any) {
       console.error('❌ Erro ao carregar node:', error);
@@ -362,7 +429,7 @@ export default function NodeConfigurationModalV2({
               rows={4}
               disabled={fieldIsLinked}
               className={`w-full px-4 py-3 border-2 ${errorClass} rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all resize-none font-mono text-sm ${
-                fieldIsLinked ? 'bg-green-50 text-green-700' : ''
+                fieldIsLinked ? 'bg-green-50 text-green-700' : 'text-gray-900'
               }`}
             />
             <div className="flex items-center justify-between">
@@ -400,7 +467,7 @@ export default function NodeConfigurationModalV2({
               placeholder={param.placeholder}
               disabled={fieldIsLinked}
               className={`flex-1 px-4 py-3 border-2 ${errorClass} rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all ${
-                fieldIsLinked ? 'bg-green-50 text-green-700' : ''
+                fieldIsLinked ? 'bg-green-50 text-green-700' : 'text-gray-900'
               }`}
             />
             <button
@@ -443,7 +510,7 @@ export default function NodeConfigurationModalV2({
                     newArray[index] = e.target.value;
                     updateConfig(param.name, newArray);
                   }}
-                  className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 outline-none"
+                  className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 outline-none text-gray-900"
                 />
                 <button
                   onClick={() => {
@@ -505,7 +572,7 @@ export default function NodeConfigurationModalV2({
                     updateConfig(param.name, newObj);
                   }}
                   placeholder="Valor"
-                  className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 outline-none"
+                  className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 outline-none text-gray-900"
                 />
                 <button
                   onClick={() => {

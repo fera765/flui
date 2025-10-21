@@ -496,6 +496,8 @@ export default function CreateAutomationV2() {
           automationId={automationId}
           nodeId={selectedNode.id}
           nodeData={selectedNode.data}
+          allNodes={nodes}
+          allEdges={edges}
           onClose={() => {
             setConfigPanelOpen(false);
             setSelectedNode(null);
