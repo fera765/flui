@@ -9,7 +9,7 @@
  * - Diff entre execuções
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { 
   Clock, 
   CheckCircle, 
@@ -53,6 +53,7 @@ interface ExecutionLogsProps {
   logs: ExecutionLog[];
   status: 'running' | 'completed' | 'failed' | 'cancelled';
   duration?: number;
+  executionId?: string; // ID único da execução para persistir chat
   onClose?: () => void;
 }
 
@@ -61,6 +62,7 @@ export default function ExecutionLogs({
   logs,
   status,
   duration,
+  executionId,
   onClose,
 }: ExecutionLogsProps) {
   const [view, setView] = useState<'nodes' | 'logs' | 'timeline' | 'files' | 'links' | 'chat'>('nodes');
@@ -69,6 +71,214 @@ export default function ExecutionLogs({
   const [levelFilter, setLevelFilter] = useState<string[]>([]);
   const [chatMessages, setChatMessages] = useState<Array<{role: 'user' | 'assistant', content: string}>>([]);
   const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+
+  // Carregar histórico de chat do localStorage ao montar
+  useEffect(() => {
+    if (executionId) {
+      const storageKey = `chat-history-${executionId}`;
+      const savedChat = localStorage.getItem(storageKey);
+      if (savedChat) {
+        try {
+          const parsed = JSON.parse(savedChat);
+          setChatMessages(parsed);
+        } catch (e) {
+          console.error('Erro ao carregar histórico de chat:', e);
+        }
+      }
+    }
+  }, [executionId]);
+
+  // Salvar histórico de chat no localStorage quando mudar
+  useEffect(() => {
+    if (executionId && chatMessages.length > 0) {
+      const storageKey = `chat-history-${executionId}`;
+      localStorage.setItem(storageKey, JSON.stringify(chatMessages));
+    }
+  }, [chatMessages, executionId]);
+
+  // Função para gerar contexto completo da automação
+  const getExecutionContext = () => {
+    const successfulNodes = nodes.filter(n => n.status === 'completed');
+    const failedNodes = nodes.filter(n => n.status === 'failed');
+    const errorLogs = logs.filter(l => l.level === 'error');
+    const warningLogs = logs.filter(l => l.level === 'warning');
+    
+    // Extrair outputs gerados
+    const filesGenerated = nodes.filter(n => n.output?.files || n.output?.file);
+    const linksGenerated = nodes.filter(n => n.output?.url || n.output?.link || n.output?.links);
+    
+    return {
+      totalNodes: nodes.length,
+      successfulNodes: successfulNodes.length,
+      failedNodes: failedNodes.length,
+      status,
+      duration,
+      errorCount: errorLogs.length,
+      warningCount: warningLogs.length,
+      filesGenerated: filesGenerated.length,
+      linksGenerated: linksGenerated.length,
+      nodes,
+      logs,
+      errors: errorLogs,
+      warnings: warningLogs,
+    };
+  };
+
+  // Função para gerar resposta inteligente baseada no contexto
+  const generateContextualResponse = (userQuestion: string): string => {
+    const context = getExecutionContext();
+    const question = userQuestion.toLowerCase();
+    
+    // Resumo geral
+    if (question.includes('resumo') || question.includes('o que aconteceu') || question.includes('status')) {
+      let response = `📊 **Resumo da Execução:**\n\n`;
+      response += `✅ Status: ${context.status === 'completed' ? 'Concluída com sucesso' : context.status === 'failed' ? 'Falhou' : 'Em execução'}\n`;
+      response += `⏱️ Duração: ${context.duration ? `${context.duration}ms` : 'N/A'}\n`;
+      response += `📦 Nodes executados: ${context.totalNodes}\n`;
+      response += `  - Sucesso: ${context.successfulNodes}\n`;
+      response += `  - Falhas: ${context.failedNodes}\n`;
+      
+      if (context.errorCount > 0) {
+        response += `\n❌ Erros encontrados: ${context.errorCount}`;
+      }
+      if (context.warningCount > 0) {
+        response += `\n⚠️ Avisos: ${context.warningCount}`;
+      }
+      if (context.filesGenerated > 0) {
+        response += `\n📎 Arquivos gerados: ${context.filesGenerated}`;
+      }
+      if (context.linksGenerated > 0) {
+        response += `\n🔗 Links gerados: ${context.linksGenerated}`;
+      }
+      
+      return response;
+    }
+    
+    // Perguntas sobre erros
+    if (question.includes('erro') || question.includes('falha') || question.includes('problema')) {
+      if (context.errorCount === 0 && context.failedNodes === 0) {
+        return '✅ Não foram encontrados erros nesta execução. Tudo correu bem!';
+      }
+      
+      let response = `❌ **Análise de Erros:**\n\n`;
+      response += `Total de erros: ${context.errorCount}\n`;
+      response += `Nodes falhados: ${context.failedNodes}\n\n`;
+      
+      // Listar nodes com erro
+      const failedNodesList = context.nodes.filter(n => n.status === 'failed');
+      if (failedNodesList.length > 0) {
+        response += `**Nodes que falharam:**\n`;
+        failedNodesList.forEach(node => {
+          response += `\n• **${node.nodeName}** (${node.nodeId})\n`;
+          if (node.error) {
+            response += `  Erro: ${node.error.substring(0, 200)}${node.error.length > 200 ? '...' : ''}\n`;
+          }
+        });
+      }
+      
+      // Sugestões
+      response += `\n💡 **Sugestões:**\n`;
+      response += `- Verifique os parâmetros dos nodes que falharam\n`;
+      response += `- Confira se todas as dependências estão configuradas\n`;
+      response += `- Consulte a aba "Logs" para detalhes completos`;
+      
+      return response;
+    }
+    
+    // Perguntas sobre duração/performance
+    if (question.includes('tempo') || question.includes('duração') || question.includes('performance') || question.includes('demor')) {
+      let response = `⏱️ **Análise de Performance:**\n\n`;
+      response += `Duração total: ${context.duration ? `${context.duration}ms (${(context.duration / 1000).toFixed(2)}s)` : 'N/A'}\n`;
+      
+      // Node mais lento
+      const nodesWithDuration = context.nodes.filter(n => n.duration !== undefined);
+      if (nodesWithDuration.length > 0) {
+        const slowestNode = nodesWithDuration.reduce((prev, current) => 
+          (current.duration || 0) > (prev.duration || 0) ? current : prev
+        );
+        response += `\n🐌 Node mais lento: **${slowestNode.nodeName}** (${slowestNode.duration}ms)`;
+        
+        // Node mais rápido
+        const fastestNode = nodesWithDuration.reduce((prev, current) => 
+          (current.duration || 0) < (prev.duration || 0) ? current : prev
+        );
+        response += `\n⚡ Node mais rápido: **${fastestNode.nodeName}** (${fastestNode.duration}ms)`;
+        
+        // Média
+        const avgDuration = nodesWithDuration.reduce((sum, n) => sum + (n.duration || 0), 0) / nodesWithDuration.length;
+        response += `\n📊 Tempo médio por node: ${avgDuration.toFixed(2)}ms`;
+      }
+      
+      return response;
+    }
+    
+    // Perguntas sobre arquivos
+    if (question.includes('arquivo') || question.includes('file') || question.includes('download')) {
+      if (context.filesGenerated === 0) {
+        return '📁 Esta execução não gerou nenhum arquivo.';
+      }
+      
+      let response = `📎 **Arquivos Gerados:**\n\n`;
+      response += `Total: ${context.filesGenerated} arquivo(s)\n\n`;
+      
+      const fileNodes = context.nodes.filter(n => n.output?.files || n.output?.file);
+      fileNodes.forEach(node => {
+        const files = node.output.files || [node.output.file];
+        response += `**${node.nodeName}:**\n`;
+        files.forEach((file: any) => {
+          response += `  • ${file.name || file.filename || 'arquivo'}\n`;
+          if (file.size) {
+            response += `    Tamanho: ${(file.size / 1024).toFixed(2)} KB\n`;
+          }
+        });
+      });
+      
+      response += `\n💡 Acesse a aba "📎 Arquivos" para baixar os arquivos gerados.`;
+      
+      return response;
+    }
+    
+    // Perguntas sobre links
+    if (question.includes('link') || question.includes('url') || question.includes('endereço')) {
+      if (context.linksGenerated === 0) {
+        return '🔗 Esta execução não gerou nenhum link.';
+      }
+      
+      let response = `🔗 **Links Gerados:**\n\n`;
+      const linkNodes = context.nodes.filter(n => n.output?.url || n.output?.link || n.output?.links);
+      linkNodes.forEach(node => {
+        const links = node.output.links || [node.output.url || node.output.link];
+        response += `**${node.nodeName}:**\n`;
+        links.forEach((link: any) => {
+          const url = typeof link === 'string' ? link : link.url;
+          response += `  • ${url}\n`;
+        });
+      });
+      
+      response += `\n💡 Acesse a aba "🔗 Links" para ver todos os links gerados.`;
+      
+      return response;
+    }
+    
+    // Perguntas sobre nodes específicos
+    if (question.includes('node') || question.includes('nó')) {
+      let response = `📦 **Nodes da Execução:**\n\n`;
+      context.nodes.forEach((node, idx) => {
+        const statusIcon = node.status === 'completed' ? '✅' : node.status === 'failed' ? '❌' : '⏳';
+        response += `${idx + 1}. ${statusIcon} **${node.nodeName}**\n`;
+        response += `   Status: ${node.status}\n`;
+        if (node.duration) {
+          response += `   Duração: ${node.duration}ms\n`;
+        }
+      });
+      
+      return response;
+    }
+    
+    // Resposta padrão mais útil
+    return `Posso ajudar você com informações sobre esta execução!\n\n🔍 **Perguntas que você pode fazer:**\n\n• "Me dê um resumo" - Visão geral da execução\n• "Houve algum erro?" - Análise de erros e falhas\n• "Quanto tempo levou?" - Análise de performance\n• "Quais arquivos foram gerados?" - Lista de arquivos\n• "Quais links foram gerados?" - Lista de URLs\n• "Liste os nodes" - Detalhes de cada node\n\n📊 **Status atual:** ${context.status} | ${context.totalNodes} nodes | ${context.duration ? context.duration + 'ms' : 'N/A'}`;
+  };
 
   // Filtrar logs
   const filteredLogs = useMemo(() => {
@@ -602,49 +812,104 @@ export default function ExecutionLogs({
               {chatMessages.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
                   <div className="text-6xl mb-4">💬</div>
-                  <div className="font-medium">Chat sobre a execução</div>
-                  <div className="text-sm mt-2">Faça perguntas sobre esta execução</div>
-                </div>
-              ) : (
-                chatMessages.map((msg, idx) => (
-                  <div
-                    key={idx}
-                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-[80%] rounded-lg p-3 ${
-                        msg.role === 'user'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-900'
-                      }`}
-                    >
-                      <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+                  <div className="font-medium text-lg mb-3">Chat Interativo com a Automação</div>
+                  <div className="text-sm mb-4">Converse sobre esta execução e obtenha insights detalhados</div>
+                  
+                  {/* Sugestões de perguntas */}
+                  <div className="max-w-2xl mx-auto mt-6 space-y-2">
+                    <p className="text-xs font-semibold text-gray-600 mb-2">💡 Perguntas sugeridas:</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {[
+                        'Me dê um resumo',
+                        'Houve algum erro?',
+                        'Quanto tempo levou?',
+                        'Quais arquivos foram gerados?',
+                        'Liste os nodes',
+                        'Análise de performance'
+                      ].map((suggestion, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            setChatInput(suggestion);
+                          }}
+                          className="text-left px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs transition-colors"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
                     </div>
                   </div>
-                ))
+                </div>
+              ) : (
+                <>
+                  {chatMessages.map((msg, idx) => (
+                    <div
+                      key={idx}
+                      className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-[80%] rounded-lg p-3 shadow-sm ${
+                          msg.role === 'user'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900 border border-gray-200'
+                        }`}
+                      >
+                        <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+                      </div>
+                    </div>
+                  ))}
+                  {chatLoading && (
+                    <div className="flex justify-start">
+                      <div className="max-w-[80%] rounded-lg p-3 bg-gray-100 border border-gray-200">
+                        <div className="flex items-center gap-2 text-gray-500">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                          <span className="text-sm">Analisando execução...</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
             <div className="border-t p-4 bg-white">
+              {chatMessages.length > 0 && (
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="text-xs text-gray-500">
+                    💾 Chat salvo automaticamente
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (window.confirm('Deseja limpar o histórico de chat desta execução?')) {
+                        setChatMessages([]);
+                        if (executionId) {
+                          localStorage.removeItem(`chat-history-${executionId}`);
+                        }
+                      }
+                    }}
+                    className="text-xs text-red-600 hover:text-red-700 underline"
+                  >
+                    Limpar histórico
+                  </button>
+                </div>
+              )}
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  if (!chatInput.trim()) return;
+                  if (!chatInput.trim() || chatLoading) return;
+                  
+                  const userMessage = chatInput;
                   
                   // Add user message
-                  setChatMessages([...chatMessages, { role: 'user', content: chatInput }]);
-                  
-                  // Simulate AI response
-                  setTimeout(() => {
-                    const response = `Com base nos logs, posso ver que a execução ${
-                      status === 'completed' ? 'foi concluída com sucesso' : 'falhou'
-                    }${duration ? ` em ${duration}ms` : ''}. ${
-                      nodes.length
-                    } nós foram executados. Como posso ajudar?`;
-                    
-                    setChatMessages(prev => [...prev, { role: 'assistant', content: response }]);
-                  }, 1000);
-                  
+                  setChatMessages([...chatMessages, { role: 'user', content: userMessage }]);
                   setChatInput('');
+                  setChatLoading(true);
+                  
+                  // Generate contextual response
+                  setTimeout(() => {
+                    const response = generateContextualResponse(userMessage);
+                    setChatMessages(prev => [...prev, { role: 'assistant', content: response }]);
+                    setChatLoading(false);
+                  }, 500);
                 }}
                 className="flex items-center gap-2"
               >
@@ -657,9 +922,10 @@ export default function ExecutionLogs({
                 />
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  disabled={chatLoading || !chatInput.trim()}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Enviar
+                  {chatLoading ? '⏳' : 'Enviar'}
                 </button>
               </form>
             </div>
