@@ -523,11 +523,12 @@ app.post('/api/mcps', async (req: Request, res: Response) => {
           console.log(`✅ [API] MCP atualizado no store`);
           
           // Aguardar um pouco para garantir que store foi atualizado
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise(resolve => setTimeout(resolve, 100));
           
-          // Pegar MCP atualizado do store
-          const updatedMCP = store.mcps.find(m => m.id === newMcp.id);
-          console.log(`🔍 [API] MCP do store:`, {
+          // Pegar MCP atualizado do store - IMPORTANTE: pegar estado fresco!
+          const freshStore = useStore.getState();
+          const updatedMCP = freshStore.mcps.find(m => m.id === newMcp.id);
+          console.log(`🔍 [API] MCP do store (fresh):`, {
             found: !!updatedMCP,
             id: updatedMCP?.id,
             toolsCount: updatedMCP?.tools?.length || 0,
@@ -666,7 +667,9 @@ app.post('/api/mcps/:id/sync', async (req: Request, res: Response) => {
 
     // Registrar tools no Tool Registry
     const { MCPLoader } = await import('./mcpLoader.js');
-    const updatedMCP = store.mcps.find(m => m.id === req.params.id);
+    // Pegar estado fresco do store
+    const freshStore = useStore.getState();
+    const updatedMCP = freshStore.mcps.find(m => m.id === req.params.id);
     if (updatedMCP) {
       await MCPLoader.loadMCP(updatedMCP);
     }
@@ -1436,6 +1439,20 @@ export const startApiServer = async () => {
   const registry = getToolRegistry();
   const toolsCount = registry.list().tools.length;
   console.log(`✅ ${toolsCount} ferramentas registradas`);
+  
+  // Carregar MCPs e registrar suas tools
+  console.log('🔌 Carregando MCPs...');
+  try {
+    const { MCPLoader } = await import('./mcpLoader.js');
+    const mcpsLoaded = await MCPLoader.loadAllMCPs();
+    console.log(`✅ ${mcpsLoaded} MCPs carregados com sucesso`);
+    
+    // Contar tools após carregar MCPs
+    const toolsCountAfterMCPs = registry.list().tools.length;
+    console.log(`📦 Total de ferramentas (incluindo MCPs): ${toolsCountAfterMCPs}`);
+  } catch (error: any) {
+    console.error('❌ Erro ao carregar MCPs:', error.message);
+  }
   
   // Inicializar custom node manager
   try {

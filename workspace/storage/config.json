@@ -4,59 +4,31 @@
 	"agents": [],
 	"mcps": [
 		{
-			"name": "Pollinations MCP",
-			"description": "MCP for generating images and text using AI models from Pollinations",
+			"name": "Weather MCP",
+			"description": "Get weather information",
 			"version": "1.0.0",
-			"server": "@pollinations/model-context-protocol",
+			"server": "@modelcontextprotocol/server-everything",
 			"enabled": true,
 			"command": "npx",
 			"args": [
 				"-y",
-				"@pollinations/model-context-protocol"
+				"@modelcontextprotocol/server-everything"
 			],
 			"installType": "npx",
-			"id": "1761078150948",
+			"id": "1761079489436",
 			"tools": [
 				{
-					"id": "pollinations-model-context-protocol-default",
-					"name": "@pollinations/model-context-protocol",
-					"description": "Tool principal de @pollinations/model-context-protocol",
+					"id": "modelcontextprotocol-server-everything-default",
+					"name": "@modelcontextprotocol/server-everything",
+					"description": "Tool principal de @modelcontextprotocol/server-everything",
 					"handler": "execute",
 					"parameters": {}
 				}
 			],
 			"metadata": {
-				"createdAt": "2025-10-21T20:22:30.948Z",
-				"updatedAt": "2025-10-21T20:22:38.290Z",
-				"lastSyncedAt": "2025-10-21T20:22:38.290Z"
-			}
-		},
-		{
-			"name": "Filesystem MCP",
-			"description": "File system operations MCP",
-			"version": "1.0.0",
-			"server": "@modelcontextprotocol/server-filesystem",
-			"enabled": true,
-			"command": "npx",
-			"args": [
-				"-y",
-				"@modelcontextprotocol/server-filesystem"
-			],
-			"installType": "npx",
-			"id": "1761078204546",
-			"tools": [
-				{
-					"id": "modelcontextprotocol-server-filesystem-default",
-					"name": "@modelcontextprotocol/server-filesystem",
-					"description": "Tool principal de @modelcontextprotocol/server-filesystem",
-					"handler": "execute",
-					"parameters": {}
-				}
-			],
-			"metadata": {
-				"createdAt": "2025-10-21T20:23:24.546Z",
-				"updatedAt": "2025-10-21T20:23:34.174Z",
-				"lastSyncedAt": "2025-10-21T20:23:34.174Z"
+				"createdAt": "2025-10-21T20:44:49.436Z",
+				"updatedAt": "2025-10-21T20:44:59.227Z",
+				"lastSyncedAt": "2025-10-21T20:44:59.227Z"
 			}
 		}
 	],
