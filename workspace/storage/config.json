@@ -1,5 +1,67 @@
 {
-	"automations": [],
+	"automations": [
+		{
+			"id": "automation-1761073128964",
+			"name": "Teste BLOCO 1 - Automação Simples",
+			"description": "",
+			"nodes": [
+				{
+					"id": "node-1761073110646",
+					"type": "tool",
+					"name": "Manual Trigger",
+					"description": "Dispara automações manualmente sob demanda. Ideal para testes, debugging e execuções únicas.",
+					"config": {
+						"toolId": "manual-trigger",
+						"category": "system",
+						"color": "#10b981",
+						"icon": "▶️",
+						"params": {}
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-1761073120121",
+					"type": "tool",
+					"name": "Webhook Trigger",
+					"description": "Recebe requisições HTTP de sistemas externos para disparar automações. Suporta autenticação, validação e rate limiting.",
+					"config": {
+						"toolId": "webhook-trigger",
+						"category": "http",
+						"color": "#f59e0b",
+						"icon": "🔗",
+						"params": {}
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "edge-node-1761073110646-node-1761073120121",
+					"source": "node-1761073110646",
+					"target": "node-1761073120121"
+				}
+			],
+			"startNodeId": "node-1761073110646",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-21T18:58:49.051Z",
+			"updatedAt": "2025-10-21T18:58:53.150Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-21T18:58:48.964Z",
+				"updatedAt": "2025-10-21T18:58:48.965Z"
+			}
+		}
+	],
 	"executions": [],
 	"agents": [],
 	"mcps": [],
