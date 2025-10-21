@@ -37,6 +37,7 @@ interface FieldLinkerProps {
 
 export default function FieldLinker({
   inputField,
+  currentNodeId,
   parentNodes,
   onLink,
   onUnlink,
@@ -45,8 +46,11 @@ export default function FieldLinker({
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
   
+  // Filtrar para remover o próprio node da lista
+  const filteredParentNodes = parentNodes.filter(node => node.id !== currentNodeId);
+  
   // Extrair outputs de cada parent node
-  const parentNodesWithOutputs = parentNodes.map(node => ({
+  const parentNodesWithOutputs = filteredParentNodes.map(node => ({
     ...node,
     outputs: extractNodeOutputs(node),
   }));
@@ -58,8 +62,8 @@ export default function FieldLinker({
   const filteredOutputs = compatibleOutputs.filter(item => {
     const searchLower = searchTerm.toLowerCase();
     return (
-      item.nodeName.toLowerCase().includes(searchLower) ||
-      item.field.key.toLowerCase().includes(searchLower) ||
+      item.nodeName?.toLowerCase().includes(searchLower) ||
+      item.field.key?.toLowerCase().includes(searchLower) ||
       item.field.label?.toLowerCase().includes(searchLower)
     );
   });
@@ -173,9 +177,14 @@ export default function FieldLinker({
               </h3>
               <p className="text-sm text-gray-600 max-w-md">
                 Não há campos do tipo <strong>{inputField.type}</strong> nos nodes anteriores.
-                {compatibleOutputs.length === 0 && parentNodes.length > 0 && (
+                {compatibleOutputs.length === 0 && filteredParentNodes.length > 0 && (
                   <span className="block mt-2">
                     Os nodes anteriores não possuem outputs compatíveis.
+                  </span>
+                )}
+                {filteredParentNodes.length === 0 && (
+                  <span className="block mt-2">
+                    Não há nodes anteriores disponíveis para conectar.
                   </span>
                 )}
               </p>

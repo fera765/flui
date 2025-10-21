@@ -21,7 +21,7 @@ import 'reactflow/dist/style.css';
 import { ArrowLeft, Save, Plus, Play, Eye, Trash2 } from 'lucide-react';
 import ToolNode from '../components/ToolNode';
 import ToolPalette from '../components/ToolPalette';
-import NodeConfigPanel from '../components/NodeConfigPanel';
+import NodeConfigurationModal from '../components/NodeConfigurationModal';
 import ExecutionLogs from '../components/ExecutionLogs';
 
 interface Tool {
@@ -560,12 +560,11 @@ export default function EditAutomation() {
 
       {/* Node Config Panel */}
       {selectedNode && (
-        <NodeConfigPanel
+        <NodeConfigurationModal
           isOpen={configPanelOpen}
           nodeId={selectedNode.id}
           toolId={selectedNode.data.toolId}
           initialConfig={selectedNode.data.config}
-          automationId={id}
           localNodes={nodes}
           localEdges={edges}
           onClose={() => {
@@ -573,7 +572,6 @@ export default function EditAutomation() {
             setSelectedNode(null);
           }}
           onSave={handleSaveNodeConfig}
-          onTest={handleTestNode}
         />
       )}
     </div>
