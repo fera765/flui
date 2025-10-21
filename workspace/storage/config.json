@@ -185,6 +185,105 @@
 				"updatedAt": "2025-10-21T16:11:44.274Z",
 				"lastRunAt": "2025-10-21T16:11:44.274Z"
 			}
+		},
+		{
+			"id": "automation-1761063435443",
+			"name": "Teste BLOCO 1 - Automação Simples",
+			"description": "",
+			"nodes": [
+				{
+					"id": "node-1761063417033",
+					"type": "tool",
+					"name": "Manual Trigger",
+					"description": "Dispara automações manualmente sob demanda. Ideal para testes, debugging e execuções únicas.",
+					"config": {
+						"toolId": "manual-trigger",
+						"category": "system",
+						"color": "#10b981",
+						"icon": "▶️",
+						"params": {}
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-1761063426619",
+					"type": "tool",
+					"name": "Webhook Trigger",
+					"description": "Recebe requisições HTTP de sistemas externos para disparar automações. Suporta autenticação, validação e rate limiting.",
+					"config": {
+						"toolId": "webhook-trigger",
+						"category": "http",
+						"color": "#f59e0b",
+						"icon": "🔗",
+						"params": {}
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "edge-node-1761063417033-node-1761063426619",
+					"source": "node-1761063417033",
+					"target": "node-1761063426619"
+				}
+			],
+			"startNodeId": "node-1761063417033",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-21T16:17:15.463Z",
+			"updatedAt": "2025-10-21T16:17:32.994Z",
+			"runCount": 1,
+			"metadata": {
+				"createdAt": "2025-10-21T16:17:15.443Z",
+				"updatedAt": "2025-10-21T16:17:32.994Z",
+				"lastRunAt": "2025-10-21T16:17:32.994Z"
+			}
+		},
+		{
+			"id": "automation-1761063465014",
+			"name": "Teste BLOCO 3 - Logs Detalhados",
+			"description": "",
+			"nodes": [
+				{
+					"id": "node-1761063463661",
+					"type": "tool",
+					"name": "Manual Trigger",
+					"description": "Dispara automações manualmente sob demanda. Ideal para testes, debugging e execuções únicas.",
+					"config": {
+						"toolId": "manual-trigger",
+						"category": "system",
+						"color": "#10b981",
+						"icon": "▶️",
+						"params": {}
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [],
+			"startNodeId": "node-1761063463661",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-21T16:17:45.023Z",
+			"updatedAt": "2025-10-21T16:17:45.023Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-21T16:17:45.014Z",
+				"updatedAt": "2025-10-21T16:17:45.014Z"
+			}
 		}
 	],
 	"executions": [],
@@ -255,6 +354,23 @@
 			"metadata": {
 				"createdAt": "2025-10-21T16:11:40.888Z",
 				"updatedAt": "2025-10-21T16:11:40.888Z",
+				"lastSyncedAt": null
+			}
+		},
+		{
+			"name": "Test MCP",
+			"command": "npx",
+			"args": [
+				"@modelcontextprotocol/server-everything"
+			],
+			"description": "MCP de teste para validação",
+			"enabled": true,
+			"version": "1.0.0",
+			"id": "prJwVI-J49m-ZmOSy3Z5e",
+			"tools": [],
+			"metadata": {
+				"createdAt": "2025-10-21T16:17:19.952Z",
+				"updatedAt": "2025-10-21T16:17:19.952Z",
 				"lastSyncedAt": null
 			}
 		}
