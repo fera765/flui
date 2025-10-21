@@ -631,9 +631,21 @@ export default function NodeConfigurationModalV2({
       return true;
     });
 
+    // Agrupar outputs por node
+    const outputsByNode = compatibleOutputs.reduce((acc, output) => {
+      if (!acc[output.nodeId]) {
+        acc[output.nodeId] = {
+          nodeName: output.nodeName,
+          outputs: []
+        };
+      }
+      acc[output.nodeId].outputs.push(output);
+      return acc;
+    }, {} as Record<string, { nodeName: string; outputs: LinkedOutputField[] }>);
+
     return (
-      <div className="mt-2 bg-white border-2 border-purple-300 rounded-xl p-4 shadow-lg max-h-64 overflow-y-auto">
-        <h4 className="text-sm font-semibold text-gray-900 mb-2">
+      <div className="mt-2 bg-white border-2 border-purple-300 rounded-xl p-4 shadow-lg max-h-96 overflow-y-auto">
+        <h4 className="text-sm font-semibold text-gray-900 mb-3">
           🔗 Conectar ao output de outro node
         </h4>
         {compatibleOutputs.length === 0 ? (
@@ -641,35 +653,52 @@ export default function NodeConfigurationModalV2({
             Nenhum output disponível dos nodes anteriores.
           </p>
         ) : (
-          <div className="space-y-1">
-            {compatibleOutputs.map((output) => {
-              const reference = `{{${output.nodeId}.${output.key}}}`;
-              return (
-                <button
-                  key={`${output.nodeId}-${output.key}`}
-                  onClick={() => handleLink(fieldName, reference)}
-                  className="w-full text-left px-3 py-2 rounded-lg hover:bg-purple-50 transition-colors border border-gray-200"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {output.nodeName}
-                      </p>
-                      <p className="text-xs text-gray-500 truncate">{output.key}</p>
-                      <code className="text-xs text-purple-600 truncate block">
-                        {reference}
-                      </code>
-                    </div>
-                    <Link2 className="w-4 h-4 text-purple-600 flex-shrink-0 mt-1" />
-                  </div>
-                </button>
-              );
-            })}
+          <div className="space-y-3">
+            {Object.entries(outputsByNode).map(([nodeId, { nodeName, outputs }]) => (
+              <div key={nodeId} className="border-2 border-gray-200 rounded-lg p-3 bg-gray-50">
+                {/* Node Header */}
+                <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-300">
+                  <div className="w-2 h-2 rounded-full bg-purple-600"></div>
+                  <h5 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
+                    {nodeName}
+                  </h5>
+                </div>
+                
+                {/* Outputs do Node */}
+                <div className="space-y-1">
+                  {outputs.map((output) => {
+                    const reference = `{{${output.nodeId}.${output.key}}}`;
+                    return (
+                      <button
+                        key={`${output.nodeId}-${output.key}`}
+                        onClick={() => handleLink(fieldName, reference)}
+                        className="w-full text-left px-3 py-2 rounded-lg hover:bg-purple-100 transition-colors border border-gray-300 bg-white"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {output.key}
+                            </p>
+                            {output.description && (
+                              <p className="text-xs text-gray-500 truncate">{output.description}</p>
+                            )}
+                            <code className="text-xs text-purple-600 truncate block mt-1">
+                              {reference}
+                            </code>
+                          </div>
+                          <Link2 className="w-4 h-4 text-purple-600 flex-shrink-0 mt-1" />
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         )}
         <button
           onClick={() => setLinkerOpen(null)}
-          className="mt-2 w-full py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+          className="mt-3 w-full py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors bg-gray-100 rounded-lg"
         >
           Cancelar
         </button>
