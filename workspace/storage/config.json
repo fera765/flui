@@ -2,33 +2,6 @@
 	"automations": [],
 	"executions": [],
 	"agents": [],
-	"mcps": [
-		{
-			"name": "Test MCP Simple",
-			"description": "MCP de teste simples",
-			"version": "1.0.0",
-			"command": "npx",
-			"args": [
-				"-y",
-				"@modelcontextprotocol/server-everything"
-			],
-			"enabled": true,
-			"tools": [
-				{
-					"id": "@modelcontextprotocol/server-everything-default",
-					"name": "@modelcontextprotocol/server-everything",
-					"description": "Tool principal de @modelcontextprotocol/server-everything",
-					"handler": "execute",
-					"parameters": {}
-				}
-			],
-			"metadata": {
-				"createdAt": "2025-10-21T19:33:29.125Z",
-				"updatedAt": "2025-10-21T19:34:33.735Z",
-				"lastSyncedAt": "2025-10-21T19:34:33.735Z"
-			},
-			"id": "fT8fSmArDzRrae8Ir5l8B"
-		}
-	],
+	"mcps": [],
 	"sessions": []
 }
