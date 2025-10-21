@@ -142,10 +142,10 @@ export default function AdvancedFieldConfig({
             value={value}
             onChange={(e) => onValuesChange({ ...values, [field.key]: e.target.value })}
             placeholder={field.readOnly && 'default' in field && field.default !== undefined ? `Padrão: ${field.default}` : `Digite ${field.label.toLowerCase()}...`}
-            className={`w-full px-4 py-3 rounded-lg border transition text-sm
+            className={`w-full px-4 py-3 rounded-lg border transition text-sm font-medium
               ${isLinked 
-                ? 'bg-green-50 border-green-500 text-green-900' 
-                : 'bg-white border-gray-300 text-gray-900'
+                ? 'bg-green-50 border-green-500 text-green-900 placeholder:text-green-600' 
+                : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'
               }
               focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none
             `}

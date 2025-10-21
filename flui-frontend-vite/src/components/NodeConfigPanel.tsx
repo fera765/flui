@@ -6,11 +6,11 @@
  */
 
 import { useState, useEffect } from 'react';
-import { X, Save, Play, AlertCircle, Info, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Save, Play, AlertCircle, Info, ChevronDown, ChevronUp, Link2 } from 'lucide-react';
 import axios from 'axios';
-import { OutputSelector } from './OutputSelector';
 import VisualFieldEditor from './VisualFieldEditor';
-import { extractNodeInputs, type InputField } from '../utils/typeMatching';
+import SmartFieldLinker from './SmartFieldLinker';
+import { extractNodeInputs, extractNodeOutputs, type InputField } from '../utils/typeMatching';
 
 // ============= TYPES =============
 
@@ -101,6 +101,10 @@ export default function NodeConfigPanel({
   const [selectedExample, setSelectedExample] = useState<number>(-1);
   const [visualFields, setVisualFields] = useState<InputField[]>([]);
   const [useVisualEditor, setUseVisualEditor] = useState(true); // 🆕 Toggle entre visual e JSON
+  
+  // 🔗 Linker state
+  const [showLinker, setShowLinker] = useState(false);
+  const [linkingField, setLinkingField] = useState<{ key: string; label: string; type: any } | null>(null);
 
   // Carregar metadados da tool
   useEffect(() => {
@@ -299,48 +303,76 @@ export default function NodeConfigPanel({
       }
     }
 
-    const baseClasses = `w-full bg-slate-700 text-white px-4 py-3 rounded-lg border ${
-      error ? 'border-red-500' : 'border-purple-500/30'
-    } focus:border-purple-500 outline-none transition-colors`;
+    const isLinked = typeof value === 'string' && value.startsWith('{{') && value.endsWith('}}');
+    
+    const baseClasses = `w-full px-4 py-3 rounded-lg border transition-colors font-medium ${
+      error 
+        ? 'border-red-500 bg-red-50 text-red-900' 
+        : isLinked
+          ? 'border-green-500 bg-green-50 text-green-900'
+          : 'border-gray-300 bg-white text-gray-900'
+    } focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none placeholder:text-gray-500`;
 
     switch (ui.widgetType) {
       case 'textInput':
         // Debug: log props sendo passadas
-        console.log('🔧 [NodeConfigPanel] Rendering OutputSelector:', {
-          automationId,
-          currentNodeId: nodeId,
-          fieldName: param.key,
-          hasLocalNodes: !!localNodes,
-          localNodesLength: localNodes?.length,
-          hasLocalEdges: !!localEdges,
-          localEdgesLength: localEdges?.length
-        });
-        
         return (
-          <OutputSelector
-            automationId={automationId}
-            currentNodeId={nodeId}
-            fieldName={param.key}
-            fieldValue={value || ''}
-            onSelect={(newValue) => updateConfig(param.key, newValue)}
-            placeholder={ui.placeholder}
-            localNodes={localNodes}
-            localEdges={localEdges}
-          />
+          <div className="relative">
+            <input
+              type="text"
+              value={value || ''}
+              onChange={(e) => updateConfig(param.key, e.target.value)}
+              placeholder={ui.placeholder}
+              className={baseClasses}
+            />
+            {localNodes && localNodes.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setLinkingField({ key: param.key, label: param.name, type: param.type });
+                  setShowLinker(true);
+                }}
+                className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition ${
+                  isLinked
+                    ? 'bg-green-500 text-white hover:bg-green-600'
+                    : 'bg-purple-500 text-white hover:bg-purple-600'
+                }`}
+                title="Conectar com node anterior"
+              >
+                <Link2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         );
 
       case 'textArea':
         return (
-          <OutputSelector
-            automationId={automationId}
-            currentNodeId={nodeId}
-            fieldName={param.key}
-            fieldValue={value || ''}
-            onSelect={(newValue) => updateConfig(param.key, newValue)}
-            placeholder={ui.placeholder}
-            localNodes={localNodes}
-            localEdges={localEdges}
-          />
+          <div className="relative">
+            <textarea
+              value={value || ''}
+              onChange={(e) => updateConfig(param.key, e.target.value)}
+              placeholder={ui.placeholder}
+              rows={ui.rows || 4}
+              className={`${baseClasses} min-h-[100px] resize-y`}
+            />
+            {localNodes && localNodes.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setLinkingField({ key: param.key, label: param.name, type: param.type });
+                  setShowLinker(true);
+                }}
+                className={`absolute right-2 top-2 p-2 rounded-lg transition ${
+                  isLinked
+                    ? 'bg-green-500 text-white hover:bg-green-600'
+                    : 'bg-purple-500 text-white hover:bg-purple-600'
+                }`}
+                title="Conectar com node anterior"
+              >
+                <Link2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         );
 
       case 'number':
@@ -632,6 +664,35 @@ export default function NodeConfigPanel({
           </div>
         </div>
       </div>
+      
+      {/* SmartFieldLinker Modal */}
+      {showLinker && linkingField && (
+        <SmartFieldLinker
+          isOpen={showLinker}
+          onClose={() => {
+            setShowLinker(false);
+            setLinkingField(null);
+          }}
+          fieldKey={linkingField.key}
+          fieldLabel={linkingField.label}
+          fieldType={linkingField.type}
+          currentValue={config[linkingField.key]}
+          availableOutputs={
+            (localNodes || []).flatMap(node => 
+              extractNodeOutputs(node).map(field => ({
+                ...field,
+                nodeId: node.id,
+                nodeName: node.data?.label || node.type || 'Node',
+              }))
+            )
+          }
+          onLink={(reference) => {
+            updateConfig(linkingField.key, reference);
+            setShowLinker(false);
+            setLinkingField(null);
+          }}
+        />
+      )}
     </div>
   );
 }
