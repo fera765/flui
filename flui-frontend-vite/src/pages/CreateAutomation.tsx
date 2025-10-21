@@ -12,9 +12,9 @@ import ReactFlow, {
 import type { Node, Connection } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { ArrowLeft, Save, Plus } from 'lucide-react';
-import NodePalette from '../components/NodePalette';
-import NodeConfigModal from '../components/NodeConfigModal';
-import CustomNode from '../components/CustomNode';
+import NodePaletteNew from '../components/NodePaletteNew';
+import NodeConfigSimple from '../components/NodeConfigSimple';
+import ToolNode from '../components/ToolNode';
 
 export default function CreateAutomation() {
   const navigate = useNavigate();
@@ -26,9 +26,10 @@ export default function CreateAutomation() {
   // Modais
   const [showPalette, setShowPalette] = useState(false);
   const [configNode, setConfigNode] = useState<Node | null>(null);
+  const [configPanelOpen, setConfigPanelOpen] = useState(false);
 
   // Tipos de nó customizados
-  const nodeTypes = useMemo(() => ({ custom: CustomNode }), []);
+  const nodeTypes = useMemo(() => ({ tool: ToolNode }), []);
 
   // Conectar nós
   const onConnect = useCallback(
@@ -36,58 +37,92 @@ export default function CreateAutomation() {
     [setEdges]
   );
 
+  // Configurar nó
+  const handleConfigureNode = useCallback((nodeId: string) => {
+    setNodes((currentNodes) => {
+      const node = currentNodes.find((n) => n.id === nodeId);
+      if (node) {
+        setConfigNode(node);
+        setConfigPanelOpen(true);
+      }
+      return currentNodes;
+    });
+  }, [setNodes]);
+
+  // Excluir nó
+  const handleDeleteNode = useCallback((nodeId: string) => {
+    setNodes((nds) => nds.filter((n) => n.id !== nodeId));
+    setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
+  }, [setNodes, setEdges]);
+
   // Adicionar nó ao workflow
   const handleAddNode = useCallback((tool: any) => {
     const lastNode = nodes[nodes.length - 1];
-    const xPosition = lastNode 
-      ? lastNode.position.x + 300 
-      : 100;
-    const yPosition = lastNode 
-      ? lastNode.position.y 
-      : 100;
+    const xPosition = lastNode ? lastNode.position.x + 300 : 100;
+    const yPosition = lastNode ? lastNode.position.y : 100;
 
+    const nodeId = `node-${Date.now()}`;
     const newNode: Node = {
-      id: `${tool.id}-${Date.now()}`,
-      type: 'custom',
+      id: nodeId,
+      type: 'tool',
       position: { x: xPosition, y: yPosition },
       data: {
         label: tool.name,
         description: tool.description,
-        toolType: tool.type,
-        toolConfig: tool.config,
+        toolId: tool.id,
+        category: tool.category,
+        color: tool.ui?.color,
+        icon: tool.ui?.icon,
+        status: 'idle',
         config: {},
-        onConfigure: () => {
-          const node = nodes.find(n => n.id === newNode.id);
-          if (node) setConfigNode(node);
-        },
+        onConfigure: () => handleConfigureNode(nodeId),
+        onDelete: () => handleDeleteNode(nodeId),
       },
     };
 
     setNodes((nds) => [...nds, newNode]);
-  }, [nodes, setNodes]);
+    setShowPalette(false);
+
+    // Conectar automaticamente ao último nó
+    if (lastNode) {
+      setEdges((eds) => [
+        ...eds,
+        {
+          id: `edge-${lastNode.id}-${nodeId}`,
+          source: lastNode.id,
+          target: nodeId,
+          type: 'smoothstep',
+          animated: true,
+        },
+      ]);
+    }
+  }, [nodes, setNodes, setEdges, handleConfigureNode, handleDeleteNode]);
 
   // Salvar configuração do nó
-  const handleSaveNodeConfig = useCallback((nodeId: string, config: any) => {
+  const handleSaveNodeConfig = useCallback((config: any) => {
+    if (!configNode) return;
+
     setNodes((nds) =>
       nds.map((node) => {
-        if (node.id === nodeId) {
+        if (node.id === configNode.id) {
           return {
             ...node,
             data: {
               ...node.data,
               config,
+              // Preserve callbacks
+              onConfigure: node.data.onConfigure,
+              onDelete: node.data.onDelete,
             },
           };
         }
         return node;
       })
     );
-  }, [setNodes]);
 
-  // Clique no nó abre configuração
-  const onNodeClick = useCallback((_: any, node: Node) => {
-    setConfigNode(node);
-  }, []);
+    setConfigPanelOpen(false);
+    setConfigNode(null);
+  }, [configNode, setNodes]);
 
   // Salvar automação
   const handleSave = async () => {
@@ -96,20 +131,36 @@ export default function CreateAutomation() {
       return;
     }
 
+    if (nodes.length === 0) {
+      alert('Adicione pelo menos um nó à automação');
+      return;
+    }
+
     const automation = {
       name,
       description,
+      version: '2.0.0',
       nodes: nodes.map(n => ({
         id: n.id,
-        type: n.data.toolType,
-        label: n.data.label,
-        config: n.data.config || {},
+        type: 'tool',
+        name: n.data.label,
+        description: n.data.description,
+        config: {
+          toolId: n.data.toolId,
+          category: n.data.category,
+          color: n.data.color,
+          icon: n.data.icon,
+          params: n.data.config || {},
+        },
         position: n.position,
       })),
       edges: edges.map(e => ({
+        id: e.id,
         source: e.source,
         target: e.target,
       })),
+      startNodeId: nodes[0]?.id || '',
+      enabled: false,
     };
 
     try {
@@ -195,7 +246,6 @@ export default function CreateAutomation() {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
-          onNodeClick={onNodeClick}
           nodeTypes={nodeTypes}
           fitView
           minZoom={0.2}
@@ -238,18 +288,27 @@ export default function CreateAutomation() {
       </div>
 
       {/* Modais */}
-      <NodePalette
+      <NodePaletteNew
         isOpen={showPalette}
         onClose={() => setShowPalette(false)}
         onSelectTool={handleAddNode}
       />
 
-      <NodeConfigModal
-        isOpen={!!configNode}
-        node={configNode}
-        onClose={() => setConfigNode(null)}
-        onSave={handleSaveNodeConfig}
-      />
+      {configNode && (
+        <NodeConfigSimple
+          isOpen={configPanelOpen}
+          nodeId={configNode.id}
+          toolId={configNode.data.toolId}
+          initialConfig={configNode.data.config}
+          localNodes={nodes}
+          localEdges={edges}
+          onClose={() => {
+            setConfigPanelOpen(false);
+            setConfigNode(null);
+          }}
+          onSave={handleSaveNodeConfig}
+        />
+      )}
     </div>
   );
 }

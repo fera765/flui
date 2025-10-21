@@ -12,14 +12,46 @@ interface Automation {
 
 export default function Home() {
   const [automations, setAutomations] = useState<Automation[]>([]);
+  const [stats, setStats] = useState({
+    automations: 0,
+    agents: 0,
+    mcps: 0,
+    tools: 0,
+  });
 
   useEffect(() => {
-    // Carregar automações do backend
-    fetch('http://localhost:3001/api/automations')
-      .then(res => res.json())
-      .then(data => setAutomations(data))
-      .catch(() => {});
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    try {
+      // Carregar automações
+      const autoRes = await fetch('http://localhost:3001/api/automations');
+      const autoData = await autoRes.json();
+      setAutomations(autoData);
+      
+      // Carregar agentes
+      const agentsRes = await fetch('http://localhost:3001/api/agents');
+      const agentsData = await agentsRes.json();
+      
+      // Carregar MCPs
+      const mcpsRes = await fetch('http://localhost:3001/api/mcps');
+      const mcpsData = await mcpsRes.json();
+      
+      // Carregar ferramentas
+      const toolsRes = await fetch('http://localhost:3001/api/tools');
+      const toolsData = await toolsRes.json();
+      
+      setStats({
+        automations: autoData.length || 0,
+        agents: agentsData.length || 0,
+        mcps: mcpsData.length || 0,
+        tools: Array.isArray(toolsData) ? toolsData.length : (toolsData.data?.length || 0),
+      });
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -53,34 +85,44 @@ export default function Home() {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6 hover:border-purple-500/40 transition">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-400 text-sm">Automações</p>
-                <p className="text-3xl font-bold text-white">{automations.length}</p>
+                <p className="text-3xl font-bold text-white">{stats.automations}</p>
               </div>
               <Workflow className="w-10 h-10 text-purple-500" />
             </div>
           </div>
 
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
+          <div className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6 hover:border-purple-500/40 transition">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-400 text-sm">Agentes Ativos</p>
-                <p className="text-3xl font-bold text-white">7</p>
+                <p className="text-purple-400 text-sm">Agentes</p>
+                <p className="text-3xl font-bold text-white">{stats.agents}</p>
               </div>
               <Bot className="w-10 h-10 text-pink-500" />
             </div>
           </div>
 
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
+          <div className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6 hover:border-purple-500/40 transition">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-400 text-sm">MCPs</p>
-                <p className="text-3xl font-bold text-white">8</p>
+                <p className="text-3xl font-bold text-white">{stats.mcps}</p>
               </div>
               <Zap className="w-10 h-10 text-cyan-500" />
+            </div>
+          </div>
+
+          <div className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6 hover:border-purple-500/40 transition">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-purple-400 text-sm">Ferramentas</p>
+                <p className="text-3xl font-bold text-white">{stats.tools}</p>
+              </div>
+              <Workflow className="w-10 h-10 text-green-500" />
             </div>
           </div>
         </div>

@@ -32,6 +32,7 @@ export default function MCPsPage() {
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [installType, setInstallType] = useState<'github' | 'npx' | 'npm' | 'local'>('github');
+  const [isFetchingMetadata, setIsFetchingMetadata] = useState(false);
   const [newMcp, setNewMcp] = useState<Partial<MCP>>({
     name: '',
     description: '',
@@ -60,6 +61,82 @@ export default function MCPsPage() {
     }
   };
 
+  const fetchMcpMetadata = async () => {
+    if (!newMcp.server?.trim()) {
+      alert('Preencha o campo servidor/pacote primeiro');
+      return;
+    }
+
+    setIsFetchingMetadata(true);
+    try {
+      let metadata: any = {};
+
+      if (installType === 'npx' || installType === 'npm') {
+        // Extrair nome do pacote do comando npx
+        const packageName = newMcp.server.replace(/^npx\s+/, '').split(/\s+/)[0];
+        
+        // Buscar no NPM registry
+        const npmRes = await fetch(`https://registry.npmjs.org/${packageName}`);
+        if (npmRes.ok) {
+          const npmData = await npmRes.json();
+          metadata = {
+            name: npmData.name || packageName,
+            description: npmData.description || '',
+            version: npmData['dist-tags']?.latest || '1.0.0',
+          };
+        }
+      } else if (installType === 'github') {
+        // Extrair owner/repo do URL ou formato username/repo
+        const match = newMcp.server.match(/(?:github\.com\/)?([^\/]+)\/([^\/\s]+)/);
+        if (match) {
+          const [, owner, repo] = match;
+          const cleanRepo = repo.replace(/\.git$/, '');
+          
+          // Buscar no GitHub API
+          const githubRes = await fetch(`https://api.github.com/repos/${owner}/${cleanRepo}`);
+          if (githubRes.ok) {
+            const githubData = await githubRes.json();
+            metadata = {
+              name: githubData.name || cleanRepo,
+              description: githubData.description || '',
+              version: '1.0.0',
+            };
+            
+            // Tentar buscar package.json para mais informações
+            try {
+              const pkgRes = await fetch(`https://raw.githubusercontent.com/${owner}/${cleanRepo}/main/package.json`);
+              if (pkgRes.ok) {
+                const pkgData = await pkgRes.json();
+                metadata.name = pkgData.name || metadata.name;
+                metadata.description = pkgData.description || metadata.description;
+                metadata.version = pkgData.version || metadata.version;
+              }
+            } catch (e) {
+              // Ignorar erro ao buscar package.json
+            }
+          }
+        }
+      }
+
+      if (metadata.name) {
+        setNewMcp({
+          ...newMcp,
+          name: metadata.name,
+          description: metadata.description,
+          version: metadata.version || '1.0.0',
+        });
+        alert('✅ Metadados carregados com sucesso!');
+      } else {
+        alert('⚠️ Não foi possível buscar metadados. Preencha manualmente.');
+      }
+    } catch (err) {
+      console.error('Erro ao buscar metadados:', err);
+      alert('❌ Erro ao buscar metadados. Preencha manualmente.');
+    } finally {
+      setIsFetchingMetadata(false);
+    }
+  };
+
   const handleCreate = async () => {
     if (!newMcp.name?.trim() || !newMcp.server?.trim()) {
       alert('Preencha nome e servidor do MCP');
@@ -70,19 +147,29 @@ export default function MCPsPage() {
       const mcp = {
         ...newMcp,
         id: Date.now().toString(),
+        installType,
         metadata: {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
       };
 
-      await fetch('http://localhost:3001/api/mcps', {
+      const response = await fetch('http://localhost:3001/api/mcps', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(mcp),
       });
+
+      if (response.ok) {
+        const createdMcp = await response.json();
+        
+        // Sincronizar automaticamente para carregar as ferramentas
+        alert('⏳ MCP adicionado! Sincronizando ferramentas...');
+        await handleSync(createdMcp.id);
+      }
       
       setShowCreateModal(false);
+      setInstallType('github');
       setNewMcp({
         name: '',
         description: '',
@@ -439,13 +526,23 @@ export default function MCPsPage() {
                     <label className="block text-sm font-medium text-purple-300 mb-2">
                       Repositório GitHub *
                     </label>
-                    <input
-                      type="text"
-                      value={newMcp.server}
-                      onChange={(e) => setNewMcp({ ...newMcp, server: e.target.value })}
-                      className="w-full bg-slate-900/50 border border-purple-500/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm"
-                      placeholder="username/repository ou https://github.com/username/repository"
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newMcp.server}
+                        onChange={(e) => setNewMcp({ ...newMcp, server: e.target.value })}
+                        className="flex-1 bg-slate-900/50 border border-purple-500/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm"
+                        placeholder="username/repository ou https://github.com/username/repository"
+                      />
+                      <button
+                        type="button"
+                        onClick={fetchMcpMetadata}
+                        disabled={isFetchingMetadata || !newMcp.server}
+                        className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg font-medium transition text-sm whitespace-nowrap"
+                      >
+                        {isFetchingMetadata ? '🔄 Buscando...' : '🔍 Auto'}
+                      </button>
+                    </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -484,17 +581,27 @@ export default function MCPsPage() {
                     <label className="block text-sm font-medium text-purple-300 mb-2">
                       Pacote NPM *
                     </label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-purple-400 font-mono text-sm">
-                        npx
-                      </span>
-                      <input
-                        type="text"
-                        value={newMcp.server}
-                        onChange={(e) => setNewMcp({ ...newMcp, server: `npx ${e.target.value}` })}
-                        className="w-full bg-slate-900/50 border border-purple-500/20 rounded-lg pl-16 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm"
-                        placeholder="@modelcontextprotocol/server-github"
-                      />
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-purple-400 font-mono text-sm">
+                          npx
+                        </span>
+                        <input
+                          type="text"
+                          value={newMcp.server.replace(/^npx\s+/, '')}
+                          onChange={(e) => setNewMcp({ ...newMcp, server: `npx ${e.target.value}` })}
+                          className="w-full bg-slate-900/50 border border-purple-500/20 rounded-lg pl-16 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm"
+                          placeholder="@modelcontextprotocol/server-github"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={fetchMcpMetadata}
+                        disabled={isFetchingMetadata || !newMcp.server}
+                        className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg font-medium transition text-sm whitespace-nowrap"
+                      >
+                        {isFetchingMetadata ? '🔄 Buscando...' : '🔍 Auto'}
+                      </button>
                     </div>
                   </div>
                   <div>
@@ -522,13 +629,23 @@ export default function MCPsPage() {
                     <label className="block text-sm font-medium text-purple-300 mb-2">
                       Pacote NPM *
                     </label>
-                    <input
-                      type="text"
-                      value={newMcp.server}
-                      onChange={(e) => setNewMcp({ ...newMcp, server: e.target.value })}
-                      className="w-full bg-slate-900/50 border border-purple-500/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm"
-                      placeholder="@modelcontextprotocol/server-github"
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newMcp.server}
+                        onChange={(e) => setNewMcp({ ...newMcp, server: e.target.value })}
+                        className="flex-1 bg-slate-900/50 border border-purple-500/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm"
+                        placeholder="@modelcontextprotocol/server-github"
+                      />
+                      <button
+                        type="button"
+                        onClick={fetchMcpMetadata}
+                        disabled={isFetchingMetadata || !newMcp.server}
+                        className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg font-medium transition text-sm whitespace-nowrap"
+                      >
+                        {isFetchingMetadata ? '🔄 Buscando...' : '🔍 Auto'}
+                      </button>
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-purple-300 mb-2">
