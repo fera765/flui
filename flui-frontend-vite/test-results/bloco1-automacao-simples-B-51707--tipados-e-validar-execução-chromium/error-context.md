@@ -1,0 +1,202 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - button [ref=e8] [cursor=pointer]:
+        - img [ref=e9]
+      - generic [ref=e11]:
+        - textbox "Nome da automação" [ref=e12]: Teste BLOCO 1 - Automação Simples
+        - textbox "Descrição (opcional)" [ref=e13]
+    - generic [ref=e15] [cursor=pointer]:
+      - checkbox "🔁 Execução Contínua" [ref=e16]
+      - generic [ref=e17]: 🔁 Execução Contínua
+    - generic [ref=e18]:
+      - button "Logs" [ref=e19] [cursor=pointer]:
+        - img [ref=e20]
+        - generic [ref=e23]: Logs
+      - button "Executar" [ref=e24] [cursor=pointer]:
+        - img [ref=e25]
+        - generic [ref=e27]: Executar
+      - generic [ref=e28]:
+        - img [ref=e29]
+        - generic [ref=e32]: Auto-salvo
+      - generic [ref=e33]: • Não salvo
+      - button "Salvar" [ref=e34] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e39]: Salvar
+  - generic [ref=e41]:
+    - generic [ref=e43]:
+      - generic:
+        - img:
+          - button "Edge from node-1761071289463 to node-1761071298892" [ref=e44] [cursor=pointer]
+        - generic:
+          - button "Manual Trigger Dispara automações manualmente sob demanda. Ideal para testes, debugging e execuções únicas. system" [ref=e47] [cursor=pointer]:
+            - generic [ref=e48]:
+              - generic [ref=e50]:
+                - generic [ref=e51]:
+                  - img [ref=e52]
+                  - generic [ref=e55]: Manual Trigger
+                - generic [ref=e56]:
+                  - button "Configurar nó" [ref=e57]:
+                    - img [ref=e58]
+                  - button "Excluir nó" [ref=e61]:
+                    - img [ref=e62]
+              - generic [ref=e65]:
+                - paragraph [ref=e66]: Dispara automações manualmente sob demanda. Ideal para testes, debugging e execuções únicas.
+                - generic [ref=e68]: system
+          - button "Webhook Trigger Recebe requisições HTTP de sistemas externos para disparar automações. Suporta autenticação, validação e rate limiting. http" [ref=e70] [cursor=pointer]:
+            - generic [ref=e71]:
+              - generic [ref=e73]:
+                - generic [ref=e74]:
+                  - img [ref=e75]
+                  - generic [ref=e78]: Webhook Trigger
+                - generic [ref=e79]:
+                  - button "Configurar nó" [ref=e80]:
+                    - img [ref=e81]
+                  - button "Excluir nó" [ref=e84]:
+                    - img [ref=e85]
+              - generic [ref=e88]:
+                - paragraph [ref=e89]: Recebe requisições HTTP de sistemas externos para disparar automações. Suporta autenticação, validação e rate limiting.
+                - generic [ref=e91]: http
+    - img [ref=e93]
+    - generic [ref=e95]:
+      - button "zoom in" [disabled]:
+        - img
+      - button "zoom out" [ref=e96] [cursor=pointer]:
+        - img [ref=e97]
+      - button "fit view" [ref=e99] [cursor=pointer]:
+        - img [ref=e100]
+      - button "toggle interactivity" [ref=e102] [cursor=pointer]:
+        - img [ref=e103]
+    - generic [ref=e107]: 2 nó(s) • 1 conexão(ões)
+    - button "Adicionar Ferramenta" [ref=e109] [cursor=pointer]:
+      - img [ref=e110]
+      - text: Adicionar Ferramenta
+    - link "React Flow attribution" [ref=e112] [cursor=pointer]:
+      - /url: https://reactflow.dev
+      - text: React Flow
+  - generic [ref=e115]:
+    - generic [ref=e116]:
+      - generic [ref=e117]:
+        - heading "Configurar Nó" [level=2] [ref=e118]
+        - paragraph [ref=e119]: "Webhook Trigger • ID: node-1761071298892"
+      - button [ref=e120] [cursor=pointer]:
+        - img [ref=e121]
+    - generic [ref=e125]:
+      - generic [ref=e127]:
+        - img [ref=e128]
+        - paragraph [ref=e130]: Recebe requisições HTTP de sistemas externos para disparar automações. Suporta autenticação, validação e rate limiting.
+      - generic [ref=e131]:
+        - generic [ref=e132]: webhookPath
+        - generic [ref=e133]:
+          - textbox [ref=e134]
+          - button "Linkar campo" [active] [ref=e135] [cursor=pointer]:
+            - img [ref=e136]
+        - paragraph [ref=e139]: "Caminho customizado do webhook (ex: /my-webhook)"
+        - generic [ref=e140]:
+          - heading "🔗 Conectar ao output de outro node" [level=4] [ref=e141]
+          - generic [ref=e143]:
+            - heading "Manual Trigger" [level=5] [ref=e146]
+            - generic [ref=e147]:
+              - 'button "triggerMessage Mensagem opcional de disparo {{node-1761071289463.triggerMessage}}" [ref=e148] [cursor=pointer]':
+                - generic [ref=e149]:
+                  - generic [ref=e150]:
+                    - paragraph [ref=e151]: triggerMessage
+                    - paragraph [ref=e152]: Mensagem opcional de disparo
+                    - code [ref=e153]: "{{node-1761071289463.triggerMessage}}"
+                  - img [ref=e154]
+              - 'button "initialData Dados iniciais a serem passados para o fluxo {{node-1761071289463.initialData}}" [ref=e157] [cursor=pointer]':
+                - generic [ref=e158]:
+                  - generic [ref=e159]:
+                    - paragraph [ref=e160]: initialData
+                    - paragraph [ref=e161]: Dados iniciais a serem passados para o fluxo
+                    - code [ref=e162]: "{{node-1761071289463.initialData}}"
+                  - img [ref=e163]
+              - 'button "debugMode Ativa modo de debug com logs detalhados {{node-1761071289463.debugMode}}" [ref=e166] [cursor=pointer]':
+                - generic [ref=e167]:
+                  - generic [ref=e168]:
+                    - paragraph [ref=e169]: debugMode
+                    - paragraph [ref=e170]: Ativa modo de debug com logs detalhados
+                    - code [ref=e171]: "{{node-1761071289463.debugMode}}"
+                  - img [ref=e172]
+              - 'button "result Output padrão: result {{node-1761071289463.result}}" [ref=e175] [cursor=pointer]':
+                - generic [ref=e176]:
+                  - generic [ref=e177]:
+                    - paragraph [ref=e178]: result
+                    - paragraph [ref=e179]: "Output padrão: result"
+                    - code [ref=e180]: "{{node-1761071289463.result}}"
+                  - img [ref=e181]
+              - 'button "output Output padrão: output {{node-1761071289463.output}}" [ref=e184] [cursor=pointer]':
+                - generic [ref=e185]:
+                  - generic [ref=e186]:
+                    - paragraph [ref=e187]: output
+                    - paragraph [ref=e188]: "Output padrão: output"
+                    - code [ref=e189]: "{{node-1761071289463.output}}"
+                  - img [ref=e190]
+              - 'button "data Output padrão: data {{node-1761071289463.data}}" [ref=e193] [cursor=pointer]':
+                - generic [ref=e194]:
+                  - generic [ref=e195]:
+                    - paragraph [ref=e196]: data
+                    - paragraph [ref=e197]: "Output padrão: data"
+                    - code [ref=e198]: "{{node-1761071289463.data}}"
+                  - img [ref=e199]
+              - 'button "response Output padrão: response {{node-1761071289463.response}}" [ref=e202] [cursor=pointer]':
+                - generic [ref=e203]:
+                  - generic [ref=e204]:
+                    - paragraph [ref=e205]: response
+                    - paragraph [ref=e206]: "Output padrão: response"
+                    - code [ref=e207]: "{{node-1761071289463.response}}"
+                  - img [ref=e208]
+          - button "Cancelar" [ref=e211] [cursor=pointer]
+      - generic [ref=e212]:
+        - generic [ref=e213]: httpMethod
+        - generic [ref=e214]:
+          - textbox [ref=e215]: POST
+          - button "Linkar campo" [ref=e216] [cursor=pointer]:
+            - img [ref=e217]
+        - paragraph [ref=e220]: Método HTTP aceito
+      - generic [ref=e222]:
+        - generic [ref=e223]:
+          - generic [ref=e224]: requireAuth
+          - paragraph [ref=e225]: Requer autenticação via token secreto
+        - generic [ref=e226]:
+          - button "Linkar campo" [ref=e227] [cursor=pointer]:
+            - img [ref=e228]
+          - checkbox [checked] [ref=e232]
+      - generic [ref=e234]:
+        - generic [ref=e235]: secretToken
+        - generic [ref=e236]:
+          - textbox [ref=e237]
+          - button "Linkar campo" [ref=e238] [cursor=pointer]:
+            - img [ref=e239]
+        - paragraph [ref=e242]: Token secreto para autenticação (gerado automaticamente se vazio)
+      - generic [ref=e243]:
+        - generic [ref=e244]: responseMode
+        - generic [ref=e245]:
+          - textbox [ref=e246]: immediate
+          - button "Linkar campo" [ref=e247] [cursor=pointer]:
+            - img [ref=e248]
+        - paragraph [ref=e251]: Modo de resposta do webhook
+      - generic [ref=e253]:
+        - generic [ref=e254]:
+          - generic [ref=e255]: enabled
+          - paragraph [ref=e256]: Ativa ou desativa o webhook
+        - generic [ref=e257]:
+          - button "Linkar campo" [ref=e258] [cursor=pointer]:
+            - img [ref=e259]
+          - checkbox [checked] [ref=e263]
+      - generic [ref=e265]:
+        - generic [ref=e266]: rateLimit
+        - generic [ref=e267]:
+          - spinbutton [ref=e268]: "60"
+          - button "Linkar campo" [ref=e269] [cursor=pointer]:
+            - img [ref=e270]
+        - paragraph [ref=e273]: Limite de requisições por minuto (0 = ilimitado)
+    - generic [ref=e274]:
+      - button "Cancelar" [ref=e275] [cursor=pointer]
+      - button "Salvar Configuração" [ref=e276] [cursor=pointer]:
+        - img [ref=e277]
+        - text: Salvar Configuração
+```
