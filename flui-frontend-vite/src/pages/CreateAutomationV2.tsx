@@ -63,11 +63,16 @@ export default function CreateAutomationV2() {
 
   // Configurar nó (abre modal)
   const handleConfigureNode = useCallback((nodeId: string) => {
+    console.log('🔧 [CreateAutomationV2] handleConfigureNode called with nodeId:', nodeId);
     setNodes((currentNodes) => {
       const node = currentNodes.find((n) => n.id === nodeId);
+      console.log('🔧 [CreateAutomationV2] Found node:', node);
       if (node) {
         setSelectedNode(node);
         setConfigPanelOpen(true);
+        console.log('✅ [CreateAutomationV2] Modal should open now');
+      } else {
+        console.error('❌ [CreateAutomationV2] Node not found!');
       }
       return currentNodes;
     });
@@ -291,7 +296,13 @@ export default function CreateAutomationV2() {
       target: edge.target,
     }));
 
+    // Converter ID temporário para ID real ao salvar
+    const finalAutomationId = automationId.startsWith('temp-')
+      ? `automation-${Date.now()}`
+      : automationId;
+
     const automation = {
+      id: finalAutomationId, // ✅ ID definido explicitamente
       name,
       description,
       version: '2.0.0',

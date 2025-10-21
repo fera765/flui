@@ -79,11 +79,16 @@ export default function EditAutomation() {
 
   // Configurar nó (abre modal)
   const handleConfigureNode = useCallback((nodeId: string) => {
+    console.log('🔧 [EditAutomation] handleConfigureNode called with nodeId:', nodeId);
     setNodes((currentNodes) => {
       const node = currentNodes.find((n) => n.id === nodeId);
+      console.log('🔧 [EditAutomation] Found node:', node);
       if (node) {
         setSelectedNode(node);
         setConfigPanelOpen(true);
+        console.log('✅ [EditAutomation] Modal should open now');
+      } else {
+        console.error('❌ [EditAutomation] Node not found!');
       }
       return currentNodes;
     });

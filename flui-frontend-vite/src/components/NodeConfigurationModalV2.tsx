@@ -75,21 +75,41 @@ export default function NodeConfigurationModalV2({
   const [availableOutputs, setAvailableOutputs] = useState<LinkedOutputField[]>([]);
   const [linkerOpen, setLinkerOpen] = useState<string | null>(null);
 
+  // Log props changes
+  useEffect(() => {
+    console.log('🎨 [NodeConfigModalV2] Props changed:', {
+      isOpen,
+      automationId,
+      nodeId,
+    });
+  }, [isOpen, automationId, nodeId]);
+
   // Carregar dados do node e tool
   useEffect(() => {
+    console.log('🎨 [NodeConfigModalV2] Effect triggered, checking conditions...');
+    console.log('  isOpen:', isOpen);
+    console.log('  automationId:', automationId);
+    console.log('  nodeId:', nodeId);
+    
     if (isOpen && automationId && nodeId) {
+      console.log('✅ [NodeConfigModalV2] All conditions met, loading node data...');
       loadNodeData();
+    } else {
+      console.log('⚠️ [NodeConfigModalV2] Conditions not met, skipping load');
     }
   }, [isOpen, automationId, nodeId]);
 
   const loadNodeData = async () => {
+    console.log('📥 [NodeConfigModalV2] loadNodeData started');
     setLoading(true);
     try {
       // 1. Carregar node atual
+      console.log('📥 [NodeConfigModalV2] Fetching node:', `${API_BASE_URL}/automations/${automationId}/nodes/${nodeId}`);
       const nodeResponse = await axios.get(
         `${API_BASE_URL}/automations/${automationId}/nodes/${nodeId}`
       );
       const node = nodeResponse.data;
+      console.log('📥 [NodeConfigModalV2] Node loaded:', node);
       
       // 2. Carregar tool metadata
       const toolId = node.config?.toolId || node.type;
@@ -594,7 +614,12 @@ export default function NodeConfigurationModalV2({
     );
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    console.log('🚫 [NodeConfigModalV2] Not rendering - isOpen is false');
+    return null;
+  }
+  
+  console.log('✅ [NodeConfigModalV2] Rendering modal...');
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
