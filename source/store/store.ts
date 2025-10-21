@@ -215,13 +215,8 @@ export const useStore = create<AppState>((set, get) => ({
 
   // Agents
   loadAgents: () => {
-    // 🧹 SEMPRE LIMPO: Não carregar agentes antigos
-    console.log('🧹 [Store] loadAgents() - Mantendo vazio (0 agentes)');
-    set({ agents: [] });
-  },
-  
-  // Helper para definir agentes diretamente (usado internamente)
-  setAgents: (agents: Agent[]) => {
+    const agents = storage.getAgents();
+    console.log(`📋 [Store] loadAgents() - ${agents.length} agentes carregados`);
     set({ agents });
   },
 
@@ -262,13 +257,8 @@ export const useStore = create<AppState>((set, get) => ({
 
   // MCPs
   loadMCPs: () => {
-    // 🧹 SEMPRE LIMPO: Não carregar MCPs antigos
-    console.log('🧹 [Store] loadMCPs() - Mantendo vazio (0 MCPs)');
-    set({ mcps: [] });
-  },
-  
-  // Helper para definir MCPs diretamente (usado internamente)
-  setMCPs: (mcps: MCP[]) => {
+    const mcps = storage.getMCPs();
+    console.log(`📋 [Store] loadMCPs() - ${mcps.length} MCPs carregados`);
     set({ mcps });
   },
 

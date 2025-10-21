@@ -494,12 +494,17 @@ app.post('/api/mcps', async (req: Request, res: Response) => {
           }
         }
         
+        // Usar installType do próprio MCP
+        const actualInstallType = newMcp.installType || (mcp.command === 'npx' ? 'npx' : 'npm');
+        
+        console.log(`📦 [API] installType: ${actualInstallType}, server: ${newMcp.server || packageName}`);
+        
         const result = await MCPExecutor.installMCP({
           name: newMcp.name,
           description: newMcp.description,
           version: newMcp.version || '1.0.0',
-          server: packageName,
-          installType: mcp.command === 'npx' ? 'npx' : 'npm',
+          server: newMcp.server || packageName,
+          installType: actualInstallType as any,
         });
         
         console.log(`🔍 [API] Resultado do MCPExecutor:`, {

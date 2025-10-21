@@ -2,10 +2,10 @@
  * FLUI - MCP Executor
  * 
  * Executa MCPs via subprocess e extrai suas tools
+ * ✅ Comunicação via JSON-RPC sobre stdio
  * ✅ Suporte a NPX, NPM, GitHub, Local
- * ✅ Leitura real de manifests
+ * ✅ Extração real de tools dos servidores MCP
  * ✅ Registro automático no Tool Registry
- * ✅ Sem mock ou hardcoded
  */
 
 import { spawn, exec } from 'child_process';
@@ -13,6 +13,7 @@ import { promisify } from 'util';
 import { join } from 'path';
 import { readFile, access, constants } from 'fs/promises';
 import { nanoid } from 'nanoid';
+import { MCPClient, MCPTool as MCPClientTool } from './mcpClient.js';
 
 const execAsync = promisify(exec);
 
@@ -84,70 +85,81 @@ export class MCPExecutor {
   }
 
   /**
-   * Executa MCP via NPX
+   * Executa MCP via NPX usando comunicação JSON-RPC
    */
   private static async executeNpxMCP(config: MCPInstallConfig): Promise<MCPExecutionResult> {
     try {
-      console.log('🚀 [MCPExecutor] Executando via NPX...');
+      console.log('🚀 [MCPExecutor] Executando via NPX com JSON-RPC...');
 
       // Extrair package name
       const packageName = config.server.replace(/^npx\s+/, '').split(/\s+/)[0];
       
       console.log(`📦 [MCPExecutor] Package: ${packageName}`);
 
-      // Tentar executar e capturar metadata via stdout
-      // Muitos MCPs expõem sua lista de tools via um comando de ajuda ou list
-      const command = `npx -y ${packageName} --help 2>&1 || npx -y ${packageName} list 2>&1 || echo "No help available"`;
-      
-      const { stdout, stderr } = await execAsync(command, {
-        timeout: 30000,
-        maxBuffer: 1024 * 1024 * 10, // 10MB
-      });
-
-      console.log('📤 [MCPExecutor] NPX Output:', stdout.substring(0, 500));
-
-      // Tentar extrair informações do package.json via NPM view
-      let manifest: MCPManifest = {
-        name: config.name || packageName,
-        version: config.version || '1.0.0',
-        description: config.description || 'MCP Tool',
-        tools: [],
-      };
+      // Conectar ao MCP e extrair tools usando MCPClient
+      const client = new MCPClient();
+      let manifest: MCPManifest;
+      let tools: MCPTool[] = [];
 
       try {
-        const npmInfo = await execAsync(`npm view ${packageName} --json`, {
-          timeout: 10000,
-        });
-        const packageInfo = JSON.parse(npmInfo.stdout);
+        // Conectar ao servidor MCP
+        const initResult = await client.connect('npx', ['-y', packageName]);
         
-        manifest.name = packageInfo.name || manifest.name;
-        manifest.version = packageInfo.version || manifest.version;
-        manifest.description = packageInfo.description || manifest.description;
-      } catch (err) {
-        console.warn('⚠️ [MCPExecutor] Não foi possível buscar info do NPM');
+        console.log(`✅ [MCPExecutor] Conectado ao ${initResult.serverInfo.name} v${initResult.serverInfo.version}`);
+
+        // Listar tools
+        const mcpTools = await client.listTools();
+        
+        console.log(`📋 [MCPExecutor] ${mcpTools.length} tools encontradas`);
+
+        // Converter tools do formato MCP para nosso formato
+        tools = mcpTools.map((tool: MCPClientTool) => {
+          // Extrair parâmetros do inputSchema
+          const properties = tool.inputSchema?.properties || {};
+          const required = tool.inputSchema?.required || [];
+          
+          const parameters: Record<string, any> = {};
+          for (const [key, value] of Object.entries(properties)) {
+            parameters[key] = {
+              type: (value as any).type || 'string',
+              description: (value as any).description || '',
+              required: required.includes(key),
+            };
+          }
+
+          return {
+            id: tool.name,
+            name: tool.name,
+            description: tool.description,
+            handler: tool.name,
+            parameters,
+            inputSchema: tool.inputSchema,
+          };
+        });
+
+        manifest = {
+          name: initResult.serverInfo.name,
+          version: initResult.serverInfo.version,
+          description: initResult.serverInfo.instructions?.split('\n')[0] || config.description || '',
+          tools,
+        };
+
+        console.log(`✅ [MCPExecutor] MCP carregado com sucesso`);
+
+        return {
+          success: true,
+          manifest,
+          tools,
+        };
+      } finally {
+        // Sempre desconectar
+        client.disconnect();
       }
-
-      // Tentar detectar tools automaticamente
-      // Muitos MCPs seguem padrões de nomenclatura ou expõem tools via API
-      const detectedTools = this.detectToolsFromOutput(stdout + stderr, packageName);
-      manifest.tools = detectedTools;
-
-      console.log(`✅ [MCPExecutor] MCP carregado: ${manifest.tools.length} tools encontradas`);
-
-      return {
-        success: true,
-        manifest,
-        tools: manifest.tools,
-        stdout,
-        stderr,
-      };
     } catch (error: any) {
       console.error('❌ [MCPExecutor] Erro ao executar NPX:', error);
       return {
         success: false,
         error: error.message,
-        stdout: error.stdout,
-        stderr: error.stderr,
       };
     }
   }

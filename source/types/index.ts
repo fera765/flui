@@ -53,6 +53,7 @@ export const MCPSchema = z.object({
   description: z.string(),
   version: z.string(),
   server: z.string().optional(),
+  installType: z.enum(['npx', 'npm', 'github', 'local']).optional(),
   tools: z.array(MCPToolSchema),
   enabled: z.boolean().default(true),
   metadata: z.object({

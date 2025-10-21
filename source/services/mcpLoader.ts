@@ -43,7 +43,14 @@ export class MCPLoader {
 
     // Cada tool do MCP vira uma Tool no registry
     for (const mcpTool of mcp.tools) {
-      const toolId = `mcp-${mcp.id}-${mcpTool.id}`;
+      // Normalizar ID da tool (remover caracteres especiais e lowercase)
+      const normalizedToolId = mcpTool.id
+        .toLowerCase()
+        .replace(/[^a-z0-9-_]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+      
+      const toolId = `mcp-${mcp.id}-${normalizedToolId}`;
 
       // Verificar se já está registrada
       if (registry.has(toolId)) {
