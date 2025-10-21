@@ -2,35 +2,6 @@
 	"automations": [],
 	"executions": [],
 	"agents": [],
-	"mcps": [
-		{
-			"name": "Weather MCP",
-			"description": "Get weather information",
-			"version": "1.0.0",
-			"server": "@modelcontextprotocol/server-everything",
-			"enabled": true,
-			"command": "npx",
-			"args": [
-				"-y",
-				"@modelcontextprotocol/server-everything"
-			],
-			"installType": "npx",
-			"id": "1761079489436",
-			"tools": [
-				{
-					"id": "modelcontextprotocol-server-everything-default",
-					"name": "@modelcontextprotocol/server-everything",
-					"description": "Tool principal de @modelcontextprotocol/server-everything",
-					"handler": "execute",
-					"parameters": {}
-				}
-			],
-			"metadata": {
-				"createdAt": "2025-10-21T20:44:49.436Z",
-				"updatedAt": "2025-10-21T20:44:59.227Z",
-				"lastSyncedAt": "2025-10-21T20:44:59.227Z"
-			}
-		}
-	],
+	"mcps": [],
 	"sessions": []
 }
