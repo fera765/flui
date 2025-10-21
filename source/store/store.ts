@@ -41,7 +41,7 @@ interface AppState {
   // MCPs
   mcps: MCP[];
   loadMCPs: () => void;
-  createMCP: (mcp: Omit<MCP, 'id'>) => void;
+  createMCP: (mcp: Omit<MCP, 'id'> | MCP) => MCP;
   updateMCP: (id: string, updates: Partial<MCP>) => void;
   deleteMCP: (id: string) => void;
 
@@ -275,10 +275,12 @@ export const useStore = create<AppState>((set, get) => ({
   createMCP: (mcp) => {
     const newMCP: MCP = {
       ...mcp,
-      id: nanoid(),
+      // Usar ID fornecido se existir, senão gerar novo
+      id: (mcp as any).id || nanoid(),
     };
     storage.saveMCP(newMCP);
     set({ mcps: [...get().mcps, newMCP] });
+    return newMCP; // Retornar o MCP criado
   },
 
   updateMCP: (id, updates) => {
