@@ -174,36 +174,33 @@ export default function NodeConfigurationModalV2({
   };
 
   const loadNodeData = async () => {
-    console.log('📥 [NodeConfigModalV2] loadNodeData started');
     setLoading(true);
     try {
       let node;
       let toolId;
       
-      // 1. Se é automação temporária ou temos nodeData local, usar dados locais
-      if (automationId.startsWith('temp-') || nodeData) {
-        console.log('⚠️ [NodeConfigModalV2] Usando dados locais (automação temporária ou nodeData fornecido)');
-        node = nodeData || {};
-        toolId = node.toolId || node.data?.toolId || node.config?.toolId;
-        setConfig(node.config || node.data?.config || {});
-      } else {
-        // 2. Buscar do backend (automação já salva)
-        console.log('📥 [NodeConfigModalV2] Fetching node:', `${API_BASE_URL}/automations/${automationId}/nodes/${nodeId}`);
+      // PRIORIDADE: Se automação já foi salva, SEMPRE buscar do backend
+      if (!automationId.startsWith('temp-')) {
+        // Automação salva - SEMPRE buscar do backend para garantir persistência
         const nodeResponse = await axios.get(
           `${API_BASE_URL}/automations/${automationId}/nodes/${nodeId}`
         );
         node = nodeResponse.data;
-        console.log('📥 [NodeConfigModalV2] Node loaded:', node);
         toolId = node.config?.toolId || node.type;
         setConfig(node.config?.params || {});
+      } else if (nodeData) {
+        // Automação temporária - usar dados locais
+        node = nodeData || {};
+        toolId = node.toolId || node.data?.toolId || node.config?.toolId;
+        setConfig(node.config || node.data?.config || {});
+      } else {
+        throw new Error('Nenhuma fonte de dados para o node');
       }
       
       // 3. Carregar tool metadata
       if (toolId) {
-        console.log('📥 [NodeConfigModalV2] Loading tool:', toolId);
         const toolResponse = await axios.get(`${API_BASE_URL}/tools/${toolId}`);
         setTool(toolResponse.data);
-        console.log('✅ [NodeConfigModalV2] Tool loaded:', toolResponse.data.name);
         
         // 4. Carregar outputs disponíveis dos nodes pais
         await loadAvailableOutputs();

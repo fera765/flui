@@ -1,5 +1,256 @@
 {
-	"automations": [],
+	"automations": [
+		{
+			"id": "automation-1761052553935",
+			"name": "Teste Persistência - 1761052553310",
+			"description": "",
+			"nodes": [
+				{
+					"id": "node-1761052544982",
+					"type": "tool",
+					"name": "Manual Trigger",
+					"description": "Dispara automações manualmente sob demanda. Ideal para testes, debugging e execuções únicas.",
+					"config": {
+						"toolId": "manual-trigger",
+						"category": "system",
+						"color": "#10b981",
+						"icon": "▶️",
+						"params": {}
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-1761052548294",
+					"type": "tool",
+					"name": "Cron Trigger",
+					"description": "Agenda execuções automáticas baseadas em intervalos ou horários específicos usando cron expressions.",
+					"config": {
+						"toolId": "cron-trigger",
+						"category": "system",
+						"color": "#3b82f6",
+						"icon": "⏰",
+						"params": {}
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "edge-node-1761052544982-node-1761052548294",
+					"source": "node-1761052544982",
+					"target": "node-1761052548294"
+				}
+			],
+			"startNodeId": "node-1761052544982",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-21T13:15:53.940Z",
+			"updatedAt": "2025-10-21T13:15:53.940Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-21T13:15:53.935Z",
+				"updatedAt": "2025-10-21T13:15:53.935Z"
+			}
+		},
+		{
+			"id": "automation-1761052595033",
+			"name": "Teste Persistência - 1761052594410",
+			"description": "",
+			"nodes": [
+				{
+					"id": "node-1761052586129",
+					"type": "tool",
+					"name": "Manual Trigger",
+					"description": "Dispara automações manualmente sob demanda. Ideal para testes, debugging e execuções únicas.",
+					"config": {
+						"toolId": "manual-trigger",
+						"category": "system",
+						"color": "#10b981",
+						"icon": "▶️",
+						"params": {}
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-1761052589410",
+					"type": "tool",
+					"name": "Cron Trigger",
+					"description": "Agenda execuções automáticas baseadas em intervalos ou horários específicos usando cron expressions.",
+					"config": {
+						"toolId": "cron-trigger",
+						"category": "system",
+						"color": "#3b82f6",
+						"icon": "⏰",
+						"params": {
+							"cronExpression": "{{node-1761052586129.result}}"
+						}
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "edge-node-1761052586129-node-1761052589410",
+					"source": "node-1761052586129",
+					"target": "node-1761052589410"
+				}
+			],
+			"startNodeId": "node-1761052586129",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-21T13:16:35.037Z",
+			"updatedAt": "2025-10-21T13:16:46.878Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-21T13:16:35.033Z",
+				"updatedAt": "2025-10-21T13:16:35.033Z"
+			}
+		},
+		{
+			"id": "automation-1761052688678",
+			"name": "Teste Persistência - 1761052688055",
+			"description": "",
+			"nodes": [
+				{
+					"id": "node-1761052679757",
+					"type": "tool",
+					"name": "Manual Trigger",
+					"description": "Dispara automações manualmente sob demanda. Ideal para testes, debugging e execuções únicas.",
+					"config": {
+						"toolId": "manual-trigger",
+						"category": "system",
+						"color": "#10b981",
+						"icon": "▶️",
+						"params": {}
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-1761052683038",
+					"type": "tool",
+					"name": "Cron Trigger",
+					"description": "Agenda execuções automáticas baseadas em intervalos ou horários específicos usando cron expressions.",
+					"config": {
+						"toolId": "cron-trigger",
+						"category": "system",
+						"color": "#3b82f6",
+						"icon": "⏰",
+						"params": {
+							"cronExpression": "{{node-1761052679757.result}}"
+						}
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "edge-node-1761052679757-node-1761052683038",
+					"source": "node-1761052679757",
+					"target": "node-1761052683038"
+				}
+			],
+			"startNodeId": "node-1761052679757",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-21T13:18:08.682Z",
+			"updatedAt": "2025-10-21T13:18:20.543Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-21T13:18:08.678Z",
+				"updatedAt": "2025-10-21T13:18:08.678Z"
+			}
+		},
+		{
+			"id": "automation-1761052769858",
+			"name": "Teste Persistência - 1761052769235",
+			"description": "",
+			"nodes": [
+				{
+					"id": "node-1761052760938",
+					"type": "tool",
+					"name": "Manual Trigger",
+					"description": "Dispara automações manualmente sob demanda. Ideal para testes, debugging e execuções únicas.",
+					"config": {
+						"toolId": "manual-trigger",
+						"category": "system",
+						"color": "#10b981",
+						"icon": "▶️",
+						"params": {}
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-1761052764218",
+					"type": "tool",
+					"name": "Cron Trigger",
+					"description": "Agenda execuções automáticas baseadas em intervalos ou horários específicos usando cron expressions.",
+					"config": {
+						"toolId": "cron-trigger",
+						"category": "system",
+						"color": "#3b82f6",
+						"icon": "⏰",
+						"params": {
+							"cronExpression": "{{node-1761052760938.result}}"
+						}
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "edge-node-1761052760938-node-1761052764218",
+					"source": "node-1761052760938",
+					"target": "node-1761052764218"
+				}
+			],
+			"startNodeId": "node-1761052760938",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-21T13:19:29.862Z",
+			"updatedAt": "2025-10-21T13:19:41.762Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-21T13:19:29.858Z",
+				"updatedAt": "2025-10-21T13:19:29.858Z"
+			}
+		}
+	],
 	"executions": [],
 	"agents": [],
 	"mcps": [],
