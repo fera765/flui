@@ -58,13 +58,21 @@ export class MCPLoader {
         continue;
       }
 
-      // Converter parâmetros do MCP para ToolParam
-      const params: ToolParam[] = Object.entries(mcpTool.parameters).map(([name, type]) => ({
-        name,
-        type: this.mapMCPTypeToToolType(type as string),
-        description: `Parâmetro ${name}`,
-        required: true,
-      }));
+      // Converter parâmetros do MCP para ToolParam com defaults
+      const params: ToolParam[] = Object.entries(mcpTool.parameters).map(([name, paramInfo]) => {
+        const info = paramInfo as any;
+        
+        return {
+          name,
+          key: name,
+          type: this.mapMCPTypeToToolType(info.type || 'string'),
+          description: info.description || `Parâmetro ${name}`,
+          required: info.required || false,
+          default: info.default,
+          enum: info.enum,
+          ui: info.enum ? { widgetType: 'select' as const, options: info.enum.map((v: any) => ({ label: v, value: v })) } : undefined,
+        };
+      });
 
       // Criar Tool baseada no MCP Tool
       const tool: Tool = {

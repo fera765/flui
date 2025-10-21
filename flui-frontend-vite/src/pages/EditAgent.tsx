@@ -20,12 +20,25 @@ export default function EditAgent() {
   const [agent, setAgent] = useState<Agent | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [availableTools, setAvailableTools] = useState<any[]>([]);
+  const [showToolsTab, setShowToolsTab] = useState(false);
 
   useEffect(() => {
     if (id) {
       loadAgent(id);
+      loadAvailableTools();
     }
   }, [id]);
+
+  const loadAvailableTools = async () => {
+    try {
+      const res = await fetch('http://localhost:3001/api/tools');
+      const data = await res.json();
+      setAvailableTools(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Erro ao carregar tools:', error);
+    }
+  };
 
   const loadAgent = async (agentId: string) => {
     try {
@@ -235,6 +248,64 @@ export default function EditAgent() {
               <label className="text-purple-300 text-sm">
                 Agente ativo
               </label>
+            </div>
+          </div>
+
+          {/* Tools Selection */}
+          <div className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-white font-semibold">🔧 Ferramentas Disponíveis</h3>
+              <span className="text-sm text-purple-400">
+                {agent.tools?.length || 0} / {availableTools.length} selecionadas
+              </span>
+            </div>
+            
+            <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
+              {availableTools.length === 0 ? (
+                <p className="text-center text-purple-400 py-4">Carregando ferramentas...</p>
+              ) : (
+                availableTools.map((tool) => {
+                  const isSelected = agent.tools?.includes(tool.id) || false;
+                  
+                  return (
+                    <label
+                      key={tool.id}
+                      className="flex items-center gap-3 p-3 bg-slate-900/30 hover:bg-slate-900/50 rounded-lg border border-purple-500/10 cursor-pointer transition group"
+                    >
+                      <div className="relative flex-shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            const currentTools = agent.tools || [];
+                            const newTools = e.target.checked
+                              ? [...currentTools, tool.id]
+                              : currentTools.filter((t) => t !== tool.id);
+                            setAgent({ ...agent, tools: newTools });
+                          }}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-slate-700 peer-focus:ring-2 peer-focus:ring-purple-500 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-white text-sm truncate group-hover:text-purple-200 transition">
+                          {tool.name}
+                        </div>
+                        <div className="text-xs text-purple-400 truncate mt-0.5">
+                          {tool.description}
+                        </div>
+                      </div>
+                      <span className={`px-2 py-1 ${
+                        tool.category === 'mcp' ? 'bg-purple-500/20 text-purple-300' :
+                        tool.category === 'system' ? 'bg-blue-500/20 text-blue-300' :
+                        'bg-gray-500/20 text-gray-300'
+                      } rounded text-xs font-medium flex-shrink-0`}>
+                        {tool.category}
+                      </span>
+                    </label>
+                  );
+                })
+              )}
             </div>
           </div>
         </div>

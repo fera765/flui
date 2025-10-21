@@ -308,36 +308,33 @@ export default function MCPsPage() {
         </div>
       </header>
 
-      {/* Sync Progress Box */}
+      {/* Sync Progress Box - Compacto */}
       {syncProgress.show && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-full max-w-md">
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm">
           <div 
-            className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl shadow-2xl p-6 border-2 border-white/20 cursor-pointer hover:scale-105 transition-transform"
+            className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg shadow-xl p-4 border border-white/20 cursor-pointer hover:scale-102 transition-transform"
             onClick={() => setSyncProgress({ show: false, mcpName: '', status: '', progress: 0 })}
           >
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-white font-bold text-lg">🔄 Sincronizando MCP</h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-white font-semibold text-sm">🔄 {syncProgress.mcpName}</h3>
               <button 
                 onClick={(e) => {
                   e.stopPropagation();
                   setSyncProgress({ show: false, mcpName: '', status: '', progress: 0 });
                 }}
-                className="text-white/80 hover:text-white"
+                className="text-white/80 hover:text-white text-sm"
               >
                 ✕
               </button>
             </div>
-            <p className="text-white/90 text-sm mb-2">{syncProgress.mcpName}</p>
-            <p className="text-white/70 text-xs mb-3">{syncProgress.status}</p>
+            <p className="text-white/80 text-xs mb-2">{syncProgress.status}</p>
             
             {/* Progress Bar */}
-            <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden">
+            <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
               <div 
-                className="bg-white h-full rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2"
+                className="bg-white h-full rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${syncProgress.progress}%` }}
-              >
-                <span className="text-xs font-bold text-purple-600">{syncProgress.progress}%</span>
-              </div>
+              />
             </div>
           </div>
         </div>

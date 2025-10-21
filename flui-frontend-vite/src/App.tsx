@@ -8,6 +8,7 @@ import EditAgent from './pages/EditAgent'
 import MCPsPage from './pages/MCPsPage'
 import EditMCP from './pages/EditMCP'
 import LogsPage from './pages/LogsPage'
+import ToolsPage from './pages/ToolsPage'
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
       <Route path="/agents/:id/edit" element={<EditAgent />} />
       <Route path="/mcps" element={<MCPsPage />} />
       <Route path="/mcps/:id/edit" element={<EditMCP />} />
+      <Route path="/tools" element={<ToolsPage />} />
     </Routes>
   )
 }
