@@ -571,8 +571,9 @@ export default function EditAutomation() {
           onSave={() => {
             // Reload automation to get updated config
             loadAutomation(id);
+            setConfigPanelOpen(false);
+            setSelectedNode(null);
           }}
-          onSave={handleSaveNodeConfig}
         />
       )}
     </div>

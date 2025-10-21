@@ -492,11 +492,12 @@ export default function CreateAutomationV2() {
             setSelectedNode(null);
           }}
           onSave={() => {
-            // Optionally reload node data here
+            // Config is saved automatically by the modal
+            // Just close the panel
+            setConfigPanelOpen(false);
+            setSelectedNode(null);
             console.log('✅ Node configuration saved');
           }}
-          onSave={handleSaveNodeConfig}
-          onTest={handleTestNode}
         />
       )}
     </div>
