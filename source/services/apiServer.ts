@@ -455,7 +455,7 @@ app.get('/api/mcps/:id', (req: Request, res: Response) => {
   res.json(mcp);
 });
 
-app.post('/api/mcps', (req: Request, res: Response) => {
+app.post('/api/mcps', async (req: Request, res: Response) => {
   try {
     const mcp = req.body;
     const store = useStore.getState();
@@ -463,15 +463,56 @@ app.post('/api/mcps', (req: Request, res: Response) => {
     const newMcp = {
       ...mcp,
       id: mcp.id || Date.now().toString(),
+      tools: [],
       metadata: {
         createdAt: mcp.metadata?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        lastSyncedAt: mcp.metadata?.lastSyncedAt,
+        lastSyncedAt: null,
       },
     };
     
+    // Salvar MCP primeiro
     store.createMCP(newMcp);
-    res.json({ success: true, id: newMcp.id });
+    
+    // Tentar sincronizar automaticamente (não bloqueia resposta)
+    setImmediate(async () => {
+      try {
+        console.log(`🔄 [API] Auto-sincronizando MCP: ${newMcp.name}`);
+        
+        // Executar MCPExecutor para buscar tools
+        const { MCPExecutor } = await import('./mcpExecutor.js');
+        const result = await MCPExecutor.installMCP({
+          name: newMcp.name,
+          description: newMcp.description,
+          version: newMcp.version || '1.0.0',
+          server: mcp.args?.[0] || mcp.command || newMcp.name,
+          installType: mcp.command === 'npx' ? 'npx' : 'npm',
+        });
+        
+        if (result.success && result.tools && result.tools.length > 0) {
+          // Atualizar MCP com tools encontradas
+          store.updateMCP(newMcp.id, {
+            tools: result.tools,
+            metadata: {
+              ...newMcp.metadata,
+              lastSyncedAt: new Date().toISOString(),
+            },
+          });
+          
+          // Registrar tools no registry
+          const { MCPLoader } = await import('./mcpLoader.js');
+          await MCPLoader.loadMCP(store.mcps.find(m => m.id === newMcp.id)!);
+          
+          console.log(`✅ [API] MCP sincronizado: ${result.tools.length} tools encontradas`);
+        } else {
+          console.warn(`⚠️ [API] MCP adicionado mas sem tools: ${newMcp.name}`);
+        }
+      } catch (error: any) {
+        console.error(`❌ [API] Erro ao auto-sincronizar MCP: ${error.message}`);
+      }
+    });
+    
+    res.json({ success: true, id: newMcp.id, message: 'MCP adicionado, sincronizando tools em background...' });
   } catch (error: any) {
     res.status(400).json({ error: error.message });
   }
