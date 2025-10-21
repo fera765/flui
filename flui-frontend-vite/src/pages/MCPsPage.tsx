@@ -41,6 +41,13 @@ export default function MCPsPage() {
     enabled: true,
     tools: [],
   });
+  const [envVars, setEnvVars] = useState<Array<{ key: string; value: string }>>([]);
+  const [syncProgress, setSyncProgress] = useState<{
+    show: boolean;
+    mcpName: string;
+    status: string;
+    progress: number;
+  }>({ show: false, mcpName: '', status: '', progress: 0 });
 
   useEffect(() => {
     loadMcps();
@@ -144,10 +151,19 @@ export default function MCPsPage() {
     }
 
     try {
+      // Converter envVars array para objeto
+      const envVarsObj: Record<string, string> = {};
+      envVars.forEach(({ key, value }) => {
+        if (key.trim()) {
+          envVarsObj[key.trim()] = value;
+        }
+      });
+
       const mcp = {
         ...newMcp,
         id: Date.now().toString(),
         installType,
+        envVars: Object.keys(envVarsObj).length > 0 ? envVarsObj : undefined,
         metadata: {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -163,21 +179,44 @@ export default function MCPsPage() {
       if (response.ok) {
         const createdMcp = await response.json();
         
-        // Sincronizar automaticamente para carregar as ferramentas
-        alert('⏳ MCP adicionado! Sincronizando ferramentas...');
+        // Fechar modal
+        setShowCreateModal(false);
+        setInstallType('github');
+        setNewMcp({
+          name: '',
+          description: '',
+          version: '1.0.0',
+          server: '',
+          enabled: true,
+          tools: [],
+        });
+        setEnvVars([]);
+        
+        // Mostrar box de progresso
+        setSyncProgress({
+          show: true,
+          mcpName: createdMcp.name || mcp.name,
+          status: 'Conectando ao servidor MCP...',
+          progress: 30,
+        });
+        
+        // Simular progresso
+        setTimeout(() => {
+          setSyncProgress(prev => ({ ...prev, status: 'Extraindo ferramentas...', progress: 60 }));
+        }, 1500);
+        
+        // Sincronizar automaticamente
         await handleSync(createdMcp.id);
+        
+        // Atualizar progresso final
+        setSyncProgress(prev => ({ ...prev, status: 'Concluído!', progress: 100 }));
+        
+        // Fechar box após 2s
+        setTimeout(() => {
+          setSyncProgress({ show: false, mcpName: '', status: '', progress: 0 });
+        }, 2000);
       }
       
-      setShowCreateModal(false);
-      setInstallType('github');
-      setNewMcp({
-        name: '',
-        description: '',
-        version: '1.0.0',
-        server: '',
-        enabled: true,
-        tools: [],
-      });
       await loadMcps();
     } catch (err) {
       console.error('Erro ao criar MCP:', err);
@@ -268,6 +307,41 @@ export default function MCPsPage() {
           </div>
         </div>
       </header>
+
+      {/* Sync Progress Box */}
+      {syncProgress.show && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-full max-w-md">
+          <div 
+            className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl shadow-2xl p-6 border-2 border-white/20 cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => setSyncProgress({ show: false, mcpName: '', status: '', progress: 0 })}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-white font-bold text-lg">🔄 Sincronizando MCP</h3>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSyncProgress({ show: false, mcpName: '', status: '', progress: 0 });
+                }}
+                className="text-white/80 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-white/90 text-sm mb-2">{syncProgress.mcpName}</p>
+            <p className="text-white/70 text-xs mb-3">{syncProgress.status}</p>
+            
+            {/* Progress Bar */}
+            <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden">
+              <div 
+                className="bg-white h-full rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2"
+                style={{ width: `${syncProgress.progress}%` }}
+              >
+                <span className="text-xs font-bold text-purple-600">{syncProgress.progress}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
@@ -720,6 +794,65 @@ export default function MCPsPage() {
                     rows={2}
                   />
                 </div>
+              </div>
+
+              {/* Environment Variables */}
+              <div className="border-t border-purple-500/20 pt-4">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="block text-sm font-medium text-purple-300">
+                    Variáveis de Ambiente (opcional)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setEnvVars([...envVars, { key: '', value: '' }])}
+                    className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-medium transition flex items-center gap-1"
+                  >
+                    <span>+</span> ADD ENV
+                  </button>
+                </div>
+
+                {envVars.length > 0 && (
+                  <div className="space-y-2 mb-4">
+                    {envVars.map((env, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={env.key}
+                          onChange={(e) => {
+                            const newEnvVars = [...envVars];
+                            newEnvVars[index].key = e.target.value;
+                            setEnvVars(newEnvVars);
+                          }}
+                          className="flex-1 bg-white border border-gray-300 rounded-lg px-3 py-2 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          placeholder="CHAVE"
+                        />
+                        <span className="text-purple-400">=</span>
+                        <input
+                          type="text"
+                          value={env.value}
+                          onChange={(e) => {
+                            const newEnvVars = [...envVars];
+                            newEnvVars[index].value = e.target.value;
+                            setEnvVars(newEnvVars);
+                          }}
+                          className="flex-1 bg-white border border-gray-300 rounded-lg px-3 py-2 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          placeholder="valor"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newEnvVars = envVars.filter((_, i) => i !== index);
+                            setEnvVars(newEnvVars);
+                          }}
+                          className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition"
+                          title="Remover"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">

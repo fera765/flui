@@ -54,6 +54,7 @@ export const MCPSchema = z.object({
   version: z.string(),
   server: z.string().optional(),
   installType: z.enum(['npx', 'npm', 'github', 'local']).optional(),
+  envVars: z.record(z.string()).optional(), // Variáveis de ambiente do MCP
   tools: z.array(MCPToolSchema),
   enabled: z.boolean().default(true),
   metadata: z.object({

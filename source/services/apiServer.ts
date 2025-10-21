@@ -226,6 +226,28 @@ app.post('/api/automations/:id/execute', async (req: Request, res: Response) => 
       return res.status(404).json({ error: 'Automação não encontrada' });
     }
 
+    // Criar sandbox único para esta automação
+    const { getSandboxManager } = await import('./sandboxManager.js');
+    const sandboxManager = getSandboxManager();
+    
+    // Coletar env vars dos MCPs usados
+    const store = useStore.getState();
+    const mcpEnvVars: Record<string, Record<string, string>> = {};
+    
+    for (const mcp of store.mcps) {
+      if (mcp.envVars && Object.keys(mcp.envVars).length > 0) {
+        mcpEnvVars[mcp.id] = mcp.envVars;
+      }
+    }
+    
+    const sandboxPath = await sandboxManager.createSandbox({
+      automationId: automation.id,
+      mcpEnvVars,
+      customEnvVars: {},
+    });
+    
+    console.log(`📦 [API] Sandbox criado: ${sandboxPath}`);
+
     console.log('✨ [API] Importando ExecutionEngineV3...');
     // Converter para ExecutionFlow (formato do novo engine)
     const { ExecutionEngineV3 } = await import('./executionEngine.js');

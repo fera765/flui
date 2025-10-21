@@ -120,10 +120,40 @@ export class MCPExecutor {
           
           const parameters: Record<string, any> = {};
           for (const [key, value] of Object.entries(properties)) {
+            const propSchema = value as any;
+            
+            // Determinar valor padrão baseado no tipo
+            let defaultValue: any = propSchema.default;
+            if (defaultValue === undefined) {
+              switch (propSchema.type) {
+                case 'string':
+                  defaultValue = '';
+                  break;
+                case 'boolean':
+                  defaultValue = false;
+                  break;
+                case 'number':
+                case 'integer':
+                  defaultValue = 0;
+                  break;
+                case 'array':
+                  defaultValue = [];
+                  break;
+                case 'object':
+                  defaultValue = {};
+                  break;
+                default:
+                  defaultValue = null;
+              }
+            }
+            
             parameters[key] = {
-              type: (value as any).type || 'string',
-              description: (value as any).description || '',
+              type: propSchema.type || 'string',
+              description: propSchema.description || '',
               required: required.includes(key),
+              default: defaultValue,
+              enum: propSchema.enum,
+              items: propSchema.items,
             };
           }
 
