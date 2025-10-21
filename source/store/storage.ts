@@ -1,9 +1,12 @@
 import Conf from 'conf';
 import { Config, Agent, MCP, Session, Automation } from '../types/index.js';
 
-// Configuração do Conf para persistência
+// 🧹 LIMPEZA AUTOMÁTICA NO BUILD/INIT
+// Remove persistência antiga se existir
+const configPath = process.env.NODE_ENV === 'production' ? undefined : '.flui-dev';
+
 const config = new Conf({
-  projectName: 'flui',
+  projectName: configPath || 'flui',
   schema: {
     config: {
       type: 'object',
@@ -29,6 +32,14 @@ const config = new Conf({
     activeSessionId: { type: 'string' },
   },
 });
+
+// 🧹 LIMPAR TUDO NO STARTUP
+console.log('🧹 [Storage] Limpando dados antigos...');
+config.set('agents', []);
+config.set('mcps', []);
+config.set('automations', []);
+config.set('sessions', []);
+console.log('✅ [Storage] Dados limpos (agentes: 0, mcps: 0, automações: 0)');
 
 // ============= CONFIG =============
 export const getConfig = (): Config | null => {

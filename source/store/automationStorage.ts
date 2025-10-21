@@ -6,6 +6,12 @@ const config = new Conf({
   projectName: 'flui',
 });
 
+// 🧹 LIMPAR automações antigas no startup
+console.log('🧹 [AutomationStorage] Limpando automações antigas...');
+config.set('automations', []);
+config.set('executions', []);
+console.log('✅ [AutomationStorage] Automações limpas (count: 0)');
+
 /**
  * Valida e normaliza uma automação antes de salvar
  * Garante que todos os campos obrigatórios existem com defaults apropriados

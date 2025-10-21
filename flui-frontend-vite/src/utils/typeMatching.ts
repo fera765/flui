@@ -48,9 +48,17 @@ export function areTypesCompatible(sourceType: FieldType, targetType: FieldType)
 export interface OutputField {
   key: string;
   type: FieldType;
-  label?: string;
+  label: string;
   description?: string;
   value?: any;
+}
+
+/**
+ * Interface de output field com metadata do node (para linker)
+ */
+export interface LinkedOutputField extends OutputField {
+  nodeId: string;
+  nodeName: string;
 }
 
 /**
