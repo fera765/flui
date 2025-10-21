@@ -43,7 +43,9 @@ export default function CreateAutomationV2() {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [name, setName] = useState('Nova Automação');
   const [description, setDescription] = useState('');
-  const [automationId, setAutomationId] = useState<string>('');
+  // 🔥 FIX CRÍTICO: Gerar ID temporário para nova automação
+  // Sem isso, o modal não abre porque NodeConfigurationModalV2 requer automationId válido
+  const [automationId, setAutomationId] = useState<string>(() => `temp-${Date.now()}`);
   const [continuousExecution, setContinuousExecution] = useState(false);
   
   // UI States
@@ -63,16 +65,11 @@ export default function CreateAutomationV2() {
 
   // Configurar nó (abre modal)
   const handleConfigureNode = useCallback((nodeId: string) => {
-    console.log('🔧 [CreateAutomationV2] handleConfigureNode called with nodeId:', nodeId);
     setNodes((currentNodes) => {
       const node = currentNodes.find((n) => n.id === nodeId);
-      console.log('🔧 [CreateAutomationV2] Found node:', node);
       if (node) {
         setSelectedNode(node);
         setConfigPanelOpen(true);
-        console.log('✅ [CreateAutomationV2] Modal should open now');
-      } else {
-        console.error('❌ [CreateAutomationV2] Node not found!');
       }
       return currentNodes;
     });
@@ -498,16 +495,14 @@ export default function CreateAutomationV2() {
           isOpen={configPanelOpen}
           automationId={automationId}
           nodeId={selectedNode.id}
+          nodeData={selectedNode.data}
           onClose={() => {
             setConfigPanelOpen(false);
             setSelectedNode(null);
           }}
           onSave={() => {
-            // Config is saved automatically by the modal
-            // Just close the panel
             setConfigPanelOpen(false);
             setSelectedNode(null);
-            console.log('✅ Node configuration saved');
           }}
         />
       )}

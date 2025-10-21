@@ -56,6 +56,7 @@ interface NodeConfigurationModalProps {
   isOpen: boolean;
   automationId: string;
   nodeId: string;
+  nodeData?: any; // Dados locais do node (para automações temporárias)
   onClose: () => void;
   onSave: () => void;
 }
@@ -64,6 +65,7 @@ export default function NodeConfigurationModalV2({
   isOpen,
   automationId,
   nodeId,
+  nodeData,
   onClose,
   onSave,
 }: NodeConfigurationModalProps) {
@@ -75,27 +77,10 @@ export default function NodeConfigurationModalV2({
   const [availableOutputs, setAvailableOutputs] = useState<LinkedOutputField[]>([]);
   const [linkerOpen, setLinkerOpen] = useState<string | null>(null);
 
-  // Log props changes
-  useEffect(() => {
-    console.log('🎨 [NodeConfigModalV2] Props changed:', {
-      isOpen,
-      automationId,
-      nodeId,
-    });
-  }, [isOpen, automationId, nodeId]);
-
   // Carregar dados do node e tool
   useEffect(() => {
-    console.log('🎨 [NodeConfigModalV2] Effect triggered, checking conditions...');
-    console.log('  isOpen:', isOpen);
-    console.log('  automationId:', automationId);
-    console.log('  nodeId:', nodeId);
-    
     if (isOpen && automationId && nodeId) {
-      console.log('✅ [NodeConfigModalV2] All conditions met, loading node data...');
       loadNodeData();
-    } else {
-      console.log('⚠️ [NodeConfigModalV2] Conditions not met, skipping load');
     }
   }, [isOpen, automationId, nodeId]);
 
@@ -103,22 +88,33 @@ export default function NodeConfigurationModalV2({
     console.log('📥 [NodeConfigModalV2] loadNodeData started');
     setLoading(true);
     try {
-      // 1. Carregar node atual
-      console.log('📥 [NodeConfigModalV2] Fetching node:', `${API_BASE_URL}/automations/${automationId}/nodes/${nodeId}`);
-      const nodeResponse = await axios.get(
-        `${API_BASE_URL}/automations/${automationId}/nodes/${nodeId}`
-      );
-      const node = nodeResponse.data;
-      console.log('📥 [NodeConfigModalV2] Node loaded:', node);
+      let node;
+      let toolId;
       
-      // 2. Carregar tool metadata
-      const toolId = node.config?.toolId || node.type;
+      // 1. Se é automação temporária ou temos nodeData local, usar dados locais
+      if (automationId.startsWith('temp-') || nodeData) {
+        console.log('⚠️ [NodeConfigModalV2] Usando dados locais (automação temporária ou nodeData fornecido)');
+        node = nodeData || {};
+        toolId = node.toolId || node.data?.toolId || node.config?.toolId;
+        setConfig(node.config || node.data?.config || {});
+      } else {
+        // 2. Buscar do backend (automação já salva)
+        console.log('📥 [NodeConfigModalV2] Fetching node:', `${API_BASE_URL}/automations/${automationId}/nodes/${nodeId}`);
+        const nodeResponse = await axios.get(
+          `${API_BASE_URL}/automations/${automationId}/nodes/${nodeId}`
+        );
+        node = nodeResponse.data;
+        console.log('📥 [NodeConfigModalV2] Node loaded:', node);
+        toolId = node.config?.toolId || node.type;
+        setConfig(node.config?.params || {});
+      }
+      
+      // 3. Carregar tool metadata
       if (toolId) {
+        console.log('📥 [NodeConfigModalV2] Loading tool:', toolId);
         const toolResponse = await axios.get(`${API_BASE_URL}/tools/${toolId}`);
         setTool(toolResponse.data);
-        
-        // 3. Carregar configuração atual
-        setConfig(node.config?.params || {});
+        console.log('✅ [NodeConfigModalV2] Tool loaded:', toolResponse.data.name);
         
         // 4. Carregar outputs disponíveis dos nodes pais
         try {
@@ -614,12 +610,7 @@ export default function NodeConfigurationModalV2({
     );
   };
 
-  if (!isOpen) {
-    console.log('🚫 [NodeConfigModalV2] Not rendering - isOpen is false');
-    return null;
-  }
-  
-  console.log('✅ [NodeConfigModalV2] Rendering modal...');
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">

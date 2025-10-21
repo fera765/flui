@@ -35,8 +35,8 @@ async function testModalWithPlaywright() {
 
   try {
     // 1. Navegar para a página
-    console.log('📍 Navegando para http://localhost:5173/create-automation-v2...');
-    await page.goto('http://localhost:5173/create-automation-v2', {
+    console.log('📍 Navegando para http://localhost:8080/automations/create...');
+    await page.goto('http://localhost:8080/automations/create', {
       waitUntil: 'networkidle',
       timeout: 30000,
     });
@@ -60,6 +60,43 @@ async function testModalWithPlaywright() {
     // 4. Verificar nodes
     let nodeCount = await page.locator('.react-flow__node').count();
     console.log('📦 Nodes:', nodeCount);
+
+    // 4.5. Se não há nodes, adicionar um via UI
+    if (nodeCount === 0) {
+      console.log('\n⚠️ Nenhum node no canvas. Tentando adicionar...');
+      
+      // Procurar botão de palette/adicionar
+      const paletteButton = page.locator('button').filter({ hasText: /Tools|Adicionar|\+/ }).first();
+      const hasPaletteButton = await paletteButton.count() > 0;
+      
+      console.log('🎨 Botão de palette encontrado:', hasPaletteButton);
+      
+      if (hasPaletteButton) {
+        await paletteButton.click();
+        console.log('🖱️ Clicou no botão de palette');
+        await page.waitForTimeout(1000);
+        
+        // Procurar primeira tool na palette
+        const firstTool = page.locator('[data-testid="tool-item"]').first()
+          .or(page.locator('button').filter({ hasText: /Trigger|Manual/ }).first())
+          .or(page.locator('.tool-item').first());
+        
+        const hasTools = await firstTool.count() > 0;
+        console.log('🔧 Tools disponíveis:', hasTools);
+        
+        if (hasTools) {
+          await firstTool.click();
+          console.log('🖱️ Clicou na tool');
+          await page.waitForTimeout(1500);
+          
+          // Verificar se node foi adicionado
+          nodeCount = await page.locator('.react-flow__node').count();
+          console.log('📦 Nodes após adicionar:', nodeCount);
+        } else {
+          console.log('⚠️ Nenhuma tool encontrada na palette');
+        }
+      }
+    }
 
     // 5. Procurar botão de configuração
     console.log('\n🔍 Procurando botão ⚙️...');
