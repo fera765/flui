@@ -1,5 +1,69 @@
 {
-	"automations": [],
+	"automations": [
+		{
+			"id": "test-1761132211213",
+			"name": "Teste de Validação",
+			"description": "Automação de teste para validar correções",
+			"nodes": [
+				{
+					"id": "node-1",
+					"type": "tool",
+					"name": "Manual Trigger",
+					"description": "",
+					"config": {
+						"toolId": "manual-trigger",
+						"params": {
+							"triggerMessage": "Teste de validação"
+						}
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-2",
+					"type": "tool",
+					"name": "Condition Flex",
+					"description": "",
+					"config": {
+						"toolId": "condition-flex",
+						"params": {
+							"value": "teste",
+							"paths": [
+								"caminho1",
+								"caminho2"
+							]
+						}
+					},
+					"position": {
+						"x": 450,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "edge-1",
+					"source": "node-1",
+					"target": "node-2"
+				}
+			],
+			"startNodeId": "node-1",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-22T11:23:31.285Z",
+			"updatedAt": "2025-10-22T11:23:31.285Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-22T11:23:31.285Z",
+				"updatedAt": "2025-10-22T11:23:31.285Z"
+			}
+		}
+	],
 	"executions": [],
 	"agents": [],
 	"mcps": [],

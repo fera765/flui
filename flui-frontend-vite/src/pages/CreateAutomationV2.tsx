@@ -101,8 +101,16 @@ export default function CreateAutomationV2() {
         id: `edge-${params.source}-${params.target}`,
         source: params.source,
         target: params.target,
-        type: 'smoothstep',
+        type: 'default', // Linhas curvas suaves (bezier)
         animated: true,
+        style: {
+          stroke: '#8b5cf6', // Cor roxa
+          strokeWidth: 3,
+        },
+        markerEnd: {
+          type: 'arrowclosed',
+          color: '#8b5cf6',
+        },
       };
       setEdges((eds) => addEdge(newEdge, eds));
     },
@@ -112,7 +120,8 @@ export default function CreateAutomationV2() {
   // Adicionar ferramenta ao workflow
   const handleAddTool = useCallback((tool: Tool) => {
     const lastNode = nodes[nodes.length - 1];
-    const xPosition = lastNode ? lastNode.position.x + 300 : 100;
+    // Melhor espaçamento horizontal e vertical entre nodes
+    const xPosition = lastNode ? lastNode.position.x + 350 : 100;
     const yPosition = lastNode ? lastNode.position.y : 100;
 
     const nodeId = `node-${Date.now()}`;
@@ -142,8 +151,16 @@ export default function CreateAutomationV2() {
         id: `edge-${lastNode.id}-${newNode.id}`,
         source: lastNode.id,
         target: newNode.id,
-        type: 'smoothstep',
+        type: 'default', // Linhas curvas suaves (bezier)
         animated: true,
+        style: {
+          stroke: '#8b5cf6', // Cor roxa
+          strokeWidth: 3,
+        },
+        markerEnd: {
+          type: 'arrowclosed',
+          color: '#8b5cf6',
+        },
       };
       setEdges((eds) => [...eds, newEdge]);
     }
@@ -516,6 +533,19 @@ export default function CreateAutomationV2() {
           nodeTypes={nodeTypes}
           fitView
           className="bg-gray-50"
+          connectionLineStyle={{ stroke: '#8b5cf6', strokeWidth: 3 }}
+          defaultEdgeOptions={{
+            type: 'default',
+            animated: true,
+            style: { stroke: '#8b5cf6', strokeWidth: 3 },
+            markerEnd: { type: 'arrowclosed', color: '#8b5cf6' },
+          }}
+          // Permitir reconectar edges arrastando
+          edgesReconnectable={true}
+          reconnectRadius={20}
+          // Melhorar UX de conexão
+          selectNodesOnDrag={false}
+          elevateEdgesOnSelect={true}
         >
           <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
           <Controls 

@@ -180,6 +180,7 @@ export default function NodeConfigurationModalV2({
     try {
       let node;
       let toolId;
+      let category;
       
       // PRIORIDADE: Se automação já foi salva, SEMPRE buscar do backend
       if (!automationId.startsWith('temp-')) {
@@ -189,11 +190,13 @@ export default function NodeConfigurationModalV2({
         );
         node = nodeResponse.data;
         toolId = node.config?.toolId || node.type;
+        category = node.config?.category || node.category;
         setConfig(node.config?.params || {});
       } else if (nodeData) {
         // Automação temporária - usar dados locais
         node = nodeData || {};
         toolId = node.toolId || node.data?.toolId || node.config?.toolId;
+        category = node.category || node.data?.category || node.config?.category;
         setConfig(node.config || node.data?.config || {});
       } else {
         throw new Error('Nenhuma fonte de dados para o node');
@@ -201,7 +204,21 @@ export default function NodeConfigurationModalV2({
       
       // 3. Carregar tool metadata
       if (toolId) {
-        const toolResponse = await axios.get(`${API_BASE_URL}/tools/${toolId}`);
+        let toolResponse;
+        
+        // Se é um agente, buscar pelo endpoint de agente
+        if (category === 'agent' || toolId.startsWith('agent-')) {
+          const agentId = toolId.replace('agent-', '');
+          try {
+            toolResponse = await axios.get(`${API_BASE_URL}/agents/${agentId}/as-tool`);
+          } catch (err) {
+            console.error('❌ Erro ao carregar agente, tentando como tool normal:', err);
+            toolResponse = await axios.get(`${API_BASE_URL}/tools/${toolId}`);
+          }
+        } else {
+          toolResponse = await axios.get(`${API_BASE_URL}/tools/${toolId}`);
+        }
+        
         setTool(toolResponse.data);
         
         // 4. Carregar outputs disponíveis dos nodes pais
@@ -209,7 +226,7 @@ export default function NodeConfigurationModalV2({
       }
     } catch (error: any) {
       console.error('❌ Erro ao carregar node:', error);
-      setErrors({ _global: 'Erro ao carregar configurações do node' });
+      setErrors({ _global: 'Erro ao carregar configurações do node: ' + (error.response?.data?.error || error.message) });
     } finally {
       setLoading(false);
     }

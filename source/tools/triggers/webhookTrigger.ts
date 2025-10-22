@@ -26,7 +26,7 @@ export const webhookTrigger: Tool = {
   id: 'webhook-trigger',
   name: 'Webhook Trigger',
   description: 'Recebe requisições HTTP de sistemas externos para disparar automações. Suporta autenticação, validação e rate limiting.',
-  category: 'http',
+  category: 'system',
   version: '2.0.0',
   
   ui: {
