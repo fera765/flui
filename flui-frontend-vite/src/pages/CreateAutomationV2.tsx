@@ -116,6 +116,12 @@ export default function CreateAutomationV2() {
     },
     [setEdges]
   );
+  
+  // Deletar edge ao pressionar Delete ou Backspace
+  const onEdgesDelete = useCallback((edgesToDelete: Edge[]) => {
+    console.log('🗑️ Deletando edges:', edgesToDelete.map(e => e.id));
+    setEdges((eds) => eds.filter((e) => !edgesToDelete.find((ed) => ed.id === e.id)));
+  }, [setEdges]);
 
   // Adicionar ferramenta ao workflow
   const handleAddTool = useCallback((tool: Tool) => {
@@ -530,6 +536,7 @@ export default function CreateAutomationV2() {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onEdgesDelete={onEdgesDelete}
           nodeTypes={nodeTypes}
           fitView
           className="bg-gray-50"
@@ -546,6 +553,9 @@ export default function CreateAutomationV2() {
           // Melhorar UX de conexão
           selectNodesOnDrag={false}
           elevateEdgesOnSelect={true}
+          // Permitir deletar edges e nodes com Delete/Backspace
+          deleteKeyCode="Delete"
+          multiSelectionKeyCode="Shift"
         >
           <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
           <Controls 
@@ -554,9 +564,15 @@ export default function CreateAutomationV2() {
           
           <Panel position="top-center">
             <div className="bg-white rounded-lg shadow-lg px-4 py-2 border-2 border-gray-200">
-              <span className="text-sm font-medium text-gray-600">
-                {nodes.length} nó(s) • {edges.length} conexão(ões)
-              </span>
+              <div className="flex items-center gap-4">
+                <span className="text-sm font-medium text-gray-600">
+                  {nodes.length} nó(s) • {edges.length} conexão(ões)
+                </span>
+                <div className="h-4 w-px bg-gray-300"></div>
+                <span className="text-xs text-gray-500">
+                  💡 Selecione uma conexão e pressione <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Delete</kbd> para remover
+                </span>
+              </div>
             </div>
           </Panel>
           

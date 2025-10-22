@@ -62,10 +62,181 @@
 				"createdAt": "2025-10-22T11:23:31.285Z",
 				"updatedAt": "2025-10-22T11:23:31.285Z"
 			}
+		},
+		{
+			"id": "test-agent-1761133168319",
+			"name": "Teste de Agente",
+			"description": "",
+			"nodes": [
+				{
+					"id": "node-1",
+					"type": "tool",
+					"name": "Manual Trigger",
+					"description": "",
+					"config": {
+						"toolId": "manual-trigger",
+						"params": {}
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-2",
+					"type": "tool",
+					"name": "Node",
+					"description": "",
+					"config": {
+						"category": "agent",
+						"params": {
+							"prompt": "Olá, como você está?",
+							"temperature": 0.7,
+							"maxTokens": 100
+						}
+					},
+					"position": {
+						"x": 450,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "edge-1",
+					"source": "node-1",
+					"target": "node-2"
+				}
+			],
+			"startNodeId": "node-1",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-22T11:39:28.328Z",
+			"updatedAt": "2025-10-22T11:39:35.488Z",
+			"runCount": 1,
+			"metadata": {
+				"createdAt": "2025-10-22T11:39:28.328Z",
+				"updatedAt": "2025-10-22T11:39:35.488Z",
+				"lastRunAt": "2025-10-22T11:39:35.488Z"
+			}
+		},
+		{
+			"id": "test-edges-1761133175510",
+			"name": "Teste de Edges",
+			"description": "",
+			"nodes": [
+				{
+					"id": "node-1",
+					"type": "tool",
+					"name": "Node 1",
+					"description": "",
+					"config": {
+						"toolId": "manual-trigger",
+						"params": {}
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-2",
+					"type": "tool",
+					"name": "Node 2",
+					"description": "",
+					"config": {
+						"toolId": "manual-trigger",
+						"params": {}
+					},
+					"position": {
+						"x": 450,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-3",
+					"type": "tool",
+					"name": "Node 3",
+					"description": "",
+					"config": {
+						"toolId": "manual-trigger",
+						"params": {}
+					},
+					"position": {
+						"x": 800,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-4",
+					"type": "tool",
+					"name": "Node 4",
+					"description": "",
+					"config": {
+						"toolId": "manual-trigger",
+						"params": {}
+					},
+					"position": {
+						"x": 450,
+						"y": 300
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "edge-1-2",
+					"source": "node-1",
+					"target": "node-2"
+				},
+				{
+					"id": "edge-2-3",
+					"source": "node-2",
+					"target": "node-3"
+				},
+				{
+					"id": "edge-1-4",
+					"source": "node-1",
+					"target": "node-4"
+				}
+			],
+			"startNodeId": "node-1",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-22T11:39:35.518Z",
+			"updatedAt": "2025-10-22T11:39:35.541Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-22T11:39:35.518Z",
+				"updatedAt": "2025-10-22T11:39:35.537Z"
+			}
 		}
 	],
 	"executions": [],
-	"agents": [],
+	"agents": [
+		{
+			"name": "Agente de Teste",
+			"description": "Agente para testar execução",
+			"model": "gpt-4",
+			"systemPrompt": "Você é um assistente útil e amigável",
+			"enabled": true,
+			"id": "HEH-RYLenHkTfrrB7sSeY",
+			"metadata": {
+				"createdAt": "2025-10-22T11:39:28.263Z",
+				"updatedAt": "2025-10-22T11:39:28.263Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-22T11:39:28.270Z",
+			"updatedAt": "2025-10-22T11:39:28.270Z"
+		}
+	],
 	"mcps": [],
 	"sessions": []
 }

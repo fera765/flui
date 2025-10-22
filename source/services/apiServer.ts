@@ -386,32 +386,55 @@ app.get('/api/agents/:id/as-tool', (req: Request, res: Response) => {
       params: [
         {
           name: 'prompt',
+          key: 'prompt',
           type: 'string',
           description: 'Prompt/instrução para o agente',
           required: true,
           placeholder: 'Digite sua instrução...',
+          ui: {
+            widgetType: 'textInput',
+            allowExpressions: true,
+          },
         },
         {
           name: 'temperature',
+          key: 'temperature',
           type: 'number',
           description: 'Temperatura de geração (0-1)',
           required: false,
           default: 0.7,
+          ui: {
+            widgetType: 'number',
+          },
         },
         {
           name: 'maxTokens',
+          key: 'maxTokens',
           type: 'number',
           description: 'Máximo de tokens na resposta',
           required: false,
           default: 1000,
+          ui: {
+            widgetType: 'number',
+          },
         },
       ],
       ui: {
         icon: 'Bot',
         color: '#3b82f6',
         tags: ['agent', 'ai', agent.model],
+        examples: [],
+      },
+      capabilities: {},
+      config: {
+        timeout: 60000,
+        retries: 0,
+        sandbox: false,
+        concurrent: false,
       },
     };
+    
+    console.log(`🤖 [API] Agente como tool: ${toolVersion.id}`);
     
     res.json(toolVersion);
   } catch (error: any) {

@@ -28,16 +28,91 @@ export class ToolExecutor {
     options?: ToolExecutionOptions
   ): Promise<ToolResult> {
     const registry = getToolRegistry();
+    
+    // 🔥 SUPORTE A AGENTES: Se toolId começa com 'agent-', executar agente
+    if (toolId.startsWith('agent-')) {
+      return this.executeAgent(toolId, args, context, options);
+    }
+    
     const tool = registry.get(toolId);
 
     if (!tool) {
       return {
         success: false,
-        error: `Tool '${toolId}' não encontrada no registry`,
+        error: `Ferramenta não encontrada: ${toolId}`,
       };
     }
 
     return this.executeTool(tool, args, context, options);
+  }
+  
+  /**
+   * Executa um agente dinamicamente
+   */
+  private static async executeAgent(
+    toolId: string,
+    args: any,
+    context: ExecutionContext,
+    options?: ToolExecutionOptions
+  ): Promise<ToolResult> {
+    const startTime = Date.now();
+    
+    try {
+      // Extrair ID do agente (remove 'agent-' prefix)
+      const agentId = toolId.replace('agent-', '');
+      
+      // Importar store dinamicamente para evitar ciclos
+      const { useStore } = await import('../store/store.js');
+      const store = useStore.getState();
+      
+      // Buscar agente
+      const agent = store.agents.find(a => a.id === agentId);
+      
+      if (!agent) {
+        return {
+          success: false,
+          error: `Agente não encontrado: ${agentId}`,
+          executionTime: Date.now() - startTime,
+        };
+      }
+      
+      console.log(`🤖 [AgentExecutor] Executando agente: ${agent.name}`);
+      
+      // Preparar prompt com system prompt do agente
+      const userPrompt = args.prompt || args.message || '';
+      const temperature = args.temperature ?? 0.7;
+      const maxTokens = args.maxTokens ?? 1000;
+      
+      // Executar agente usando OpenAI/Anthropic/etc
+      // SIMPLIFICADO: Por enquanto, retornar resposta simulada
+      // TODO: Integrar com provider real (OpenAI, Anthropic, etc)
+      
+      const response = {
+        success: true,
+        result: {
+          response: `[SIMULADO] Resposta do agente ${agent.name} para: "${userPrompt}"`,
+          agentName: agent.name,
+          agentId: agent.id,
+          model: agent.model,
+          temperature,
+          maxTokens,
+          systemPrompt: agent.systemPrompt,
+          tokensUsed: 150, // Simulado
+        },
+        executionTime: Date.now() - startTime,
+      };
+      
+      console.log(`✅ [AgentExecutor] Agente executado com sucesso`);
+      
+      return response;
+    } catch (error: any) {
+      console.error(`❌ [AgentExecutor] Erro ao executar agente:`, error);
+      return {
+        success: false,
+        error: `Erro ao executar agente: ${error.message}`,
+        executionTime: Date.now() - startTime,
+      };
+    }
   }
 
   /**
