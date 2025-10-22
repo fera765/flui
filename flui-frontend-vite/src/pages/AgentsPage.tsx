@@ -59,25 +59,38 @@ export default function AgentsPage() {
 
   // 🔥 NOVO: Carregar modelos disponíveis
   const loadModels = async () => {
-    if (!llmConfig.apiKey) {
-      console.log('⚠️ API Key não configurada. Configure em Settings.');
+    if (!llmConfig.endpoint) {
+      console.log('⚠️ Endpoint não configurado. Configure em Settings.');
       return;
     }
 
     try {
-      const response = await fetch(`${llmConfig.endpoint}/models`, {
-        headers: {
-          'Authorization': `Bearer ${llmConfig.apiKey}`,
-        },
-      });
+      // 🔥 FIX: API não requer autenticação
+      const headers: any = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (llmConfig.apiKey) {
+        headers['Authorization'] = `Bearer ${llmConfig.apiKey}`;
+      }
+
+      const response = await fetch(`${llmConfig.endpoint}/models`, { headers });
       
       if (response.ok) {
         const data = await response.json();
-        if (data.data && Array.isArray(data.data)) {
-          const models = data.data.map((m: any) => m.id);
-          setAvailableModels(models);
-          console.log(`✅ ${models.length} modelos carregados`);
+        
+        // 🔥 FIX: Suportar ambos os formatos
+        let models: string[] = [];
+        if (Array.isArray(data)) {
+          // Formato direto: [{id, object, ...}, ...]
+          models = data.map((m: any) => m.id);
+        } else if (data.data && Array.isArray(data.data)) {
+          // Formato OpenAI: { data: [...] }
+          models = data.data.map((m: any) => m.id);
         }
+        
+        setAvailableModels(models);
+        console.log(`✅ ${models.length} modelos carregados`);
       }
     } catch (error) {
       console.error('❌ Erro ao carregar modelos:', error);
@@ -437,9 +450,9 @@ export default function AgentsPage() {
               <div>
                 <label className="block text-sm font-medium text-purple-300 mb-2">
                   Modelo
-                  {llmConfig.apiKey && (
+                  {availableModels.length > 0 && (
                     <span className="ml-2 text-xs text-green-400">
-                      ✓ {availableModels.length || 0} modelo(s) disponível(is)
+                      ✓ {availableModels.length} modelo(s) disponível(is)
                     </span>
                   )}
                 </label>
@@ -466,9 +479,9 @@ export default function AgentsPage() {
                     </>
                   )}
                 </select>
-                {!llmConfig.apiKey && (
+                {!llmConfig.endpoint && (
                   <p className="text-xs text-yellow-400 mt-1">
-                    ⚠️ Configure a API key em "Configurar LLM" para carregar modelos disponíveis
+                    ⚠️ Configure o endpoint em "Configurar LLM" para carregar modelos disponíveis
                   </p>
                 )}
               </div>

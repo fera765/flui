@@ -55,8 +55,8 @@ export default function LLMConfigModal({
   }, [isOpen]);
 
   const loadModels = async () => {
-    if (!endpoint || !apiKey) {
-      setError('Preencha o endpoint e API key primeiro');
+    if (!endpoint) {
+      setError('Preencha o endpoint primeiro');
       return;
     }
 
@@ -68,28 +68,41 @@ export default function LLMConfigModal({
       const modelsEndpoint = `${endpoint}/models`;
       console.log('🔄 Carregando modelos de:', modelsEndpoint);
 
-      const response = await axios.get(modelsEndpoint, {
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.data && response.data.data) {
-        const modelsList = response.data.data;
-        setModels(modelsList);
-        setConnectionStatus('success');
-        
-        // Se não tem modelo selecionado, selecionar o primeiro que contém "gpt"
-        if (!defaultModel && modelsList.length > 0) {
-          const gptModel = modelsList.find((m: Model) => m.id.includes('gpt')) || modelsList[0];
-          setDefaultModel(gptModel.id);
-        }
-        
-        console.log(`✅ ${modelsList.length} modelos carregados`);
-      } else {
-        throw new Error('Resposta inválida do servidor');
+      // 🔥 FIX: Endpoint não requer autenticação
+      const headers: any = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Adicionar auth apenas se API key fornecida
+      if (apiKey) {
+        headers['Authorization'] = `Bearer ${apiKey}`;
       }
+
+      const response = await axios.get(modelsEndpoint, { headers });
+
+      // 🔥 FIX: API retorna array direto, não objeto com "data"
+      let modelsList: Model[] = [];
+      
+      if (Array.isArray(response.data)) {
+        // Formato direto: [ {id, object, ...}, ... ]
+        modelsList = response.data;
+      } else if (response.data && response.data.data) {
+        // Formato OpenAI: { data: [...] }
+        modelsList = response.data.data;
+      } else {
+        throw new Error('Formato de resposta não reconhecido');
+      }
+
+      setModels(modelsList);
+      setConnectionStatus('success');
+      
+      // Se não tem modelo selecionado, selecionar o primeiro que contém "gpt"
+      if (!defaultModel && modelsList.length > 0) {
+        const gptModel = modelsList.find((m: Model) => m.id.includes('gpt')) || modelsList[0];
+        setDefaultModel(gptModel.id);
+      }
+      
+      console.log(`✅ ${modelsList.length} modelos carregados`);
     } catch (err: any) {
       console.error('❌ Erro ao carregar modelos:', err);
       setConnectionStatus('error');
@@ -105,14 +118,22 @@ export default function LLMConfigModal({
     setConnectionStatus('idle');
 
     try {
+      // 🔥 FIX: Teste não requer autenticação
+      const headers: any = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (apiKey) {
+        headers['Authorization'] = `Bearer ${apiKey}`;
+      }
+
       const response = await axios.get(`${endpoint}/models`, {
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-        },
+        headers,
         timeout: 10000,
       });
 
-      if (response.data && response.data.data) {
+      // 🔥 FIX: Verificar ambos os formatos
+      if (Array.isArray(response.data) || (response.data && response.data.data)) {
         setConnectionStatus('success');
         setTimeout(() => setConnectionStatus('idle'), 3000);
       }
@@ -130,10 +151,11 @@ export default function LLMConfigModal({
       return;
     }
 
-    if (!apiKey) {
-      setError('API Key é obrigatória');
-      return;
-    }
+    // 🔥 FIX: API Key não é mais obrigatória
+    // if (!apiKey) {
+    //   setError('API Key é obrigatória');
+    //   return;
+    // }
 
     if (!defaultModel) {
       setError('Selecione um modelo padrão');
@@ -146,7 +168,10 @@ export default function LLMConfigModal({
       defaultModel,
     };
 
-    console.log('💾 Salvando configuração LLM:', { ...config, apiKey: '***' });
+    console.log('💾 Salvando configuração LLM:', { 
+      ...config, 
+      apiKey: apiKey ? '***' : '(não fornecida)' 
+    });
     onSave(config);
     onClose();
   };
@@ -198,13 +223,14 @@ export default function LLMConfigModal({
             <label className="flex items-center gap-2 text-sm font-semibold text-gray-900">
               <Key className="w-4 h-4 text-purple-600" />
               API Key
+              <span className="text-xs font-normal text-gray-500">(opcional)</span>
             </label>
             <div className="relative">
               <input
                 type={showApiKey ? 'text' : 'password'}
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                placeholder="sk-..."
+                placeholder="sk-... (opcional para este endpoint)"
                 className="w-full px-4 py-3 pr-24 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-gray-900 font-mono text-sm"
               />
               <button
@@ -215,14 +241,16 @@ export default function LLMConfigModal({
                 {showApiKey ? 'Ocultar' : 'Mostrar'}
               </button>
             </div>
-            <p className="text-xs text-gray-500">Sua chave de autenticação da API</p>
+            <p className="text-xs text-gray-500">
+              Opcional para https://api.llm7.io - Pode carregar modelos sem autenticação
+            </p>
           </div>
 
           {/* Test Connection & Load Models */}
           <div className="flex gap-3">
             <button
               onClick={testConnection}
-              disabled={!endpoint || !apiKey || testingConnection}
+              disabled={!endpoint || testingConnection}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-cyan-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {testingConnection ? (
@@ -250,7 +278,7 @@ export default function LLMConfigModal({
 
             <button
               onClick={loadModels}
-              disabled={!endpoint || !apiKey || loadingModels}
+              disabled={!endpoint || loadingModels}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loadingModels ? (
