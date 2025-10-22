@@ -76,10 +76,24 @@ export default function ToolsListPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [showFilters, setShowFilters] = useState(false);
+  const [activeTab, setActiveTab] = useState<'all' | 'mcps'>('all');
+  const [mcps, setMcps] = useState<any[]>([]);
 
   useEffect(() => {
     loadTools();
-  }, [pagination.page, selectedCategory]);
+    if (activeTab === 'mcps') {
+      loadMcps();
+    }
+  }, [pagination.page, selectedCategory, activeTab]);
+
+  const loadMcps = async () => {
+    try {
+      const response = await axios.get('http://localhost:3001/api/mcps');
+      setMcps(response.data);
+    } catch (error) {
+      console.error('Erro ao carregar MCPs:', error);
+    }
+  };
 
   const loadTools = async () => {
     setLoading(true);

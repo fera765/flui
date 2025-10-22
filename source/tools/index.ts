@@ -7,10 +7,11 @@
 
 import { getToolRegistry } from '../core/toolRegistry.js';
 
-// Importar os 3 triggers principais
+// Importar os triggers e ferramentas principais
 import { manualTrigger } from './triggers/manualTrigger.js';
 import { cronTrigger } from './triggers/cronTrigger.js';
 import { webhookTrigger } from './triggers/webhookTrigger.js';
+import { conditionFlexTool } from './conditionFlexTool.js';
 
 /**
  * Registra todas as ferramentas do sistema
@@ -22,20 +23,22 @@ export function registerAllTools(): void {
   console.log('🧹 [FLUI] Limpando registry antigo...');
   registry.clear();
   
-  console.log('🚀 [FLUI] Registrando 3 TRIGGERS SUPERIORES ao N8n...');
+  console.log('🚀 [FLUI] Registrando ferramentas do sistema...');
   
   try {
-    // Registrar Manual Trigger
+    // Registrar Triggers
     registry.register(manualTrigger);
     console.log('✅ [FLUI] Manual Trigger registrado');
     
-    // Registrar Cron Trigger
     registry.register(cronTrigger);
     console.log('✅ [FLUI] Cron Trigger registrado');
     
-    // Registrar Webhook Trigger
     registry.register(webhookTrigger);
     console.log('✅ [FLUI] Webhook Trigger registrado');
+    
+    // Registrar Control Flow Tools
+    registry.register(conditionFlexTool);
+    console.log('✅ [FLUI] Condition Flex Tool registrado');
     
     console.log(`\n🎉 [FLUI] ${registry.count()} ferramentas registradas com sucesso!\n`);
   } catch (error) {

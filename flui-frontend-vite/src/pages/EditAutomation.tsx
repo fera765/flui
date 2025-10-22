@@ -19,8 +19,8 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { ArrowLeft, Save, Plus, Play, Eye, Trash2 } from 'lucide-react';
-import ToolNode from '../components/ToolNode';
-import ToolPalette from '../components/ToolPalette';
+import ElegantNode from '../components/ElegantNode';
+import ToolSelectionModal from '../components/ToolSelectionModal';
 import NodeConfigurationModalV2 from '../components/NodeConfigurationModalV2';
 import ExecutionLogs from '../components/ExecutionLogs';
 
@@ -75,7 +75,7 @@ export default function EditAutomation() {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
   // Tipos de nó customizados
-  const nodeTypes = useMemo(() => ({ tool: ToolNode }), []);
+  const nodeTypes = useMemo(() => ({ tool: ElegantNode, elegant: ElegantNode }), []);
 
   // Configurar nó (abre modal)
   const handleConfigureNode = useCallback((nodeId: string) => {
@@ -550,13 +550,26 @@ export default function EditAutomation() {
         />
       )}
 
-      {/* Tool Palette Modal */}
-      {showPalette && (
-        <ToolPalette
-          onAddTool={handleAddTool}
-          onClose={() => setShowPalette(false)}
-        />
-      )}
+      {/* Tool Selection Modal - 3 Abas */}
+      <ToolSelectionModal
+        isOpen={showPalette}
+        onClose={() => setShowPalette(false)}
+        onSelect={(tool: any, type) => {
+          const toolData = type === 'agent' ? {
+            id: `agent-${tool.id}`,
+            name: tool.name,
+            description: tool.description || '',
+            category: 'agent',
+            version: '1.0.0',
+            ui: { icon: 'Bot', color: '#3b82f6', tags: ['agent'] },
+          } : {
+            ...tool,
+            ui: tool.ui || { icon: 'Wrench', color: '#a855f7', tags: [] },
+            version: tool.version || '1.0.0',
+          };
+          handleAddTool(toolData as any);
+        }}
+      />
 
       {/* Node Config Panel */}
       {selectedNode && id && (

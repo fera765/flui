@@ -53,6 +53,8 @@ export const MCPSchema = z.object({
   description: z.string(),
   version: z.string(),
   server: z.string().optional(),
+  installType: z.enum(['npx', 'npm', 'github', 'local']).optional(),
+  envVars: z.record(z.string()).optional(), // Variáveis de ambiente do MCP
   tools: z.array(MCPToolSchema),
   enabled: z.boolean().default(true),
   metadata: z.object({
@@ -108,25 +110,52 @@ export const MessageSchema = z.object({
 export type Message = z.infer<typeof MessageSchema>;
 
 // ============= AUTOMAÇÕES =============
-export const AutomationStepSchema = z.object({
+export const AutomationNodeSchema = z.object({
   id: z.string(),
-  type: z.enum(['agent', 'tool', 'condition', 'loop']),
-  config: z.record(z.any()),
-  next: z.array(z.string()).optional(),
+  type: z.string(),
+  name: z.string(),
+  description: z.string().optional(),
+  config: z.record(z.any()).optional(),
+  position: z.object({
+    x: z.number(),
+    y: z.number(),
+  }).optional(),
+  nextNodes: z.array(z.string()).optional(),
+  data: z.record(z.any()).optional(),
 });
 
-export type AutomationStep = z.infer<typeof AutomationStepSchema>;
+export const AutomationEdgeSchema = z.object({
+  id: z.string(),
+  source: z.string(),
+  target: z.string(),
+  sourceHandle: z.string().optional(),
+  targetHandle: z.string().optional(),
+});
 
 export const AutomationSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string(),
-  steps: z.array(AutomationStepSchema),
+  nodes: z.array(AutomationNodeSchema),
+  edges: z.array(AutomationEdgeSchema),
+  startNodeId: z.string().optional(),
+  enabled: z.boolean().default(true),
+  continuousExecution: z.boolean().optional(),
+  schedule: z.string().optional(),
+  version: z.string().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
-  enabled: z.boolean().default(true),
+  lastRun: z.string().optional(),
+  runCount: z.number().optional(),
+  metadata: z.object({
+    createdAt: z.string(),
+    updatedAt: z.string(),
+    lastRunAt: z.string().optional(),
+  }).optional(),
 });
 
+export type AutomationNode = z.infer<typeof AutomationNodeSchema>;
+export type AutomationEdge = z.infer<typeof AutomationEdgeSchema>;
 export type Automation = z.infer<typeof AutomationSchema>;
 
 // ============= SESSÕES =============

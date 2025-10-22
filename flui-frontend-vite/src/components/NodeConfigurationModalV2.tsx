@@ -57,6 +57,8 @@ interface NodeConfigurationModalProps {
   automationId: string;
   nodeId: string;
   nodeData?: any; // Dados locais do node (para automações temporárias)
+  allNodes?: any[]; // Lista de todos os nodes para linker
+  allEdges?: any[]; // Lista de todas as edges
   onClose: () => void;
   onSave: () => void;
 }
