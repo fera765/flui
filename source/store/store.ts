@@ -223,9 +223,9 @@ export const useStore = create<AppState>((set, get) => ({
   createAgent: (agent) => {
     const newAgent: Agent = {
       ...agent,
-      id: nanoid(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      id: (agent as any).id || nanoid(), // Respect provided ID if exists
+      createdAt: (agent as any).createdAt || new Date().toISOString(),
+      updatedAt: (agent as any).updatedAt || new Date().toISOString(),
     };
     storage.saveAgent(newAgent);
     set({ agents: [...get().agents, newAgent] });

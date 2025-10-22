@@ -47,7 +47,7 @@ export class ToolExecutor {
   }
   
   /**
-   * Executa um agente dinamicamente
+   * Executa um agente dinamicamente com integração REAL ao LLM
    */
   private static async executeAgent(
     toolId: string,
@@ -77,34 +77,41 @@ export class ToolExecutor {
       }
       
       console.log(`🤖 [AgentExecutor] Executando agente: ${agent.name}`);
+      console.log(`📋 [AgentExecutor] Model: ${agent.model || 'padrão'}`);
+      console.log(`🔧 [AgentExecutor] Tools: ${agent.tools?.length || 0}`);
       
-      // Preparar prompt com system prompt do agente
-      const userPrompt = args.prompt || args.message || '';
-      const temperature = args.temperature ?? 0.7;
-      const maxTokens = args.maxTokens ?? 1000;
+      // Preparar input do usuário
+      const userInput = args.input || args.prompt || args.message || '';
       
-      // Executar agente usando OpenAI/Anthropic/etc
-      // SIMPLIFICADO: Por enquanto, retornar resposta simulada
-      // TODO: Integrar com provider real (OpenAI, Anthropic, etc)
+      if (!userInput) {
+        return {
+          success: false,
+          error: 'Input é obrigatório para o agente',
+          executionTime: Date.now() - startTime,
+        };
+      }
       
-      const response = {
+      // 🔥 EXECUÇÃO REAL: Usar sendMessage do llm.ts
+      const { sendMessage } = await import('../services/llm.js');
+      
+      console.log(`💬 [AgentExecutor] Enviando mensagem para LLM: "${userInput.substring(0, 100)}${userInput.length > 100 ? '...' : ''}"`);
+      
+      const response = await sendMessage(userInput, agent, context);
+      
+      console.log(`✅ [AgentExecutor] Resposta recebida (${response.length} chars)`);
+      
+      return {
         success: true,
         result: {
-          response: `[SIMULADO] Resposta do agente ${agent.name} para: "${userPrompt}"`,
+          response: response,
           agentName: agent.name,
           agentId: agent.id,
           model: agent.model,
-          temperature,
-          maxTokens,
           systemPrompt: agent.systemPrompt,
-          tokensUsed: 150, // Simulado
+          toolsUsed: agent.tools?.length || 0,
         },
         executionTime: Date.now() - startTime,
       };
-      
-      console.log(`✅ [AgentExecutor] Agente executado com sucesso`);
-      
-      return response;
     } catch (error: any) {
       console.error(`❌ [AgentExecutor] Erro ao executar agente:`, error);
       return {

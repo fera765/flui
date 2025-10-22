@@ -1688,9 +1688,9 @@ app.post('/api/automations/:id/chat', async (req: Request, res: Response) => {
 });
 
 export const startApiServer = async () => {
-  // Registrar todas as ferramentas
+  // Registrar todas as ferramentas (agora é async)
   console.log('🔧 Registrando ferramentas...');
-  registerAllTools();
+  await registerAllTools();
   const registry = getToolRegistry();
   const toolsCount = registry.list().tools.length;
   console.log(`✅ ${toolsCount} ferramentas registradas`);

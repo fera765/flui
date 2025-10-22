@@ -75,7 +75,12 @@ export default function EditAutomation() {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
   // Tipos de nó customizados
-  const nodeTypes = useMemo(() => ({ tool: ElegantNode, elegant: ElegantNode }), []);
+  const nodeTypes = useMemo(() => ({ 
+    tool: ElegantNode, 
+    elegant: ElegantNode,
+    agent: ElegantNode, // 🔥 FIX: Adicionar agent como tipo válido
+    system: ElegantNode, // Para ferramentas do sistema
+  }), []);
 
   // Configurar nó (abre modal)
   const handleConfigureNode = useCallback((nodeId: string) => {
@@ -120,13 +125,13 @@ export default function EditAutomation() {
       // Converter nós do formato salvo para ReactFlow
       const reactFlowNodes: Node[] = automation.nodes.map((node) => ({
         id: node.id,
-        type: 'tool',
+        type: node.type || 'tool', // 🔥 FIX: Preservar o tipo original do node
         position: node.position || { x: 100, y: 100 },
         data: {
           label: node.name,
           description: node.description,
           toolId: node.config?.toolId,
-          category: node.config?.category,
+          category: node.config?.category || node.type, // 🔥 FIX: fallback to node.type
           color: node.config?.color,
           icon: node.config?.icon,
           status: 'idle',
@@ -181,13 +186,14 @@ export default function EditAutomation() {
     const nodeId = `node-${Date.now()}`;
     const newNode: Node = {
       id: nodeId,
-      type: 'tool',
+      type: tool.category || 'tool', // 🔥 FIX: Usar categoria da tool como type
       position: { x: xPosition, y: yPosition },
       data: {
         label: tool.name,
         description: tool.description,
         toolId: tool.id,
         category: tool.category,
+        type: tool.category, // 🔥 FIX: Adicionar type também no data
         color: tool.ui.color,
         icon: tool.ui.icon,
         status: 'idle',
@@ -213,17 +219,21 @@ export default function EditAutomation() {
   }, [nodes, setNodes, setEdges, handleConfigureNode, handleDeleteNode]);
 
   // Salvar configuração do nó
-  const handleSaveNodeConfig = (config: any) => {
-    if (!selectedNode) return;
+  const handleSaveNodeConfig = (nodeIdParam?: string, configParam?: any) => {
+    // 🔥 FIX: Aceitar parâmetros opcionais do NodeConfigurationModalV2
+    const targetNodeId = nodeIdParam || selectedNode?.id;
+    const configToSave = configParam !== undefined ? configParam : selectedNode?.data?.config;
+    
+    if (!targetNodeId) return;
 
     setNodes((nds) =>
       nds.map((n) =>
-        n.id === selectedNode.id
+        n.id === targetNodeId
           ? {
               ...n,
               data: {
                 ...n.data,
-                config,
+                config: configToSave,
                 // Preserve callbacks explicitly
                 onConfigure: n.data.onConfigure,
                 onDelete: n.data.onDelete,
@@ -262,7 +272,7 @@ export default function EditAutomation() {
       // Converter para formato de FlowDefinition
       const flowNodes = nodes.map((node) => ({
         id: node.id,
-        type: 'tool',
+        type: node.data.category || node.type || 'tool', // 🔥 FIX: Use category/type instead of hardcoded 'tool'
         name: node.data.label,
         description: node.data.description,
         config: {

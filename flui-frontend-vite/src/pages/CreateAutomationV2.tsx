@@ -13,6 +13,7 @@ import ReactFlow, {
   addEdge,
   Panel,
   BackgroundVariant,
+  MarkerType,
   type Node,
   type Edge,
   type Connection,
@@ -70,7 +71,9 @@ export default function CreateAutomationV2() {
   // Tipos de nó customizados - Usando ElegantNode
   const nodeTypes = useMemo(() => ({ 
     tool: ElegantNode,
-    elegant: ElegantNode 
+    elegant: ElegantNode,
+    agent: ElegantNode, // 🔥 FIX: Adicionar agent como tipo válido
+    system: ElegantNode, // Para ferramentas do sistema
   }), []);
 
   // Configurar nó (abre modal)
@@ -108,7 +111,7 @@ export default function CreateAutomationV2() {
           strokeWidth: 3,
         },
         markerEnd: {
-          type: 'arrowclosed',
+          type: MarkerType.ArrowClosed,
           color: '#8b5cf6',
         },
       };
@@ -133,7 +136,7 @@ export default function CreateAutomationV2() {
     const nodeId = `node-${Date.now()}`;
     const newNode: Node = {
       id: nodeId,
-      type: 'elegant', // Usando ElegantNode
+      type: tool.category || 'elegant', // 🔥 FIX: Usar categoria da tool como type
       position: { x: xPosition, y: yPosition },
       data: {
         label: tool.name,
@@ -141,6 +144,7 @@ export default function CreateAutomationV2() {
         toolType: tool.category || 'system',
         toolId: tool.id, // ✅ CRÍTICO: Adicionar toolId
         category: tool.category,
+        type: tool.category, // 🔥 FIX: Adicionar type também no data para detecção
         config: {},
         status: 'idle',
         isReturnPoint: false,
@@ -164,7 +168,7 @@ export default function CreateAutomationV2() {
           strokeWidth: 3,
         },
         markerEnd: {
-          type: 'arrowclosed',
+          type: MarkerType.ArrowClosed,
           color: '#8b5cf6',
         },
       };
@@ -173,19 +177,23 @@ export default function CreateAutomationV2() {
   }, [nodes, setNodes, setEdges, handleConfigureNode, handleDeleteNode]);
 
   // Salvar configuração do nó (INDEPENDENTE da automação)
-  const handleSaveNodeConfig = async (config: any) => {
-    if (!selectedNode) return;
+  const handleSaveNodeConfig = async (nodeIdParam?: string, configParam?: any) => {
+    // 🔥 FIX: Aceitar parâmetros opcionais do NodeConfigurationModalV2
+    const targetNodeId = nodeIdParam || selectedNode?.id;
+    const configToSave = configParam !== undefined ? configParam : selectedNode?.data?.config;
+    
+    if (!targetNodeId) return;
 
     try {
       // Atualizar node localmente
       setNodes((nds) =>
         nds.map((n) =>
-          n.id === selectedNode.id
+          n.id === targetNodeId
             ? {
                 ...n,
                 data: {
                   ...n.data,
-                  config,
+                  config: configToSave,
                   // Preserve callbacks explicitly
                   onConfigure: n.data.onConfigure,
                   onDelete: n.data.onDelete,
@@ -197,10 +205,10 @@ export default function CreateAutomationV2() {
 
       // Se automação já foi salva (não é temp-), persistir no backend
       if (!automationId.startsWith('temp-')) {
-        console.log('💾 Salvando config do node no backend:', selectedNode.id);
+        console.log('💾 Salvando config do node no backend:', targetNodeId);
         await axios.patch(
-          `${API_BASE_URL}/automations/${automationId}/nodes/${selectedNode.id}/config`,
-          { config }
+          `${API_BASE_URL}/automations/${automationId}/nodes/${targetNodeId}/config`,
+          { params: configToSave, toolId: nodes.find(n => n.id === targetNodeId)?.data?.toolId }
         );
         console.log('✅ Config do node salva no backend');
       } else {
@@ -326,7 +334,7 @@ export default function CreateAutomationV2() {
     // Converter para formato de FlowDefinition
     const flowNodes = nodes.map((node) => ({
       id: node.id,
-      type: 'tool',
+      type: node.data.category || node.type || 'tool', // 🔥 FIX: Use category/type instead of hardcoded 'tool'
       name: node.data.label,
       description: node.data.description,
       config: {
@@ -461,24 +469,37 @@ export default function CreateAutomationV2() {
               </div>
             </div>
             
-            {/* Middle section - Continuous Execution Toggle */}
-            <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={continuousExecution}
-                  onChange={(e) => setContinuousExecution(e.target.checked)}
-                  className="w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500"
-                />
-                <span className="text-sm font-medium text-gray-700">
-                  🔁 Execução Contínua
-                </span>
-              </label>
-              {continuousExecution && (
-                <div className="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium animate-pulse">
-                  LOOP
+            {/* Middle section - Status and Continuous Execution */}
+            <div className="flex items-center gap-3">
+              {/* 🔥 NOVO: Indicador de Status */}
+              {automationId.startsWith('temp-') && (
+                <div className="flex items-center gap-2 px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
+                  <span className="text-sm font-medium text-yellow-700">
+                    Não Salvo
+                  </span>
                 </div>
               )}
+              
+              {/* Continuous Execution Toggle */}
+              <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={continuousExecution}
+                    onChange={(e) => setContinuousExecution(e.target.checked)}
+                    className="w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    🔁 Execução Contínua
+                  </span>
+                </label>
+                {continuousExecution && (
+                  <div className="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium animate-pulse">
+                    LOOP
+                  </div>
+                )}
+              </div>
             </div>
             
             {/* Right section - Action buttons */}
@@ -494,9 +515,9 @@ export default function CreateAutomationV2() {
               
               <button
                 onClick={handleExecute}
-                disabled={isExecuting || nodes.length === 0}
+                disabled={isExecuting || nodes.length === 0 || automationId.startsWith('temp-')} 
                 className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 text-sm md:text-base bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Executar automação"
+                title={automationId.startsWith('temp-') ? 'Salve a automação antes de executar' : 'Executar automação'}
               >
                 <Play className="w-4 h-4 md:w-5 md:h-5" />
                 <span className="hidden sm:inline">{isExecuting ? 'Executando...' : 'Executar'}</span>
@@ -545,14 +566,10 @@ export default function CreateAutomationV2() {
             type: 'default',
             animated: true,
             style: { stroke: '#8b5cf6', strokeWidth: 3 },
-            markerEnd: { type: 'arrowclosed', color: '#8b5cf6' },
+            markerEnd: { type: MarkerType.ArrowClosed, color: '#8b5cf6' },
           }}
-          // Permitir reconectar edges arrastando
-          edgesReconnectable={true}
-          reconnectRadius={20}
           // Melhorar UX de conexão
           selectNodesOnDrag={false}
-          elevateEdgesOnSelect={true}
           // Permitir deletar edges e nodes com Delete/Backspace
           deleteKeyCode="Delete"
           multiSelectionKeyCode="Shift"
