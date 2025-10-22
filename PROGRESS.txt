@@ -1,6 +1,0 @@
-1. ✅ Switches corrigidos
-2. ✅ ElegantNode integrado em CreateAutomationV2
-3. ✅ ToolSelectionModal integrado
-4. ✅ Edges com curvas configuradas
-5. ✅ Agentes registrados como tools na API
-6. ✅ API testada - Agentes como tools funcionando
