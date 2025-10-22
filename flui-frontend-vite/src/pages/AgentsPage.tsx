@@ -440,19 +440,21 @@ export default function AgentsPage() {
                         key={tool.id}
                         className="flex items-center gap-3 p-3 bg-slate-900/30 hover:bg-slate-900/50 rounded-lg border border-purple-500/10 cursor-pointer transition group"
                       >
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={(e) => {
-                            const currentTools = newAgent.tools || [];
-                            const updatedTools = e.target.checked
-                              ? [...currentTools, tool.id]
-                              : currentTools.filter((t) => t !== tool.id);
-                            setNewAgent({ ...newAgent, tools: updatedTools });
-                          }}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-slate-700 peer-focus:ring-2 peer-focus:ring-purple-500 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        <div className="relative flex-shrink-0">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => {
+                              const currentTools = newAgent.tools || [];
+                              const updatedTools = e.target.checked
+                                ? [...currentTools, tool.id]
+                                : currentTools.filter((t) => t !== tool.id);
+                              setNewAgent({ ...newAgent, tools: updatedTools });
+                            }}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-slate-700 peer-focus:ring-2 peer-focus:ring-purple-500 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        </div>
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-white text-sm truncate group-hover:text-purple-200 transition">
                             {tool.name}

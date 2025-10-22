@@ -816,7 +816,14 @@ app.get('/api/tools', (req: Request, res: Response) => {
     }
     
     // Sem paginação, usar toolApi (compatível com frontend)
-    res.json(listTools());
+    const tools = listTools();
+    
+    // Adicionar agentes como tools (temporariamente comentado - corrigir depois)
+    // const store = useStore.getState();
+    // const { convertAgentsToTools } = require('./agentAsToolConverter.js');
+    // const agentTools = convertAgentsToTools(store.agents);
+    
+    res.json(tools);
   } catch (error: any) {
     console.error('❌ Erro ao listar tools:', error);
     res.status(500).json({ error: error.message });
