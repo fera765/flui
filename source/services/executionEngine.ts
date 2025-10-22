@@ -378,23 +378,29 @@ export class ExecutionEngineV3 {
   private async executeNodeLogic(node: ExecutionNode, input: any): Promise<any> {
     const toolId = node.config?.toolId || node.type;
     
-    // Obter tool do registry
-    const registry = getToolRegistry();
-    const tool = registry.get(toolId);
-
-    if (!tool) {
-      throw new Error(`Ferramenta não encontrada: ${toolId}`);
-    }
-
-    // Executar tool usando método estático
+    // 🔥 FIX: Usar ToolExecutor.execute() que suporta agentes dinâmicos
+    // Em vez de buscar no registry primeiro (que não tem agentes),
+    // usar execute() que detecta se é agente (toolId.startsWith('agent-'))
+    // e executa dinamicamente
+    
     const params = { ...node.config.params, ...input };
     
-    const result = await ToolExecutor.executeTool(tool, params, {
-      signal: this.abortController.signal,
-      nodeId: node.id,
-      flowId: this.flow.id,
-      executionId: this.execution.id,
-    } as any);
+    const result = await ToolExecutor.execute(
+      toolId,
+      params, 
+      {
+        automationId: this.flow.id,
+        nodeId: node.id,
+        previousResults: {},
+        globalContext: {
+          flowId: this.flow.id,
+          executionId: this.execution.id,
+        },
+      },
+      {
+        signal: this.abortController.signal,
+      }
+    );
 
     if (!result.success) {
       throw new Error(result.error || 'Execução falhou sem mensagem de erro');

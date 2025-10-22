@@ -1,20 +1,18 @@
 {
 	"automations": [
 		{
-			"id": "test-1761132211213",
-			"name": "Teste de Validação",
-			"description": "Automação de teste para validar correções",
+			"id": "final-test-auto",
+			"name": "Teste Final Agente",
+			"description": "",
 			"nodes": [
 				{
-					"id": "node-1",
-					"type": "tool",
-					"name": "Manual Trigger",
+					"id": "n1",
+					"type": "trigger",
+					"name": "Trigger",
 					"description": "",
 					"config": {
 						"toolId": "manual-trigger",
-						"params": {
-							"triggerMessage": "Teste de validação"
-						}
+						"params": {}
 					},
 					"position": {
 						"x": 100,
@@ -23,18 +21,16 @@
 					"nextNodes": []
 				},
 				{
-					"id": "node-2",
-					"type": "tool",
-					"name": "Condition Flex",
+					"id": "n2",
+					"type": "agent",
+					"name": "Agent",
 					"description": "",
 					"config": {
-						"toolId": "condition-flex",
+						"toolId": "agent-1761134062234",
 						"params": {
-							"value": "teste",
-							"paths": [
-								"caminho1",
-								"caminho2"
-							]
+							"prompt": "Oi",
+							"temperature": 0.7,
+							"maxTokens": 50
 						}
 					},
 					"position": {
@@ -46,31 +42,92 @@
 			],
 			"edges": [
 				{
-					"id": "edge-1",
-					"source": "node-1",
-					"target": "node-2"
+					"id": "e1",
+					"source": "n1",
+					"target": "n2"
 				}
 			],
-			"startNodeId": "node-1",
+			"startNodeId": "n1",
 			"enabled": true,
 			"continuousExecution": false,
 			"version": "2.0.0",
-			"createdAt": "2025-10-22T11:23:31.285Z",
-			"updatedAt": "2025-10-22T11:23:31.285Z",
-			"runCount": 0,
+			"createdAt": "2025-10-22T11:53:31.015Z",
+			"updatedAt": "2025-10-22T11:53:39.998Z",
+			"runCount": 1,
 			"metadata": {
-				"createdAt": "2025-10-22T11:23:31.285Z",
-				"updatedAt": "2025-10-22T11:23:31.285Z"
+				"createdAt": "2025-10-22T11:53:31.015Z",
+				"updatedAt": "2025-10-22T11:53:39.998Z",
+				"lastRunAt": "2025-10-22T11:53:39.998Z"
 			}
 		},
 		{
-			"id": "test-agent-1761133168319",
-			"name": "Teste de Agente",
+			"id": "final-test-correto",
+			"name": "Teste Final Correto",
 			"description": "",
 			"nodes": [
 				{
-					"id": "node-1",
-					"type": "tool",
+					"id": "n1",
+					"type": "trigger",
+					"name": "Trigger",
+					"description": "",
+					"config": {
+						"toolId": "manual-trigger",
+						"params": {}
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "n2",
+					"type": "agent",
+					"name": "Agent",
+					"description": "",
+					"config": {
+						"toolId": "agent-1761134010528",
+						"params": {
+							"prompt": "Olá!",
+							"temperature": 0.7,
+							"maxTokens": 50
+						}
+					},
+					"position": {
+						"x": 450,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "e1",
+					"source": "n1",
+					"target": "n2"
+				}
+			],
+			"startNodeId": "n1",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-22T11:53:58.862Z",
+			"updatedAt": "2025-10-22T11:54:06.588Z",
+			"runCount": 1,
+			"metadata": {
+				"createdAt": "2025-10-22T11:53:58.861Z",
+				"updatedAt": "2025-10-22T11:54:06.587Z",
+				"lastRunAt": "2025-10-22T11:54:06.587Z"
+			}
+		},
+		{
+			"id": "test-agent-real",
+			"name": "Teste Agente Real",
+			"description": "",
+			"nodes": [
+				{
+					"id": "n1",
+					"type": "trigger",
 					"name": "Manual Trigger",
 					"description": "",
 					"config": {
@@ -84,14 +141,14 @@
 					"nextNodes": []
 				},
 				{
-					"id": "node-2",
-					"type": "tool",
-					"name": "Node",
+					"id": "n2",
+					"type": "agent",
+					"name": "Agente",
 					"description": "",
 					"config": {
-						"category": "agent",
+						"toolId": "agent-JP2Wlb2n07uMi8-CxIqiT",
 						"params": {
-							"prompt": "Olá, como você está?",
+							"prompt": "Como você está?",
 							"temperature": 0.7,
 							"maxTokens": 100
 						}
@@ -105,136 +162,41 @@
 			],
 			"edges": [
 				{
-					"id": "edge-1",
-					"source": "node-1",
-					"target": "node-2"
+					"id": "e1",
+					"source": "n1",
+					"target": "n2"
 				}
 			],
-			"startNodeId": "node-1",
+			"startNodeId": "n1",
 			"enabled": true,
 			"continuousExecution": false,
 			"version": "2.0.0",
-			"createdAt": "2025-10-22T11:39:28.328Z",
-			"updatedAt": "2025-10-22T11:39:35.488Z",
+			"createdAt": "2025-10-22T11:54:36.547Z",
+			"updatedAt": "2025-10-22T11:54:39.367Z",
 			"runCount": 1,
 			"metadata": {
-				"createdAt": "2025-10-22T11:39:28.328Z",
-				"updatedAt": "2025-10-22T11:39:35.488Z",
-				"lastRunAt": "2025-10-22T11:39:35.488Z"
-			}
-		},
-		{
-			"id": "test-edges-1761133175510",
-			"name": "Teste de Edges",
-			"description": "",
-			"nodes": [
-				{
-					"id": "node-1",
-					"type": "tool",
-					"name": "Node 1",
-					"description": "",
-					"config": {
-						"toolId": "manual-trigger",
-						"params": {}
-					},
-					"position": {
-						"x": 100,
-						"y": 100
-					},
-					"nextNodes": []
-				},
-				{
-					"id": "node-2",
-					"type": "tool",
-					"name": "Node 2",
-					"description": "",
-					"config": {
-						"toolId": "manual-trigger",
-						"params": {}
-					},
-					"position": {
-						"x": 450,
-						"y": 100
-					},
-					"nextNodes": []
-				},
-				{
-					"id": "node-3",
-					"type": "tool",
-					"name": "Node 3",
-					"description": "",
-					"config": {
-						"toolId": "manual-trigger",
-						"params": {}
-					},
-					"position": {
-						"x": 800,
-						"y": 100
-					},
-					"nextNodes": []
-				},
-				{
-					"id": "node-4",
-					"type": "tool",
-					"name": "Node 4",
-					"description": "",
-					"config": {
-						"toolId": "manual-trigger",
-						"params": {}
-					},
-					"position": {
-						"x": 450,
-						"y": 300
-					},
-					"nextNodes": []
-				}
-			],
-			"edges": [
-				{
-					"id": "edge-1-2",
-					"source": "node-1",
-					"target": "node-2"
-				},
-				{
-					"id": "edge-2-3",
-					"source": "node-2",
-					"target": "node-3"
-				},
-				{
-					"id": "edge-1-4",
-					"source": "node-1",
-					"target": "node-4"
-				}
-			],
-			"startNodeId": "node-1",
-			"enabled": true,
-			"continuousExecution": false,
-			"version": "2.0.0",
-			"createdAt": "2025-10-22T11:39:35.518Z",
-			"updatedAt": "2025-10-22T11:39:35.541Z",
-			"runCount": 0,
-			"metadata": {
-				"createdAt": "2025-10-22T11:39:35.518Z",
-				"updatedAt": "2025-10-22T11:39:35.537Z"
+				"createdAt": "2025-10-22T11:54:36.547Z",
+				"updatedAt": "2025-10-22T11:54:39.367Z",
+				"lastRunAt": "2025-10-22T11:54:39.367Z"
 			}
 		}
 	],
 	"executions": [],
 	"agents": [
 		{
-			"name": "Agente de Teste",
-			"description": "Agente para testar execução",
+			"name": "Agente Final Test",
+			"description": "Teste final",
 			"model": "gpt-4",
-			"systemPrompt": "Você é um assistente útil e amigável",
+			"systemPrompt": "Assistente",
 			"enabled": true,
-			"id": "HEH-RYLenHkTfrrB7sSeY",
+			"id": "JP2Wlb2n07uMi8-CxIqiT",
 			"metadata": {
-				"createdAt": "2025-10-22T11:39:28.263Z",
-				"updatedAt": "2025-10-22T11:39:28.263Z",
+				"createdAt": "2025-10-22T11:53:30.528Z",
+				"updatedAt": "2025-10-22T11:53:30.528Z",
 				"executionCount": 0
 			},
-			"createdAt": "2025-10-22T11:39:28.270Z",
-			"updatedAt": "2025-10-22T11:39:28.270Z"
+			"createdAt": "2025-10-22T11:53:30.532Z",
+			"updatedAt": "2025-10-22T11:53:30.532Z"
 		}
 	],
 	"mcps": [],
