@@ -35,10 +35,29 @@ export default function AgentsPage() {
     enabled: true,
     tools: [],
   });
+  const [availableTools, setAvailableTools] = useState<any[]>([]);
+  const [availableMcps, setAvailableMcps] = useState<any[]>([]);
+  const [createModalTab, setCreateModalTab] = useState<'basic' | 'tools'>('basic');
 
   useEffect(() => {
     loadAgents();
+    loadToolsAndMcps();
   }, []);
+
+  const loadToolsAndMcps = async () => {
+    try {
+      const [toolsRes, mcpsRes] = await Promise.all([
+        fetch('http://localhost:3001/api/tools'),
+        fetch('http://localhost:3001/api/mcps'),
+      ]);
+      const toolsData = await toolsRes.json();
+      const mcpsData = await mcpsRes.json();
+      setAvailableTools(Array.isArray(toolsData) ? toolsData : []);
+      setAvailableMcps(Array.isArray(mcpsData) ? mcpsData : []);
+    } catch (error) {
+      console.error('Erro ao carregar tools e MCPs:', error);
+    }
+  };
 
   const loadAgents = async () => {
     try {
@@ -283,12 +302,38 @@ export default function AgentsPage() {
       {/* Create Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-purple-500/20">
+          <div className="bg-slate-800 rounded-xl max-w-3xl w-full max-h-[90vh] overflow-hidden border border-purple-500/20 flex flex-col">
             <div className="p-6 border-b border-purple-500/20">
               <h2 className="text-2xl font-bold text-white">Criar Novo Agente</h2>
             </div>
+
+            {/* Tabs */}
+            <div className="flex border-b border-purple-500/20 bg-slate-900/30">
+              <button
+                onClick={() => setCreateModalTab('basic')}
+                className={`flex-1 px-6 py-3 font-medium transition ${
+                  createModalTab === 'basic'
+                    ? 'bg-purple-500/20 text-white border-b-2 border-purple-500'
+                    : 'text-purple-400 hover:text-purple-300 hover:bg-purple-500/5'
+                }`}
+              >
+                Configurações Básicas
+              </button>
+              <button
+                onClick={() => setCreateModalTab('tools')}
+                className={`flex-1 px-6 py-3 font-medium transition ${
+                  createModalTab === 'tools'
+                    ? 'bg-purple-500/20 text-white border-b-2 border-purple-500'
+                    : 'text-purple-400 hover:text-purple-300 hover:bg-purple-500/5'
+                }`}
+              >
+                Ferramentas & MCPs ({newAgent.tools?.length || 0})
+              </button>
+            </div>
             
-            <div className="p-6 space-y-4">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">{createModalTab === 'basic' ? (
+              // Aba Configurações Básicas
+              <>
               <div>
                 <label className="block text-sm font-medium text-purple-300 mb-2">
                   Nome *
@@ -376,9 +421,74 @@ export default function AgentsPage() {
                   />
                 </div>
               </div>
-            </div>
+              </>
+            ) : (
+              // Aba Tools & MCPs
+              <>
+                <div className="mb-4">
+                  <p className="text-sm text-purple-400 mb-4">
+                    Selecione as ferramentas e MCPs que este agente poderá utilizar:
+                  </p>
+                </div>
 
-            <div className="p-6 border-t border-purple-500/20 flex items-center justify-end gap-3">
+                <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+                  {availableTools.map((tool) => {
+                    const isSelected = newAgent.tools?.includes(tool.id) || false;
+                    
+                    return (
+                      <label
+                        key={tool.id}
+                        className="flex items-center gap-3 p-3 bg-slate-900/30 hover:bg-slate-900/50 rounded-lg border border-purple-500/10 cursor-pointer transition group"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            const currentTools = newAgent.tools || [];
+                            const updatedTools = e.target.checked
+                              ? [...currentTools, tool.id]
+                              : currentTools.filter((t) => t !== tool.id);
+                            setNewAgent({ ...newAgent, tools: updatedTools });
+                          }}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-slate-700 peer-focus:ring-2 peer-focus:ring-purple-500 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-white text-sm truncate group-hover:text-purple-200 transition">
+                            {tool.name}
+                          </div>
+                          <div className="text-xs text-purple-400 truncate mt-0.5">
+                            {tool.description}
+                          </div>
+                        </div>
+                        <span className={`px-2 py-1 ${
+                          tool.category === 'mcp' ? 'bg-purple-500/20 text-purple-300' :
+                          tool.category === 'system' ? 'bg-blue-500/20 text-blue-300' :
+                          tool.category === 'agent' ? 'bg-pink-500/20 text-pink-300' :
+                          'bg-gray-500/20 text-gray-300'
+                        } rounded text-xs font-medium flex-shrink-0`}>
+                          {tool.category}
+                        </span>
+                      </label>
+                    );
+                  })}
+
+                  {availableMcps.length > 0 && (
+                    <div className="pt-4 mt-4 border-t border-purple-500/10">
+                      <h4 className="text-sm font-semibold text-white mb-3">MCPs Disponíveis</h4>
+                      {availableMcps.map((mcp) => (
+                        <div key={mcp.id} className="mb-2 p-3 bg-purple-500/5 rounded-lg border border-purple-500/10">
+                          <div className="font-medium text-purple-300 text-sm mb-1">{mcp.name}</div>
+                          <div className="text-xs text-purple-400">{mcp.tools?.length || 0} ferramentas disponíveis</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}</div>
+
+            <div className="p-6 border-t border-purple-500/20 flex items-center justify-end gap-3 bg-slate-900/30">
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="px-4 py-2 text-purple-300 hover:bg-purple-500/10 rounded-lg transition"

@@ -21,7 +21,6 @@ export default function EditAgent() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [availableTools, setAvailableTools] = useState<any[]>([]);
-  const [showToolsTab, setShowToolsTab] = useState(false);
 
   useEffect(() => {
     if (id) {

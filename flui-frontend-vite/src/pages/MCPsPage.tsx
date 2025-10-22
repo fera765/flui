@@ -659,7 +659,7 @@ export default function MCPsPage() {
                         </span>
                         <input
                           type="text"
-                          value={newMcp.server.replace(/^npx\s+/, '')}
+                          value={(newMcp.server || '').replace(/^npx\s+/, '')}
                           onChange={(e) => setNewMcp({ ...newMcp, server: `npx ${e.target.value}` })}
                           className="w-full bg-slate-900/50 border border-purple-500/20 rounded-lg pl-16 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm"
                           placeholder="@modelcontextprotocol/server-github"
