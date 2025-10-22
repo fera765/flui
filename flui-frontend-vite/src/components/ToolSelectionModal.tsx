@@ -65,9 +65,8 @@ export default function ToolSelectionModal({ isOpen, onClose, onSelect }: ToolSe
     }
   };
 
-  const systemTools = tools.filter(t => t.category === 'system');
-
-  const filteredSystemTools = systemTools.filter(t =>
+  // Não filtrar por categoria - mostrar TODAS as ferramentas
+  const filteredSystemTools = tools.filter(t =>
     t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     t.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -115,40 +114,58 @@ export default function ToolSelectionModal({ isOpen, onClose, onSelect }: ToolSe
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex border-b border-purple-500/20 bg-slate-900/50">
+        {/* Tabs - Design Moderno */}
+        <div className="flex border-b-2 border-purple-500/30 bg-gradient-to-r from-slate-900/80 to-slate-800/80">
           <button
             onClick={() => setActiveTab('system')}
-            className={`flex-1 px-6 py-4 font-semibold transition-all flex items-center justify-center gap-2 ${
+            className={`flex-1 px-6 py-4 font-bold transition-all flex items-center justify-center gap-2 relative ${
               activeTab === 'system'
-                ? 'bg-purple-500/20 text-white border-b-3 border-purple-500'
-                : 'text-purple-400 hover:text-purple-300 hover:bg-purple-500/5'
+                ? 'bg-gradient-to-r from-purple-600/30 to-pink-600/30 text-white'
+                : 'text-purple-300 hover:text-white hover:bg-purple-500/10'
             }`}
           >
-            <Wrench className="w-4 h-4" />
-            System Tools ({filteredSystemTools.length})
+            <Wrench className="w-5 h-5" />
+            <span className="hidden sm:inline">Ferramentas</span>
+            <span className="px-2 py-0.5 bg-purple-500/40 text-purple-100 rounded-full text-xs font-bold ml-1">
+              {filteredSystemTools.length}
+            </span>
+            {activeTab === 'system' && (
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500"></div>
+            )}
           </button>
           <button
             onClick={() => setActiveTab('agents')}
-            className={`flex-1 px-6 py-4 font-semibold transition-all flex items-center justify-center gap-2 ${
+            className={`flex-1 px-6 py-4 font-bold transition-all flex items-center justify-center gap-2 relative ${
               activeTab === 'agents'
-                ? 'bg-purple-500/20 text-white border-b-3 border-purple-500'
-                : 'text-purple-400 hover:text-purple-300 hover:bg-purple-500/5'
+                ? 'bg-gradient-to-r from-blue-600/30 to-cyan-600/30 text-white'
+                : 'text-blue-300 hover:text-white hover:bg-blue-500/10'
             }`}
           >
-            <Bot className="w-4 h-4" />
-            Agentes ({filteredAgents.length})
+            <Bot className="w-5 h-5" />
+            <span className="hidden sm:inline">Agentes</span>
+            <span className="px-2 py-0.5 bg-blue-500/40 text-blue-100 rounded-full text-xs font-bold ml-1">
+              {filteredAgents.length}
+            </span>
+            {activeTab === 'agents' && (
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
+            )}
           </button>
           <button
             onClick={() => setActiveTab('mcps')}
-            className={`flex-1 px-6 py-4 font-semibold transition-all flex items-center justify-center gap-2 ${
+            className={`flex-1 px-6 py-4 font-bold transition-all flex items-center justify-center gap-2 relative ${
               activeTab === 'mcps'
-                ? 'bg-purple-500/20 text-white border-b-3 border-purple-500'
-                : 'text-purple-400 hover:text-purple-300 hover:bg-purple-500/5'
+                ? 'bg-gradient-to-r from-green-600/30 to-emerald-600/30 text-white'
+                : 'text-green-300 hover:text-white hover:bg-green-500/10'
             }`}
           >
-            <Package className="w-4 h-4" />
-            MCPs ({filteredMcps.length})
+            <Package className="w-5 h-5" />
+            <span className="hidden sm:inline">MCPs</span>
+            <span className="px-2 py-0.5 bg-green-500/40 text-green-100 rounded-full text-xs font-bold ml-1">
+              {filteredMcps.length}
+            </span>
+            {activeTab === 'mcps' && (
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 to-emerald-500"></div>
+            )}
           </button>
         </div>
 
@@ -162,97 +179,159 @@ export default function ToolSelectionModal({ isOpen, onClose, onSelect }: ToolSe
             <>
               {activeTab === 'system' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filteredSystemTools.map(tool => (
-                    <button
-                      key={tool.id}
-                      onClick={() => {
-                        onSelect(tool, 'tool');
-                        onClose();
-                      }}
-                      className="p-4 bg-slate-800/50 border border-purple-500/20 rounded-xl hover:border-purple-500/50 hover:bg-slate-800/70 transition-all text-left group"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition">
-                          <Wrench className="w-5 h-5 text-purple-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-white truncate">{tool.name}</h3>
-                          <p className="text-sm text-purple-400 line-clamp-2 mt-1">{tool.description}</p>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
+                  {filteredSystemTools.length === 0 ? (
+                    <div className="col-span-2 text-center py-12">
+                      <Wrench className="w-16 h-16 text-gray-600 mx-auto mb-4 opacity-50" />
+                      <p className="text-gray-400">Nenhuma ferramenta encontrada</p>
+                    </div>
+                  ) : (
+                    filteredSystemTools.map(tool => {
+                      const categoryColor = tool.category === 'system' 
+                        ? 'purple' 
+                        : tool.category === 'mcp' 
+                        ? 'green' 
+                        : 'blue';
+                      
+                      return (
+                        <button
+                          key={tool.id}
+                          onClick={() => {
+                            onSelect(tool, 'tool');
+                            onClose();
+                          }}
+                          className={`p-5 bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-2 border-${categoryColor}-500/30 rounded-xl hover:border-${categoryColor}-500/70 hover:shadow-xl hover:shadow-${categoryColor}-500/20 transition-all text-left group transform hover:scale-105`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={`p-3 bg-gradient-to-br from-${categoryColor}-500/20 to-${categoryColor}-600/30 rounded-xl group-hover:from-${categoryColor}-500/30 group-hover:to-${categoryColor}-600/40 transition-all`}>
+                              <Wrench className={`w-6 h-6 text-${categoryColor}-400 group-hover:text-${categoryColor}-300`} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-bold text-white truncate group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-300 group-hover:to-pink-300">
+                                  {tool.name}
+                                </h3>
+                                {tool.category && (
+                                  <span className={`px-2 py-0.5 bg-${categoryColor}-500/20 text-${categoryColor}-300 rounded text-xs font-semibold uppercase tracking-wide`}>
+                                    {tool.category}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-400 line-clamp-2 group-hover:text-gray-300">
+                                {tool.description}
+                              </p>
+                              {tool.version && (
+                                <p className="text-xs text-gray-500 mt-2">v{tool.version}</p>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })
+                  )}
                 </div>
               )}
 
               {activeTab === 'agents' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filteredAgents.map(agent => (
-                    <button
-                      key={agent.id}
-                      onClick={() => {
-                        onSelect(agent as any, 'agent');
-                        onClose();
-                      }}
-                      className="p-4 bg-slate-800/50 border border-blue-500/20 rounded-xl hover:border-blue-500/50 hover:bg-slate-800/70 transition-all text-left group"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 bg-blue-500/20 rounded-lg group-hover:bg-blue-500/30 transition">
-                          <Bot className="w-5 h-5 text-blue-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-white truncate">{agent.name}</h3>
-                          <p className="text-sm text-blue-400 line-clamp-2 mt-1">{agent.description}</p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <span className="text-xs text-gray-400">{agent.model}</span>
-                            {agent.enabled && (
-                              <span className="px-2 py-0.5 bg-green-500/20 text-green-400 rounded-full text-xs">Ativo</span>
-                            )}
+                  {filteredAgents.length === 0 ? (
+                    <div className="col-span-2 text-center py-12">
+                      <Bot className="w-16 h-16 text-gray-600 mx-auto mb-4 opacity-50" />
+                      <p className="text-gray-400">Nenhum agente encontrado</p>
+                    </div>
+                  ) : (
+                    filteredAgents.map(agent => (
+                      <button
+                        key={agent.id}
+                        onClick={() => {
+                          onSelect(agent as any, 'agent');
+                          onClose();
+                        }}
+                        className="p-5 bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-2 border-blue-500/30 rounded-xl hover:border-blue-500/70 hover:shadow-xl hover:shadow-blue-500/20 transition-all text-left group transform hover:scale-105"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="p-3 bg-gradient-to-br from-blue-500/20 to-blue-600/30 rounded-xl group-hover:from-blue-500/30 group-hover:to-blue-600/40 transition-all">
+                            <Bot className="w-6 h-6 text-blue-400 group-hover:text-blue-300" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-bold text-white truncate group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-300 group-hover:to-cyan-300">
+                                {agent.name}
+                              </h3>
+                              {agent.enabled && (
+                                <span className="px-2 py-0.5 bg-green-500/30 text-green-300 rounded-full text-xs font-semibold flex items-center gap-1">
+                                  <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
+                                  Ativo
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-400 line-clamp-2 group-hover:text-gray-300">
+                              {agent.description}
+                            </p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <span className="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded text-xs font-semibold">
+                                {agent.model}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </button>
-                  ))}
+                      </button>
+                    ))
+                  )}
                 </div>
               )}
 
               {activeTab === 'mcps' && (
                 <div className="space-y-6">
-                  {filteredMcps.map(mcp => (
-                    <div key={mcp.id} className="bg-slate-800/30 border border-purple-500/20 rounded-xl overflow-hidden">
-                      <div className="p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-b border-purple-500/20">
-                        <div className="flex items-center gap-3">
-                          <Package className="w-6 h-6 text-purple-400" />
-                          <div>
-                            <h3 className="font-bold text-white">{mcp.name}</h3>
-                            <p className="text-sm text-purple-400">{mcp.description}</p>
+                  {filteredMcps.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Package className="w-16 h-16 text-gray-600 mx-auto mb-4 opacity-50" />
+                      <p className="text-gray-400">Nenhum MCP encontrado</p>
+                    </div>
+                  ) : (
+                    filteredMcps.map(mcp => (
+                      <div key={mcp.id} className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-2 border-green-500/30 rounded-2xl overflow-hidden hover:border-green-500/60 transition-all shadow-lg hover:shadow-green-500/20">
+                        <div className="p-5 bg-gradient-to-r from-green-600/20 to-emerald-600/20 border-b-2 border-green-500/30">
+                          <div className="flex items-start gap-4">
+                            <div className="p-3 bg-green-500/20 rounded-xl">
+                              <Package className="w-7 h-7 text-green-400" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-bold text-white text-lg mb-1">{mcp.name}</h3>
+                              <p className="text-sm text-green-300">{mcp.description}</p>
+                            </div>
+                            <span className="px-3 py-1.5 bg-green-500/30 text-green-200 rounded-full text-sm font-bold border border-green-400/30">
+                              {mcp.tools?.length || 0} tools
+                            </span>
                           </div>
-                          <span className="ml-auto px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-sm font-semibold">
-                            {mcp.tools?.length || 0} tools
-                          </span>
+                        </div>
+                        <div className="p-5">
+                          {!mcp.tools || mcp.tools.length === 0 ? (
+                            <p className="text-center text-gray-500 py-4">Nenhuma tool disponível neste MCP</p>
+                          ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              {mcp.tools.map(tool => (
+                                <button
+                                  key={tool.id}
+                                  onClick={() => {
+                                    onSelect({ ...tool, category: 'mcp' }, 'tool');
+                                    onClose();
+                                  }}
+                                  className="p-4 bg-slate-900/60 border-2 border-green-500/20 rounded-xl hover:border-green-500/50 hover:bg-slate-900/80 hover:shadow-lg hover:shadow-green-500/10 transition-all text-left group transform hover:scale-105"
+                                >
+                                  <h4 className="font-semibold text-white text-sm truncate group-hover:text-green-300 transition-colors">
+                                    {tool.name}
+                                  </h4>
+                                  <p className="text-xs text-gray-400 line-clamp-2 mt-1.5 group-hover:text-gray-300">
+                                    {tool.description}
+                                  </p>
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {mcp.tools?.map(tool => (
-                          <button
-                            key={tool.id}
-                            onClick={() => {
-                              onSelect({ ...tool, category: 'mcp' }, 'tool');
-                              onClose();
-                            }}
-                            className="p-3 bg-slate-900/50 border border-purple-500/10 rounded-lg hover:border-purple-500/30 hover:bg-slate-900/70 transition-all text-left group"
-                          >
-                            <h4 className="font-medium text-white text-sm truncate group-hover:text-purple-200">
-                              {tool.name}
-                            </h4>
-                            <p className="text-xs text-purple-400 line-clamp-1 mt-1">
-                              {tool.description}
-                            </p>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               )}
             </>

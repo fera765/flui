@@ -180,36 +180,102 @@ export default function NodeConfigurationModalV2({
     try {
       let node;
       let toolId;
+      let category;
+      
+      console.log('🔍 [NodeConfigModalV2] Loading node data...', {
+        automationId,
+        nodeId,
+        hasNodeData: !!nodeData,
+        allNodesCount: allNodes?.length || 0
+      });
       
       // PRIORIDADE: Se automação já foi salva, SEMPRE buscar do backend
       if (!automationId.startsWith('temp-')) {
+        console.log('📡 [NodeConfigModalV2] Buscando do backend (automação salva)');
         // Automação salva - SEMPRE buscar do backend para garantir persistência
         const nodeResponse = await axios.get(
           `${API_BASE_URL}/automations/${automationId}/nodes/${nodeId}`
         );
         node = nodeResponse.data;
         toolId = node.config?.toolId || node.type;
+        category = node.config?.category || node.category;
         setConfig(node.config?.params || {});
-      } else if (nodeData) {
-        // Automação temporária - usar dados locais
-        node = nodeData || {};
-        toolId = node.toolId || node.data?.toolId || node.config?.toolId;
-        setConfig(node.config || node.data?.config || {});
       } else {
-        throw new Error('Nenhuma fonte de dados para o node');
+        // Automação temporária - usar dados locais
+        console.log('💾 [NodeConfigModalV2] Usando dados locais (automação temp)');
+        
+        // PRIORIDADE 1: nodeData passado como prop
+        if (nodeData) {
+          console.log('  ✅ Usando nodeData:', nodeData);
+          node = nodeData;
+          toolId = node.toolId || node.config?.toolId;
+          category = node.category || node.config?.category;
+          setConfig(node.config?.params || node.config || {});
+        } 
+        // PRIORIDADE 2: Buscar em allNodes (fallback)
+        else if (allNodes) {
+          console.log('  🔄 nodeData não disponível, buscando em allNodes...');
+          const foundNode = allNodes.find((n: any) => n.id === nodeId);
+          if (foundNode) {
+            console.log('  ✅ Node encontrado em allNodes:', foundNode.data);
+            node = foundNode.data || foundNode;
+            toolId = node.toolId || foundNode.data?.toolId || node.config?.toolId;
+            category = node.category || foundNode.data?.category || node.config?.category;
+            setConfig(node.config?.params || node.config || foundNode.data?.config || {});
+          } else {
+            throw new Error(`Node ${nodeId} não encontrado em allNodes`);
+          }
+        } 
+        // ERRO: Nenhuma fonte de dados disponível
+        else {
+          throw new Error('Nenhuma fonte de dados para o node (nodeData e allNodes indisponíveis)');
+        }
       }
       
       // 3. Carregar tool metadata
-      if (toolId) {
-        const toolResponse = await axios.get(`${API_BASE_URL}/tools/${toolId}`);
-        setTool(toolResponse.data);
-        
-        // 4. Carregar outputs disponíveis dos nodes pais
-        await loadAvailableOutputs();
+      if (!toolId) {
+        throw new Error(`toolId não encontrado no node. Node data: ${JSON.stringify(node)}`);
       }
+      
+      console.log(`🔧 [NodeConfigModalV2] Carregando tool metadata:`, { toolId, category });
+      
+      let toolResponse;
+      
+      // Se é um agente, buscar pelo endpoint de agente
+      if (category === 'agent' || toolId.startsWith('agent-')) {
+        const agentId = toolId.replace('agent-', '');
+        console.log(`  🤖 Buscando agente: ${agentId}`);
+        try {
+          toolResponse = await axios.get(`${API_BASE_URL}/agents/${agentId}/as-tool`);
+          console.log(`  ✅ Agente carregado:`, toolResponse.data.name);
+        } catch (err: any) {
+          console.error('❌ Erro ao carregar agente, tentando como tool normal:', err.message);
+          toolResponse = await axios.get(`${API_BASE_URL}/tools/${toolId}`);
+        }
+      } else {
+        console.log(`  🔧 Buscando tool: ${toolId}`);
+        toolResponse = await axios.get(`${API_BASE_URL}/tools/${toolId}`);
+        console.log(`  ✅ Tool carregada:`, toolResponse.data.name);
+      }
+      
+      setTool(toolResponse.data);
+      
+      // 4. Carregar outputs disponíveis dos nodes pais
+      await loadAvailableOutputs();
+      
+      console.log('✅ [NodeConfigModalV2] Node data carregado com sucesso');
     } catch (error: any) {
-      console.error('❌ Erro ao carregar node:', error);
-      setErrors({ _global: 'Erro ao carregar configurações do node' });
+      console.error('❌ [NodeConfigModalV2] Erro ao carregar node:', error);
+      console.error('   Detalhes:', {
+        automationId,
+        nodeId,
+        hasNodeData: !!nodeData,
+        errorMessage: error.message,
+        errorResponse: error.response?.data
+      });
+      
+      const errorMsg = error.response?.data?.error || error.message;
+      setErrors({ _global: `Erro ao carregar configurações do node: ${errorMsg}` });
     } finally {
       setLoading(false);
     }

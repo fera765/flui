@@ -366,6 +366,82 @@ app.get('/api/tools/:toolId/agents-options', (_req: Request, res: Response) => {
   res.json(agents);
 });
 
+// GET /api/agents/:id/as-tool - Obter agente como ferramenta executável
+app.get('/api/agents/:id/as-tool', (req: Request, res: Response) => {
+  try {
+    const store = useStore.getState();
+    const agent = store.agents.find(a => a.id === req.params.id);
+    
+    if (!agent) {
+      return res.status(404).json({ error: 'Agente não encontrado' });
+    }
+    
+    // Converter agente para formato de tool
+    const toolVersion = {
+      id: `agent-${agent.id}`,
+      name: agent.name,
+      description: agent.systemPrompt || 'Agente AI configurável',
+      category: 'agent',
+      version: '1.0.0',
+      params: [
+        {
+          name: 'prompt',
+          key: 'prompt',
+          type: 'string',
+          description: 'Prompt/instrução para o agente',
+          required: true,
+          placeholder: 'Digite sua instrução...',
+          ui: {
+            widgetType: 'textInput',
+            allowExpressions: true,
+          },
+        },
+        {
+          name: 'temperature',
+          key: 'temperature',
+          type: 'number',
+          description: 'Temperatura de geração (0-1)',
+          required: false,
+          default: 0.7,
+          ui: {
+            widgetType: 'number',
+          },
+        },
+        {
+          name: 'maxTokens',
+          key: 'maxTokens',
+          type: 'number',
+          description: 'Máximo de tokens na resposta',
+          required: false,
+          default: 1000,
+          ui: {
+            widgetType: 'number',
+          },
+        },
+      ],
+      ui: {
+        icon: 'Bot',
+        color: '#3b82f6',
+        tags: ['agent', 'ai', agent.model],
+        examples: [],
+      },
+      capabilities: {},
+      config: {
+        timeout: 60000,
+        retries: 0,
+        sandbox: false,
+        concurrent: false,
+      },
+    };
+    
+    console.log(`🤖 [API] Agente como tool: ${toolVersion.id}`);
+    
+    res.json(toolVersion);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ============= AGENTS ENDPOINTS =============
 
 app.get('/api/agents', (_req: Request, res: Response) => {
