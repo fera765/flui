@@ -242,8 +242,12 @@ export default function NodeConfigurationModalV2({
       let toolResponse;
       
       // Se é um agente, buscar pelo endpoint de agente
-      if (category === 'agent' || toolId.startsWith('agent-')) {
-        const agentId = toolId.replace('agent-', '');
+      // 🔥 FIX: Detectar agentes por categoria OU por toolId começando com "agent-" OU por type === "agent"
+      const isAgent = category === 'agent' || toolId?.startsWith('agent-') || node.type === 'agent';
+      
+      if (isAgent) {
+        // Extrair agentId: se toolId já começa com "agent-", remover prefixo; senão, usar toolId diretamente
+        const agentId = toolId?.startsWith('agent-') ? toolId.replace('agent-', '') : toolId;
         console.log(`  🤖 Buscando agente: ${agentId}`);
         try {
           toolResponse = await axios.get(`${API_BASE_URL}/agents/${agentId}/as-tool`);

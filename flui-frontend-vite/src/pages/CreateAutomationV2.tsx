@@ -13,6 +13,7 @@ import ReactFlow, {
   addEdge,
   Panel,
   BackgroundVariant,
+  MarkerType,
   type Node,
   type Edge,
   type Connection,
@@ -108,7 +109,7 @@ export default function CreateAutomationV2() {
           strokeWidth: 3,
         },
         markerEnd: {
-          type: 'arrowclosed',
+          type: MarkerType.ArrowClosed,
           color: '#8b5cf6',
         },
       };
@@ -164,7 +165,7 @@ export default function CreateAutomationV2() {
           strokeWidth: 3,
         },
         markerEnd: {
-          type: 'arrowclosed',
+          type: MarkerType.ArrowClosed,
           color: '#8b5cf6',
         },
       };
@@ -326,7 +327,7 @@ export default function CreateAutomationV2() {
     // Converter para formato de FlowDefinition
     const flowNodes = nodes.map((node) => ({
       id: node.id,
-      type: 'tool',
+      type: node.data.category || node.type || 'tool', // 🔥 FIX: Use category/type instead of hardcoded 'tool'
       name: node.data.label,
       description: node.data.description,
       config: {
@@ -545,14 +546,10 @@ export default function CreateAutomationV2() {
             type: 'default',
             animated: true,
             style: { stroke: '#8b5cf6', strokeWidth: 3 },
-            markerEnd: { type: 'arrowclosed', color: '#8b5cf6' },
+            markerEnd: { type: MarkerType.ArrowClosed, color: '#8b5cf6' },
           }}
-          // Permitir reconectar edges arrastando
-          edgesReconnectable={true}
-          reconnectRadius={20}
           // Melhorar UX de conexão
           selectNodesOnDrag={false}
-          elevateEdgesOnSelect={true}
           // Permitir deletar edges e nodes com Delete/Backspace
           deleteKeyCode="Delete"
           multiSelectionKeyCode="Shift"

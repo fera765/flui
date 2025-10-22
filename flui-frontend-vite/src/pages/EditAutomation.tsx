@@ -120,13 +120,13 @@ export default function EditAutomation() {
       // Converter nós do formato salvo para ReactFlow
       const reactFlowNodes: Node[] = automation.nodes.map((node) => ({
         id: node.id,
-        type: 'tool',
+        type: node.type || 'tool', // 🔥 FIX: Preservar o tipo original do node
         position: node.position || { x: 100, y: 100 },
         data: {
           label: node.name,
           description: node.description,
           toolId: node.config?.toolId,
-          category: node.config?.category,
+          category: node.config?.category || node.type, // 🔥 FIX: fallback to node.type
           color: node.config?.color,
           icon: node.config?.icon,
           status: 'idle',
@@ -262,7 +262,7 @@ export default function EditAutomation() {
       // Converter para formato de FlowDefinition
       const flowNodes = nodes.map((node) => ({
         id: node.id,
-        type: 'tool',
+        type: node.data.category || node.type || 'tool', // 🔥 FIX: Use category/type instead of hardcoded 'tool'
         name: node.data.label,
         description: node.data.description,
         config: {
