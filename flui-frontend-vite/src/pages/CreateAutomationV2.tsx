@@ -71,7 +71,9 @@ export default function CreateAutomationV2() {
   // Tipos de nó customizados - Usando ElegantNode
   const nodeTypes = useMemo(() => ({ 
     tool: ElegantNode,
-    elegant: ElegantNode 
+    elegant: ElegantNode,
+    agent: ElegantNode, // 🔥 FIX: Adicionar agent como tipo válido
+    system: ElegantNode, // Para ferramentas do sistema
   }), []);
 
   // Configurar nó (abre modal)
@@ -134,7 +136,7 @@ export default function CreateAutomationV2() {
     const nodeId = `node-${Date.now()}`;
     const newNode: Node = {
       id: nodeId,
-      type: 'elegant', // Usando ElegantNode
+      type: tool.category || 'elegant', // 🔥 FIX: Usar categoria da tool como type
       position: { x: xPosition, y: yPosition },
       data: {
         label: tool.name,
@@ -142,6 +144,7 @@ export default function CreateAutomationV2() {
         toolType: tool.category || 'system',
         toolId: tool.id, // ✅ CRÍTICO: Adicionar toolId
         category: tool.category,
+        type: tool.category, // 🔥 FIX: Adicionar type também no data para detecção
         config: {},
         status: 'idle',
         isReturnPoint: false,

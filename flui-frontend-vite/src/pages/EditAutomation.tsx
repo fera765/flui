@@ -75,7 +75,12 @@ export default function EditAutomation() {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
   // Tipos de nó customizados
-  const nodeTypes = useMemo(() => ({ tool: ElegantNode, elegant: ElegantNode }), []);
+  const nodeTypes = useMemo(() => ({ 
+    tool: ElegantNode, 
+    elegant: ElegantNode,
+    agent: ElegantNode, // 🔥 FIX: Adicionar agent como tipo válido
+    system: ElegantNode, // Para ferramentas do sistema
+  }), []);
 
   // Configurar nó (abre modal)
   const handleConfigureNode = useCallback((nodeId: string) => {
@@ -181,13 +186,14 @@ export default function EditAutomation() {
     const nodeId = `node-${Date.now()}`;
     const newNode: Node = {
       id: nodeId,
-      type: 'tool',
+      type: tool.category || 'tool', // 🔥 FIX: Usar categoria da tool como type
       position: { x: xPosition, y: yPosition },
       data: {
         label: tool.name,
         description: tool.description,
         toolId: tool.id,
         category: tool.category,
+        type: tool.category, // 🔥 FIX: Adicionar type também no data
         color: tool.ui.color,
         icon: tool.ui.icon,
         status: 'idle',

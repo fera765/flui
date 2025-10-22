@@ -1,5 +1,72 @@
 {
-	"automations": [],
+	"automations": [
+		{
+			"id": "test-complete-flow",
+			"name": "Complete Flow Test",
+			"description": "",
+			"nodes": [
+				{
+					"id": "node-condition",
+					"type": "system",
+					"name": "Condition Flex",
+					"description": "",
+					"config": {
+						"toolId": "condition-flex",
+						"category": "system",
+						"params": {
+							"value": "test",
+							"paths": [
+								"path1",
+								"path2"
+							]
+						}
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-agent",
+					"type": "agent",
+					"name": "Agent Node",
+					"description": "",
+					"config": {
+						"toolId": "agent-1761145175652",
+						"category": "agent",
+						"params": {
+							"prompt": "Hello from test"
+						}
+					},
+					"position": {
+						"x": 500,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "edge-1",
+					"source": "node-condition",
+					"target": "node-agent"
+				}
+			],
+			"startNodeId": "node-condition",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-22T14:59:35.680Z",
+			"updatedAt": "2025-10-22T15:03:18.194Z",
+			"runCount": 1,
+			"metadata": {
+				"createdAt": "2025-10-22T14:59:35.680Z",
+				"updatedAt": "2025-10-22T15:03:18.194Z",
+				"lastRunAt": "2025-10-22T15:03:18.194Z"
+			}
+		}
+	],
 	"executions": [],
 	"agents": [
 		{
@@ -15,6 +82,48 @@
 			},
 			"createdAt": "2025-10-22T13:28:58.123Z",
 			"updatedAt": "2025-10-22T13:28:58.123Z"
+		},
+		{
+			"name": "Debug Agent 2",
+			"model": "gpt-4",
+			"systemPrompt": "test",
+			"enabled": true,
+			"id": "1761144904694",
+			"metadata": {
+				"createdAt": "2025-10-22T14:55:04.694Z",
+				"updatedAt": "2025-10-22T14:55:04.694Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-22T14:55:04.694Z",
+			"updatedAt": "2025-10-22T14:55:04.694Z"
+		},
+		{
+			"name": "Complete Flow Test Agent",
+			"model": "gpt-4",
+			"systemPrompt": "You are a test assistant",
+			"enabled": true,
+			"id": "1761145065754",
+			"metadata": {
+				"createdAt": "2025-10-22T14:57:45.754Z",
+				"updatedAt": "2025-10-22T14:57:45.754Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-22T14:57:45.754Z",
+			"updatedAt": "2025-10-22T14:57:45.754Z"
+		},
+		{
+			"name": "Complete Flow Test Agent",
+			"model": "gpt-4",
+			"systemPrompt": "You are a test assistant",
+			"enabled": true,
+			"id": "1761145175652",
+			"metadata": {
+				"createdAt": "2025-10-22T14:59:35.652Z",
+				"updatedAt": "2025-10-22T14:59:35.652Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-22T14:59:35.652Z",
+			"updatedAt": "2025-10-22T14:59:35.652Z"
 		}
 	],
 	"mcps": [],
