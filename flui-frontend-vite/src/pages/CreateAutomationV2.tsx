@@ -124,6 +124,8 @@ export default function CreateAutomationV2() {
         label: tool.name,
         description: tool.description || '',
         toolType: tool.category || 'system',
+        toolId: tool.id, // ✅ CRÍTICO: Adicionar toolId
+        category: tool.category,
         config: {},
         status: 'idle',
         isReturnPoint: false,
