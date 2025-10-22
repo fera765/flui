@@ -60,7 +60,7 @@ interface NodeConfigurationModalProps {
   allNodes?: any[]; // Lista de todos os nodes para linker
   allEdges?: any[]; // Lista de todas as edges
   onClose: () => void;
-  onSave: () => void;
+  onSave: (nodeId?: string, config?: any) => void; // 🔥 FIX: Aceitar nodeId e config para temp automations
 }
 
 export default function NodeConfigurationModalV2({
@@ -304,15 +304,27 @@ export default function NodeConfigurationModalV2({
         return;
       }
       
-      // Salvar configuração no backend
-      await axios.patch(
-        `${API_BASE_URL}/automations/${automationId}/nodes/${nodeId}/config`,
-        { params: config, toolId: tool?.id }
-      );
-      
-      console.log('✅ Configuração salva com sucesso');
-      onSave();
-      onClose();
+      // 🔥 FIX: Separar lógica para automações temporárias vs salvas
+      if (automationId.startsWith('temp-')) {
+        // Automação temporária - salvar apenas localmente
+        console.log('💾 [NodeConfigModalV2] Salvando config localmente (automação temp)');
+        
+        // Passar configuração para o componente pai atualizar o estado local
+        onSave(nodeId, config);
+        onClose();
+      } else {
+        // Automação salva - persistir no backend
+        console.log('📡 [NodeConfigModalV2] Salvando config no backend (automação salva)');
+        
+        await axios.patch(
+          `${API_BASE_URL}/automations/${automationId}/nodes/${nodeId}/config`,
+          { params: config, toolId: tool?.id }
+        );
+        
+        console.log('✅ Configuração salva com sucesso no backend');
+        onSave();
+        onClose();
+      }
     } catch (error: any) {
       console.error('❌ Erro ao salvar:', error);
       setErrors({ _global: error.response?.data?.error || 'Erro ao salvar configuração' });

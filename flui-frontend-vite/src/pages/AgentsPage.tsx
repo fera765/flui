@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusCircle, Bot, Play, Pause, Edit, Trash2, ArrowLeft, MessageSquare } from 'lucide-react';
+import { PlusCircle, Bot, Play, Pause, Edit, Trash2, ArrowLeft, MessageSquare, Settings } from 'lucide-react';
+import LLMConfigModal from '../components/LLMConfigModal';
 
 interface Agent {
   id: string;
@@ -25,10 +26,21 @@ export default function AgentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showLLMConfig, setShowLLMConfig] = useState(false); // 🔥 NOVO: Modal de configuração LLM
+  const [availableModels, setAvailableModels] = useState<string[]>([]); // 🔥 NOVO: Modelos disponíveis
+  const [llmConfig, setLLMConfig] = useState(() => {
+    // Carregar configuração salva do localStorage
+    const saved = localStorage.getItem('llmConfig');
+    return saved ? JSON.parse(saved) : {
+      endpoint: 'https://api.llm7.io/v1',
+      apiKey: '',
+      defaultModel: 'gpt-4',
+    };
+  });
   const [newAgent, setNewAgent] = useState<Partial<Agent>>({
     name: '',
     description: '',
-    model: 'gpt-4',
+    model: llmConfig.defaultModel || 'gpt-4', // 🔥 NOVO: Usar modelo padrão da config
     systemPrompt: '',
     temperature: 0.7,
     maxTokens: 2000,
@@ -42,7 +54,49 @@ export default function AgentsPage() {
   useEffect(() => {
     loadAgents();
     loadToolsAndMcps();
+    loadModels(); // 🔥 NOVO: Carregar modelos ao iniciar
   }, []);
+
+  // 🔥 NOVO: Carregar modelos disponíveis
+  const loadModels = async () => {
+    if (!llmConfig.apiKey) {
+      console.log('⚠️ API Key não configurada. Configure em Settings.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${llmConfig.endpoint}/models`, {
+        headers: {
+          'Authorization': `Bearer ${llmConfig.apiKey}`,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.data && Array.isArray(data.data)) {
+          const models = data.data.map((m: any) => m.id);
+          setAvailableModels(models);
+          console.log(`✅ ${models.length} modelos carregados`);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Erro ao carregar modelos:', error);
+    }
+  };
+
+  // 🔥 NOVO: Salvar configuração LLM
+  const handleSaveLLMConfig = (config: any) => {
+    localStorage.setItem('llmConfig', JSON.stringify(config));
+    setLLMConfig(config);
+    
+    // Atualizar modelo padrão do novo agente
+    setNewAgent(prev => ({ ...prev, model: config.defaultModel }));
+    
+    // Recarregar modelos
+    loadModels();
+    
+    console.log('✅ Configuração LLM salva');
+  };
 
   const loadToolsAndMcps = async () => {
     try {
@@ -171,13 +225,25 @@ export default function AgentsPage() {
               </div>
             </div>
             
-            <button 
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-lg font-semibold transition shadow-lg shadow-purple-500/50"
-            >
-              <PlusCircle className="w-5 h-5" />
-              Novo Agente
-            </button>
+            <div className="flex items-center gap-3">
+              {/* 🔥 NOVO: Botão de Configuração LLM */}
+              <button
+                onClick={() => setShowLLMConfig(true)}
+                className="flex items-center gap-2 bg-slate-800/50 border border-purple-500/30 hover:border-purple-500/50 text-purple-300 hover:text-white px-4 py-3 rounded-lg font-medium transition"
+                title="Configurar LLM"
+              >
+                <Settings className="w-5 h-5" />
+                <span className="hidden sm:inline">Configurar LLM</span>
+              </button>
+              
+              <button 
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-lg font-semibold transition shadow-lg shadow-purple-500/50"
+              >
+                <PlusCircle className="w-5 h-5" />
+                Novo Agente
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -299,6 +365,14 @@ export default function AgentsPage() {
         )}
       </main>
 
+      {/* 🔥 NOVO: LLM Config Modal */}
+      <LLMConfigModal
+        isOpen={showLLMConfig}
+        onClose={() => setShowLLMConfig(false)}
+        onSave={handleSaveLLMConfig}
+        currentConfig={llmConfig}
+      />
+
       {/* Create Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -363,18 +437,40 @@ export default function AgentsPage() {
               <div>
                 <label className="block text-sm font-medium text-purple-300 mb-2">
                   Modelo
+                  {llmConfig.apiKey && (
+                    <span className="ml-2 text-xs text-green-400">
+                      ✓ {availableModels.length || 0} modelo(s) disponível(is)
+                    </span>
+                  )}
                 </label>
                 <select
                   value={newAgent.model}
                   onChange={(e) => setNewAgent({ ...newAgent, model: e.target.value })}
                   className="w-full bg-slate-900/50 border border-purple-500/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
-                  <option value="gpt-4">GPT-4</option>
-                  <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                  <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                  <option value="claude-3-opus">Claude 3 Opus</option>
-                  <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+                  {/* 🔥 NOVO: Usar modelos carregados dinamicamente */}
+                  {availableModels.length > 0 ? (
+                    <>
+                      {availableModels.map(model => (
+                        <option key={model} value={model}>{model}</option>
+                      ))}
+                    </>
+                  ) : (
+                    <>
+                      {/* Fallback: modelos padrão se não conseguiu carregar */}
+                      <option value="gpt-4">GPT-4</option>
+                      <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                      <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                      <option value="claude-3-opus">Claude 3 Opus</option>
+                      <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+                    </>
+                  )}
                 </select>
+                {!llmConfig.apiKey && (
+                  <p className="text-xs text-yellow-400 mt-1">
+                    ⚠️ Configure a API key em "Configurar LLM" para carregar modelos disponíveis
+                  </p>
+                )}
               </div>
 
               <div>

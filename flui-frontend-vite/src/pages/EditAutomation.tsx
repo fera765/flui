@@ -219,17 +219,21 @@ export default function EditAutomation() {
   }, [nodes, setNodes, setEdges, handleConfigureNode, handleDeleteNode]);
 
   // Salvar configuração do nó
-  const handleSaveNodeConfig = (config: any) => {
-    if (!selectedNode) return;
+  const handleSaveNodeConfig = (nodeIdParam?: string, configParam?: any) => {
+    // 🔥 FIX: Aceitar parâmetros opcionais do NodeConfigurationModalV2
+    const targetNodeId = nodeIdParam || selectedNode?.id;
+    const configToSave = configParam !== undefined ? configParam : selectedNode?.data?.config;
+    
+    if (!targetNodeId) return;
 
     setNodes((nds) =>
       nds.map((n) =>
-        n.id === selectedNode.id
+        n.id === targetNodeId
           ? {
               ...n,
               data: {
                 ...n.data,
-                config,
+                config: configToSave,
                 // Preserve callbacks explicitly
                 onConfigure: n.data.onConfigure,
                 onDelete: n.data.onDelete,

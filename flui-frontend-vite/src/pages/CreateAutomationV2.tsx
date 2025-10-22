@@ -177,19 +177,23 @@ export default function CreateAutomationV2() {
   }, [nodes, setNodes, setEdges, handleConfigureNode, handleDeleteNode]);
 
   // Salvar configuração do nó (INDEPENDENTE da automação)
-  const handleSaveNodeConfig = async (config: any) => {
-    if (!selectedNode) return;
+  const handleSaveNodeConfig = async (nodeIdParam?: string, configParam?: any) => {
+    // 🔥 FIX: Aceitar parâmetros opcionais do NodeConfigurationModalV2
+    const targetNodeId = nodeIdParam || selectedNode?.id;
+    const configToSave = configParam !== undefined ? configParam : selectedNode?.data?.config;
+    
+    if (!targetNodeId) return;
 
     try {
       // Atualizar node localmente
       setNodes((nds) =>
         nds.map((n) =>
-          n.id === selectedNode.id
+          n.id === targetNodeId
             ? {
                 ...n,
                 data: {
                   ...n.data,
-                  config,
+                  config: configToSave,
                   // Preserve callbacks explicitly
                   onConfigure: n.data.onConfigure,
                   onDelete: n.data.onDelete,
@@ -201,10 +205,10 @@ export default function CreateAutomationV2() {
 
       // Se automação já foi salva (não é temp-), persistir no backend
       if (!automationId.startsWith('temp-')) {
-        console.log('💾 Salvando config do node no backend:', selectedNode.id);
+        console.log('💾 Salvando config do node no backend:', targetNodeId);
         await axios.patch(
-          `${API_BASE_URL}/automations/${automationId}/nodes/${selectedNode.id}/config`,
-          { config }
+          `${API_BASE_URL}/automations/${automationId}/nodes/${targetNodeId}/config`,
+          { params: configToSave, toolId: nodes.find(n => n.id === targetNodeId)?.data?.toolId }
         );
         console.log('✅ Config do node salva no backend');
       } else {
@@ -465,24 +469,37 @@ export default function CreateAutomationV2() {
               </div>
             </div>
             
-            {/* Middle section - Continuous Execution Toggle */}
-            <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={continuousExecution}
-                  onChange={(e) => setContinuousExecution(e.target.checked)}
-                  className="w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500"
-                />
-                <span className="text-sm font-medium text-gray-700">
-                  🔁 Execução Contínua
-                </span>
-              </label>
-              {continuousExecution && (
-                <div className="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium animate-pulse">
-                  LOOP
+            {/* Middle section - Status and Continuous Execution */}
+            <div className="flex items-center gap-3">
+              {/* 🔥 NOVO: Indicador de Status */}
+              {automationId.startsWith('temp-') && (
+                <div className="flex items-center gap-2 px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
+                  <span className="text-sm font-medium text-yellow-700">
+                    Não Salvo
+                  </span>
                 </div>
               )}
+              
+              {/* Continuous Execution Toggle */}
+              <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={continuousExecution}
+                    onChange={(e) => setContinuousExecution(e.target.checked)}
+                    className="w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    🔁 Execução Contínua
+                  </span>
+                </label>
+                {continuousExecution && (
+                  <div className="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium animate-pulse">
+                    LOOP
+                  </div>
+                )}
+              </div>
             </div>
             
             {/* Right section - Action buttons */}
@@ -498,9 +515,9 @@ export default function CreateAutomationV2() {
               
               <button
                 onClick={handleExecute}
-                disabled={isExecuting || nodes.length === 0}
+                disabled={isExecuting || nodes.length === 0 || automationId.startsWith('temp-')} 
                 className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 text-sm md:text-base bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Executar automação"
+                title={automationId.startsWith('temp-') ? 'Salve a automação antes de executar' : 'Executar automação'}
               >
                 <Play className="w-4 h-4 md:w-5 md:h-5" />
                 <span className="hidden sm:inline">{isExecuting ? 'Executando...' : 'Executar'}</span>
