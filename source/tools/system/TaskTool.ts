@@ -4,7 +4,9 @@
  */
 
 import { spawn, ChildProcess } from 'child_process';
-import { nanoid } from 'nanoid';
+import { randomBytes } from 'crypto';
+
+const generateId = () => randomBytes(8).toString('hex');
 
 export interface TaskParams {
   name?: string;
@@ -66,7 +68,7 @@ export class TaskTool {
 
   private async startTask(params: TaskParams): Promise<TaskResult> {
     try {
-      const taskId = nanoid();
+      const taskId = generateId();
       const name = params.name || `task-${taskId}`;
 
       // Parse command
