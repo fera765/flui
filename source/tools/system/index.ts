@@ -15,6 +15,7 @@ import { EditTextTool } from './EditTextTool.js';
 import { ShellTool } from './ShellTool.js';
 import { TaskTool } from './TaskTool.js';
 import { WebFetchTool } from './WebFetchTool.js';
+import { TodoWriteTool } from './TodoWriteTool.js';
 
 /**
  * Adapter to make system tools compatible with ExecutionContext
@@ -204,6 +205,26 @@ export function registerSystemTools(): any[] {
       ],
       execute: async (args: any) => {
         const tool = new WebFetchTool();
+        return await tool.execute(args);
+      },
+    },
+    {
+      id: 'todo-manage',
+      name: 'Todo Management',
+      description: 'Create, update, delete and manage todo tasks',
+      category: 'system',
+      version: '1.0.0',
+      output: { type: 'object', description: 'Todo operation result' },
+      params: [
+        { name: 'action', type: 'string', description: 'Action: create, update, delete, list, clear, stats', required: true },
+        { name: 'id', type: 'string', description: 'Todo ID (for update/delete)', required: false },
+        { name: 'title', type: 'string', description: 'Todo title', required: false },
+        { name: 'description', type: 'string', description: 'Todo description', required: false },
+        { name: 'status', type: 'string', description: 'Status: pending, in_progress, completed, cancelled', required: false },
+        { name: 'priority', type: 'string', description: 'Priority: low, medium, high, urgent', required: false },
+      ],
+      execute: async (args: any) => {
+        const tool = new TodoWriteTool();
         return await tool.execute(args);
       },
     },
