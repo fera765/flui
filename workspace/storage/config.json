@@ -1,5 +1,39 @@
 {
-	"automations": [],
+	"automations": [
+		{
+			"id": "07f496ee89a27823",
+			"name": "Test Trigger Flow",
+			"description": "Testing trigger execution",
+			"nodes": [
+				{
+					"id": "start",
+					"type": "manual-trigger",
+					"name": "Start Trigger",
+					"description": "",
+					"config": {
+						"triggerMessage": "Flow started"
+					},
+					"position": {
+						"x": 0,
+						"y": 0
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [],
+			"startNodeId": "start",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-23T21:54:40.246Z",
+			"updatedAt": "2025-10-23T21:54:40.267Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-23T21:54:40.245Z",
+				"updatedAt": "2025-10-23T21:54:40.245Z"
+			}
+		}
+	],
 	"executions": [],
 	"agents": [],
 	"mcps": [],

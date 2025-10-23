@@ -192,14 +192,23 @@ export class FlowEngineV2 {
         output = await this.executeLoopNode(node, inputData);
       } else if (node.type === 'manual-trigger' || node.type === 'cron-trigger' || node.type === 'webhook-trigger') {
         // Triggers são nodes especiais que apenas iniciam o fluxo
-        output = {
+        // Retornar no formato NodeOutput (array de NodeDataItem)
+        output = [{
           success: true,
-          triggered: true,
-          timestamp: new Date().toISOString(),
-          triggerType: node.type,
-          triggerData: inputData || {},
-          message: node.config.triggerMessage || `Trigger ${node.type} ativado`
-        };
+          data: {
+            triggered: true,
+            timestamp: new Date().toISOString(),
+            triggerType: node.type,
+            triggerData: inputData || {},
+            message: node.config.triggerMessage || `Trigger ${node.type} ativado`
+          },
+          metadata: {
+            nodeId: node.id,
+            nodeName: node.name,
+            nodeType: node.type,
+            executedAt: new Date().toISOString()
+          }
+        }];
       } else {
         throw new Error(`Tipo de node não suportado: ${node.type}`);
       }
