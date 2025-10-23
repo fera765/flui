@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * FLUI CLI - Backend API Server
+ * FLUI API - Backend Server
  * 
- * CLI simplificada que apenas inicia o servidor API
- * Toda interação é feita via API REST (frontend ou HTTP clients)
+ * Entry point that starts the API server
+ * All interactions are done via REST API
  */
 
 import { startApiServer } from './services/apiServer.js';
@@ -13,13 +13,13 @@ console.log(`
 ║                                                                            ║
 ║                            🚀 FLUI API SERVER 🚀                          ║
 ║                                                                            ║
-║                     Backend API para Automações Inteligentes              ║
+║                     Backend API for Intelligent Automation                ║
 ║                                                                            ║
 ╚═══════════════════════════════════════════════════════════════════════════╝
 `);
 
-// Iniciar servidor API
+// Start API server
 startApiServer();
 
-console.log('\n✅ Use o frontend (http://localhost:5173) para interagir com o sistema');
-console.log('📡 API REST disponível em http://localhost:3001\n');
+console.log('\n✅ API Server started successfully');
+console.log('📡 API REST available at http://localhost:3001\n');

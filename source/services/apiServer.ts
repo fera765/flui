@@ -248,17 +248,16 @@ app.post('/api/automations/:id/execute', async (req: Request, res: Response) => 
     
     console.log(`📦 [API] Sandbox criado: ${sandboxPath}`);
 
-    console.log('✨ [API] Importando ExecutionEngineV3...');
-    // Converter para ExecutionFlow (formato do novo engine)
-    const { ExecutionEngineV3 } = await import('./executionEngine.js');
-    console.log('✅ [API] ExecutionEngineV3 importado com sucesso!');
+    console.log('✨ [API] Using FlowEngineV2 for execution...');
     
     const executionFlow = {
       id: automation.id,
       name: automation.name,
+      description: automation.description || '',
+      version: automation.version || '1.0',
       nodes: automation.nodes.map(node => ({
         id: node.id,
-        type: node.config?.toolId || node.type || 'shell-executor', // Usar toolId como type
+        type: node.config?.toolId || node.type || 'tool',
         name: node.name,
         config: node.config || {},
         position: node.position,
@@ -274,31 +273,16 @@ app.post('/api/automations/:id/execute', async (req: Request, res: Response) => 
 
     // Coletar logs e atualizações de nodes em tempo real
     const allLogs: any[] = [];
-    const nodeResults: any[] = [];
 
-    const engine = new ExecutionEngineV3(
+    const engine = new FlowEngineV2(
       executionFlow,
-      {
-        debugMode: req.body.debugMode || false,
-        enableCache: req.body.enableCache !== false,
-        maxRetries: req.body.maxRetries || 3,
-      },
-      (log) => {
+      (log: FlowExecutionLog) => {
         allLogs.push(log);
         // Broadcast em tempo real via WebSocket
         broadcast({
           type: 'execution-log',
           automationId: automation.id,
           log,
-        });
-      },
-      (nodeResult) => {
-        nodeResults.push(nodeResult);
-        // Broadcast atualização de node em tempo real
-        broadcast({
-          type: 'node-update',
-          automationId: automation.id,
-          nodeResult,
         });
       }
     );
@@ -308,8 +292,7 @@ app.post('/api/automations/:id/execute', async (req: Request, res: Response) => 
 
     console.log('✅ [API] Execução concluída:', {
       status: result.status,
-      duration: result.duration,
-      nodesExecuted: result.nodes.size,
+      logsCount: result.logs.length,
     });
 
     // Atualizar runCount e metadata
@@ -335,13 +318,12 @@ app.post('/api/automations/:id/execute', async (req: Request, res: Response) => 
       success: result.status === 'completed',
       executionId: result.id,
       status: result.status,
-      startTime: result.startTime,
-      endTime: result.endTime,
-      duration: result.duration,
-      finalOutput: result.finalOutput,
-      error: result.error,
+      startedAt: result.startedAt,
+      completedAt: result.completedAt,
       logs: allLogs,
-      nodes: Array.from(result.nodes.values()),
+      nodeResults: result.nodeResults,
+      result: result.result,
+      error: result.error,
     });
   } catch (error: any) {
     console.error('❌ [API] Erro na execução:', error);
@@ -1171,12 +1153,12 @@ app.post('/api/automations/:automationId/nodes/:nodeId/test', async (req: Reques
       return res.status(400).json({ error: 'Nenhum node encontrado para teste' });
     }
     
-    // Converter para ExecutionFlow (formato do ExecutionEngineV3)
-    const { ExecutionEngineV3 } = await import('./executionEngine.js');
-    
+    // Use FlowEngineV2 for test execution
     const executionFlow = {
       id: automationId || 'test-flow',
       name: 'Test Node Flow',
+      description: 'Testing node execution',
+      version: '1.0',
       nodes: flowNodes.map((n: any) => ({
         id: n.id,
         type: n.type || 'tool',
@@ -1205,18 +1187,10 @@ app.post('/api/automations/:automationId/nodes/:nodeId/test', async (req: Reques
     const allLogs: any[] = [];
     const nodeResults: any[] = [];
     
-    const engine = new ExecutionEngineV3(
+    const engine = new FlowEngineV2(
       executionFlow,
-      {
-        debugMode: true,
-        enableCache: false, // Desabilitar cache para testes
-        maxRetries: 0, // Sem retry em testes
-      },
-      (log) => {
+      (log: FlowExecutionLog) => {
         allLogs.push(log);
-      },
-      (nodeResult) => {
-        nodeResults.push(nodeResult);
       }
     );
     
@@ -1225,8 +1199,7 @@ app.post('/api/automations/:automationId/nodes/:nodeId/test', async (req: Reques
     
     console.log('✅ [API] Teste de node concluído:', {
       status: result.status,
-      duration: result.duration,
-      nodesExecuted: result.nodes.size,
+      logsCount: result.logs.length,
     });
     
     // Pegar resultado específico do node testado
@@ -1237,10 +1210,8 @@ app.post('/api/automations/:automationId/nodes/:nodeId/test', async (req: Reques
       nodeId,
       result: nodeOutput,
       status: result.status,
-      duration: result.duration,
       logs: allLogs,
-      nodes: Array.from(result.nodes.values()),
-      finalOutput: result.finalOutput,
+      nodeResults: result.nodeResults,
       error: result.error,
     });
   } catch (error: any) {
