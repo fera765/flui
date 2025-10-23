@@ -97,6 +97,27 @@ export class ToolRegistry {
   }
 
   /**
+   * Get all registered tools
+   */
+  getAllTools(): RegisteredTool[] {
+    return Array.from(this.tools.values());
+  }
+
+  /**
+   * Get a specific tool by ID (alias for get)
+   */
+  getTool(toolId: string): RegisteredTool | undefined {
+    return this.get(toolId);
+  }
+
+  /**
+   * Get tools by category
+   */
+  getToolsByCategory(category: string): RegisteredTool[] {
+    return Array.from(this.tools.values()).filter(t => t.category === category);
+  }
+
+  /**
    * Lista todas as ferramentas (com filtros opcionais e paginação)
    */
   list(filter?: ToolFilter & { page?: number; pageSize?: number }): {

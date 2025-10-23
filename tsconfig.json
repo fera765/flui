@@ -18,8 +18,8 @@
     "declarationMap": true,
     "sourceMap": true,
     "allowSyntheticDefaultImports": true,
-    "types": ["node", "jest"]
+    "types": ["node"]
   },
-  "include": ["source/**/*", "__tests__/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["source/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/__tests__/**"]
 }
