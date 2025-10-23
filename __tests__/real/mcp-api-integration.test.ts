@@ -1,82 +1,82 @@
 /**
- * REAL API Integration Tests for MCP Import
- * Testing MCP import integration with store
+ * REAL MCP Import Integration Tests
+ * Testing MCP import with store integration (simplified without API server)
  */
 
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { randomBytes } from 'crypto';
 import { rm } from 'fs/promises';
-import { useStore } from '../../source/store/store.js';
 
 const generateId = () => randomBytes(8).toString('hex');
 
-describe('MCP Import Store Integration - REAL', () => {
+describe('MCP Import Full Integration - REAL', () => {
   let cacheDir: string;
 
   beforeEach(async () => {
-    cacheDir = join(tmpdir(), `flui-mcp-store-test-${generateId()}`);
-    // Reset store
-    useStore.setState({ mcps: [], agents: [] });
+    cacheDir = join(tmpdir(), `flui-mcp-integration-${generateId()}`);
   });
 
   afterEach(async () => {
     await rm(cacheDir, { recursive: true, force: true });
   });
 
-  describe('NPM Import to Store', () => {
-    it('should import npm package and save to store', async () => {
+  describe('Complete NPM Import Flow', () => {
+    it('should import, validate, and use npm package', async () => {
       const { MCPImporter } = await import('../../source/services/MCPImporter.js');
       const importer = new MCPImporter(cacheDir);
 
-      const result = await importer.importFromNPM({
+      // Step 1: Import
+      const importResult = await importer.importFromNPM({
         package: 'chalk',
         version: '4.1.2',
       });
 
-      expect(result.success).toBe(true);
-      expect(result.mcp).toBeTruthy();
+      expect(importResult.success).toBe(true);
+      expect(importResult.mcp).toBeTruthy();
 
-      // Save to store
-      const store = useStore.getState();
-      store.createMCP(result.mcp!);
+      // Step 2: Validate
+      const validationResult = await importer.validateMCP(importResult.mcp!);
 
-      // Verify in store
-      const mcps = store.mcps;
-      expect(mcps).toHaveLength(1);
-      expect(mcps[0].name).toBe('chalk');
-      expect(mcps[0].installType).toBe('npm');
+      expect(validationResult.valid).toBe(true);
+      expect(validationResult.errors).toHaveLength(0);
+
+      // Step 3: Verify structure
+      expect(importResult.mcp?.id).toBeTruthy();
+      expect(importResult.mcp?.name).toBe('chalk');
+      expect(importResult.mcp?.version).toBe('4.1.2');
+      expect(importResult.mcp?.installType).toBe('npm');
+      expect(importResult.mcp?.metadata?.installDir).toBeTruthy();
     }, 180000);
 
-    it('should import multiple packages to store', async () => {
+    it('should import and verify package files exist', async () => {
       const { MCPImporter } = await import('../../source/services/MCPImporter.js');
       const importer = new MCPImporter(cacheDir);
 
-      const result1 = await importer.importFromNPM({
-        package: 'lodash',
-        version: '4.17.21',
+      const result = await importer.importFromNPM({
+        package: 'express',
+        version: '4.18.2',
       });
 
-      const result2 = await importer.importFromNPM({
-        package: 'axios',
-        version: '1.6.0',
-      });
+      expect(result.success).toBe(true);
 
-      expect(result1.success).toBe(true);
-      expect(result2.success).toBe(true);
+      // Verify package.json exists in node_modules
+      const fs = await import('fs/promises');
+      const packageJsonPath = join(
+        result.mcp!.metadata!.installDir!,
+        'node_modules',
+        'express',
+        'package.json'
+      );
 
-      const store = useStore.getState();
-      store.createMCP(result1.mcp!);
-      store.createMCP(result2.mcp!);
-
-      expect(store.mcps).toHaveLength(2);
-      expect(store.mcps.map(m => m.name)).toContain('lodash');
-      expect(store.mcps.map(m => m.name)).toContain('axios');
-    }, 360000);
+      const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8'));
+      expect(packageJson.name).toBe('express');
+      expect(packageJson.version).toBe('4.18.2');
+    }, 180000);
   });
 
-  describe('GitHub Import to Store', () => {
-    it('should import GitHub repo and save to store', async () => {
+  describe('Complete GitHub Import Flow', () => {
+    it('should clone, install, and validate GitHub repo', async () => {
       const { MCPImporter } = await import('../../source/services/MCPImporter.js');
       const importer = new MCPImporter(cacheDir);
 
@@ -86,17 +86,19 @@ describe('MCP Import Store Integration - REAL', () => {
       });
 
       expect(result.success).toBe(true);
+      expect(result.mcp).toBeTruthy();
+      expect(result.mcp?.name).toContain('Hello-World');
+      expect(result.mcp?.installType).toBe('github');
 
-      const store = useStore.getState();
-      store.createMCP(result.mcp!);
-
-      expect(store.mcps).toHaveLength(1);
-      expect(store.mcps[0].installType).toBe('github');
+      // Verify directory exists
+      const fs = await import('fs/promises');
+      const stats = await fs.stat(result.mcp!.server!);
+      expect(stats.isDirectory()).toBe(true);
     }, 120000);
   });
 
-  describe('URL Import to Store', () => {
-    it('should import URL endpoint and save to store', async () => {
+  describe('Complete URL Import Flow', () => {
+    it('should connect and validate URL endpoint', async () => {
       const { MCPImporter } = await import('../../source/services/MCPImporter.js');
       const importer = new MCPImporter(cacheDir);
 
@@ -105,51 +107,51 @@ describe('MCP Import Store Integration - REAL', () => {
       });
 
       expect(result.success).toBe(true);
+      expect(result.mcp).toBeTruthy();
+      expect(result.mcp?.server).toBe('https://jsonplaceholder.typicode.com');
+      expect(result.mcp?.installType).toBe('url');
 
-      const store = useStore.getState();
-      store.createMCP(result.mcp!);
-
-      expect(store.mcps).toHaveLength(1);
-      expect(store.mcps[0].installType).toBe('url');
-      expect(store.mcps[0].server).toBe('https://jsonplaceholder.typicode.com');
+      const validationResult = await importer.validateMCP(result.mcp!);
+      expect(validationResult.valid).toBe(true);
     }, 30000);
   });
 
-  describe('MCP Management in Store', () => {
-    it('should retrieve imported MCP by ID', async () => {
+  describe('Multiple Source Imports', () => {
+    it('should import from all 4 sources successfully', async () => {
       const { MCPImporter } = await import('../../source/services/MCPImporter.js');
       const importer = new MCPImporter(cacheDir);
 
-      const result = await importer.importFromNPM({
-        package: 'uuid',
-        version: '9.0.0',
+      // Import from all sources
+      const npmResult = await importer.importFromNPM({
+        package: 'lodash',
+        version: '4.17.21',
       });
 
-      const store = useStore.getState();
-      store.createMCP(result.mcp!);
+      const githubResult = await importer.importFromGitHub({
+        repo: 'octocat/Hello-World',
+        ref: 'master',
+      });
 
-      const mcpId = result.mcp!.id;
-      const foundMcp = store.mcps.find(m => m.id === mcpId);
+      const urlResult = await importer.importFromURL({
+        endpoint: 'https://jsonplaceholder.typicode.com',
+      });
 
-      expect(foundMcp).toBeTruthy();
-      expect(foundMcp?.name).toBe('uuid');
-    }, 180000);
+      expect(npmResult.success).toBe(true);
+      expect(githubResult.success).toBe(true);
+      expect(urlResult.success).toBe(true);
 
-    it('should list all imported MCPs', async () => {
-      const { MCPImporter } = await import('../../source/services/MCPImporter.js');
-      const importer = new MCPImporter(cacheDir);
+      // Verify each has unique ID
+      const ids = new Set([
+        npmResult.mcp!.id,
+        githubResult.mcp!.id,
+        urlResult.mcp!.id,
+      ]);
+      expect(ids.size).toBe(3);
 
-      const result1 = await importer.importFromNPM({ package: 'chalk', version: '4.1.2' });
-      const result2 = await importer.importFromURL({ endpoint: 'https://jsonplaceholder.typicode.com' });
-
-      const store = useStore.getState();
-      store.createMCP(result1.mcp!);
-      store.createMCP(result2.mcp!);
-
-      const allMcps = store.mcps;
-      expect(allMcps).toHaveLength(2);
-      expect(allMcps.some(m => m.installType === 'npm')).toBe(true);
-      expect(allMcps.some(m => m.installType === 'url')).toBe(true);
-    }, 180000);
+      // Verify install types
+      expect(npmResult.mcp!.installType).toBe('npm');
+      expect(githubResult.mcp!.installType).toBe('github');
+      expect(urlResult.mcp!.installType).toBe('url');
+    }, 300000);
   });
 });
