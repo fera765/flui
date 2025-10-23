@@ -1732,6 +1732,23 @@
 			},
 			"createdAt": "2025-10-23T09:35:44.809Z",
 			"updatedAt": "2025-10-23T09:35:44.809Z"
+		},
+		{
+			"id": "real-ui-test-1761215661988",
+			"name": "Real UI Test Agent 1761215661988",
+			"model": "deepseek-v3.1",
+			"systemPrompt": "Assistente de teste UI real",
+			"temperature": 0.7,
+			"maxTokens": 50,
+			"enabled": true,
+			"tools": [],
+			"metadata": {
+				"createdAt": "2025-10-23T10:34:22.040Z",
+				"updatedAt": "2025-10-23T10:34:22.040Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-23T10:34:22.040Z",
+			"updatedAt": "2025-10-23T10:34:22.040Z"
 		}
 	],
 	"mcps": [],
