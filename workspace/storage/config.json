@@ -220,6 +220,68 @@
 				"createdAt": "2025-10-23T04:54:35.813Z",
 				"updatedAt": "2025-10-23T04:54:35.813Z"
 			}
+		},
+		{
+			"id": "test-config-persist-1761196182",
+			"name": "Test Config Persistence",
+			"description": "",
+			"nodes": [
+				{
+					"id": "node-trigger",
+					"type": "trigger",
+					"name": "Trigger",
+					"description": "",
+					"config": {
+						"toolId": "manual-trigger",
+						"params": {
+							"debugMode": true
+						}
+					},
+					"position": {
+						"x": 0,
+						"y": 0
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-agent",
+					"type": "agent",
+					"name": "Agent",
+					"description": "",
+					"config": {
+						"toolId": "agent-test-agent-1761196182",
+						"category": "agent",
+						"params": {
+							"prompt": "Diga olá de forma curta!",
+							"temperature": 0.8
+						}
+					},
+					"position": {
+						"x": 0,
+						"y": 0
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "e1",
+					"source": "node-trigger",
+					"target": "node-agent"
+				}
+			],
+			"startNodeId": "node-trigger",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-23T05:09:42.667Z",
+			"updatedAt": "2025-10-23T05:09:54.155Z",
+			"runCount": 1,
+			"metadata": {
+				"createdAt": "2025-10-23T05:09:42.667Z",
+				"updatedAt": "2025-10-23T05:09:54.155Z",
+				"lastRunAt": "2025-10-23T05:09:54.155Z"
+			}
 		}
 	],
 	"executions": [],
@@ -258,6 +320,23 @@
 			},
 			"createdAt": "2025-10-23T02:46:19.742Z",
 			"updatedAt": "2025-10-23T02:46:19.742Z"
+		},
+		{
+			"id": "test-agent-1761196182",
+			"name": "Test Agent Config",
+			"model": "deepseek-v3.1",
+			"systemPrompt": "Você é um assistente útil.",
+			"temperature": 0.7,
+			"maxTokens": 100,
+			"enabled": true,
+			"tools": [],
+			"metadata": {
+				"createdAt": "2025-10-23T05:09:42.630Z",
+				"updatedAt": "2025-10-23T05:09:42.630Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-23T05:09:42.630Z",
+			"updatedAt": "2025-10-23T05:09:42.630Z"
 		}
 	],
 	"mcps": [],

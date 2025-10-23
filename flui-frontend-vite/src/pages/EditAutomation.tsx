@@ -609,9 +609,15 @@ export default function EditAutomation() {
             setSelectedNode(null);
           }}
           onSave={(savedNodeId?: string, savedConfig?: any) => {
-            // ✅ FIX: Atualizar estado local imediatamente ao invés de recarregar tudo
-            // NodeConfigurationModalV2 já chama handleSaveNodeConfig que persiste no backend
-            // Apenas fechar modal aqui
+            // ✅ FIX CRÍTICO: Atualizar estado React imediatamente após salvar no backend
+            // Isso garante que quando clicar em "Salvar Automação", os dados estejam atualizados
+            if (savedNodeId && savedConfig) {
+              console.log('📝 [EditAutomation] Atualizando estado local após salvar config:', {
+                nodeId: savedNodeId,
+                config: savedConfig
+              });
+              handleSaveNodeConfig(savedNodeId, savedConfig);
+            }
             setConfigPanelOpen(false);
             setSelectedNode(null);
           }}
