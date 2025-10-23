@@ -135,7 +135,8 @@ export default function EditAutomation() {
           color: node.config?.color,
           icon: node.config?.icon,
           status: 'idle',
-          config: node.config?.params || {},
+          // 🔥 FIX: Corrigir estrutura de dados - config pode ter params ou ser diretamente os params
+          config: node.config?.params || node.config || {},
           onConfigure: () => handleConfigureNode(node.id),
           onDelete: () => handleDeleteNode(node.id),
         },
@@ -219,32 +220,52 @@ export default function EditAutomation() {
   }, [nodes, setNodes, setEdges, handleConfigureNode, handleDeleteNode]);
 
   // Salvar configuração do nó
-  const handleSaveNodeConfig = (nodeIdParam?: string, configParam?: any) => {
+  const handleSaveNodeConfig = async (nodeIdParam?: string, configParam?: any) => {
     // 🔥 FIX: Aceitar parâmetros opcionais do NodeConfigurationModalV2
     const targetNodeId = nodeIdParam || selectedNode?.id;
     const configToSave = configParam !== undefined ? configParam : selectedNode?.data?.config;
     
     if (!targetNodeId) return;
 
-    setNodes((nds) =>
-      nds.map((n) =>
-        n.id === targetNodeId
-          ? {
-              ...n,
-              data: {
-                ...n.data,
-                config: configToSave,
-                // Preserve callbacks explicitly
-                onConfigure: n.data.onConfigure,
-                onDelete: n.data.onDelete,
-              },
-            }
-          : n
-      )
-    );
-    
-    setConfigPanelOpen(false);
-    setSelectedNode(null);
+    try {
+      // Atualizar node localmente
+      setNodes((nds) =>
+        nds.map((n) =>
+          n.id === targetNodeId
+            ? {
+                ...n,
+                data: {
+                  ...n.data,
+                  config: configToSave,
+                  // Preserve callbacks explicitly
+                  onConfigure: n.data.onConfigure,
+                  onDelete: n.data.onDelete,
+                },
+              }
+            : n
+        )
+      );
+
+      // 🔥 FIX: Persistir no backend para automações salvas
+      if (id) {
+        console.log('💾 Salvando config do node no backend:', targetNodeId);
+        await fetch(`http://localhost:3001/api/automations/${id}/nodes/${targetNodeId}/config`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            params: configToSave, 
+            toolId: nodes.find(n => n.id === targetNodeId)?.data?.toolId 
+          }),
+        });
+        console.log('✅ Config do node salva no backend');
+      }
+      
+      setConfigPanelOpen(false);
+      setSelectedNode(null);
+    } catch (error) {
+      console.error('❌ Erro ao salvar config do node:', error);
+      alert('Erro ao salvar configuração do nó');
+    }
   };
 
   // Testar nó
@@ -280,6 +301,7 @@ export default function EditAutomation() {
           category: node.data.category,
           color: node.data.color,
           icon: node.data.icon,
+          // 🔥 FIX: Manter estrutura consistente - params dentro de config
           params: node.data.config || {},
         },
         position: node.position,
