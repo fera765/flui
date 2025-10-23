@@ -188,18 +188,19 @@ export default function EditAutomation() {
     const nodeId = `node-${Date.now()}`;
     const newNode: Node = {
       id: nodeId,
-      type: tool.category || 'tool', // 🔥 FIX: Usar categoria da tool como type
+      type: tool.category || 'tool',
       position: { x: xPosition, y: yPosition },
       data: {
         label: tool.name,
         description: tool.description,
         toolId: tool.id,
         category: tool.category,
-        toolType: tool.category, // ✅ FIX: ElegantNode precisa de toolType
-        type: tool.category, // Para compatibilidade
+        toolType: tool.category,
+        type: tool.category,
         color: tool.ui.color,
         icon: tool.ui.icon,
         status: 'idle',
+        config: {}, // ✅ FIX CRÍTICO: Inicializar config vazio para evitar erro ao abrir modal
         onConfigure: () => handleConfigureNode(nodeId),
         onDelete: () => handleDeleteNode(nodeId),
       },

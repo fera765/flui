@@ -728,6 +728,664 @@
 				"updatedAt": "2025-10-23T07:20:02.167Z",
 				"lastRunAt": "2025-10-23T07:20:02.167Z"
 			}
+		},
+		{
+			"id": "test-workflow-1761209845",
+			"name": "Workflow Test Empty",
+			"description": "Automação vazia para teste",
+			"nodes": [
+				{
+					"id": "node-1",
+					"type": "trigger",
+					"name": "Trigger",
+					"description": "",
+					"config": {
+						"toolId": "manual-trigger",
+						"category": "system",
+						"params": {}
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-2",
+					"type": "agent",
+					"name": "Agente Novo",
+					"description": "",
+					"config": {
+						"toolId": "agent-test-workflow-agent-1761209845",
+						"category": "agent",
+						"params": {
+							"prompt": "Config atualizado após salvar",
+							"temperature": 0.9
+						}
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "e1",
+					"source": "node-1",
+					"target": "node-2"
+				}
+			],
+			"startNodeId": "node-1",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-23T08:57:25.427Z",
+			"updatedAt": "2025-10-23T08:57:25.920Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-23T08:57:25.426Z",
+				"updatedAt": "2025-10-23T08:57:25.426Z"
+			}
+		},
+		{
+			"id": "final-test-1761210002",
+			"name": "Final Test Auto",
+			"description": "",
+			"nodes": [
+				{
+					"id": "node-1",
+					"type": "trigger",
+					"name": "Trigger",
+					"description": "",
+					"config": {
+						"toolId": "manual-trigger",
+						"params": {}
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-2",
+					"type": "agent",
+					"name": "New Agent",
+					"description": "",
+					"config": {
+						"toolId": "agent-final-test-agent-1761210002",
+						"category": "agent",
+						"params": {
+							"prompt": "Config após salvar",
+							"temperature": 0.9
+						}
+					},
+					"position": {
+						"x": 0,
+						"y": 0
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "e1",
+					"source": "node-1",
+					"target": "node-2"
+				}
+			],
+			"startNodeId": "node-1",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-23T09:00:02.488Z",
+			"updatedAt": "2025-10-23T09:00:02.666Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-23T09:00:02.488Z",
+				"updatedAt": "2025-10-23T09:00:02.488Z"
+			}
+		},
+		{
+			"id": "chain-test-1761210002",
+			"name": "Chain Test",
+			"description": "",
+			"nodes": [
+				{
+					"id": "n1",
+					"type": "trigger",
+					"name": "Trigger",
+					"description": "",
+					"config": {
+						"toolId": "manual-trigger",
+						"params": {
+							"msg": "Inicio"
+						}
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "n2",
+					"type": "agent",
+					"name": "Agent 1",
+					"description": "",
+					"config": {
+						"toolId": "agent-final-test-agent-1761210002",
+						"params": {
+							"prompt": "Versão Final",
+							"temperature": 0.9
+						}
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "n3",
+					"type": "agent",
+					"name": "Agent 2",
+					"description": "",
+					"config": {
+						"toolId": "agent-final-test-agent-1761210002",
+						"params": {
+							"prompt": "{{n2.response}}"
+						}
+					},
+					"position": {
+						"x": 700,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "n4",
+					"type": "agent",
+					"name": "Agent 3",
+					"description": "",
+					"config": {
+						"toolId": "agent-final-test-agent-1761210002",
+						"params": {
+							"prompt": "{{n3.response}}"
+						}
+					},
+					"position": {
+						"x": 1000,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "e1",
+					"source": "n1",
+					"target": "n2"
+				},
+				{
+					"id": "e2",
+					"source": "n2",
+					"target": "n3"
+				},
+				{
+					"id": "e3",
+					"source": "n3",
+					"target": "n4"
+				}
+			],
+			"startNodeId": "n1",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-23T09:00:02.740Z",
+			"updatedAt": "2025-10-23T09:00:09.763Z",
+			"runCount": 1,
+			"metadata": {
+				"createdAt": "2025-10-23T09:00:02.740Z",
+				"updatedAt": "2025-10-23T09:00:09.763Z",
+				"lastRunAt": "2025-10-23T09:00:09.763Z"
+			}
+		},
+		{
+			"id": "seq-test-1761210002",
+			"name": "Sequential Add Test",
+			"description": "",
+			"nodes": [
+				{
+					"id": "seq-node-1",
+					"type": "agent",
+					"name": "Agent 1",
+					"description": "",
+					"config": {
+						"toolId": "agent-final-test-agent-1761210002",
+						"category": "agent",
+						"params": {
+							"prompt": "Node 1",
+							"temperature": 0.1
+						}
+					},
+					"position": {
+						"x": 300,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "seq-node-2",
+					"type": "agent",
+					"name": "Agent 2",
+					"description": "",
+					"config": {
+						"toolId": "agent-final-test-agent-1761210002",
+						"category": "agent",
+						"params": {
+							"prompt": "Node 2",
+							"temperature": 0.2
+						}
+					},
+					"position": {
+						"x": 600,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "seq-node-3",
+					"type": "agent",
+					"name": "Agent 3",
+					"description": "",
+					"config": {
+						"toolId": "agent-final-test-agent-1761210002",
+						"category": "agent",
+						"params": {
+							"prompt": "Node 3",
+							"temperature": 0.3
+						}
+					},
+					"position": {
+						"x": 900,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "seq-node-4",
+					"type": "agent",
+					"name": "Agent 4",
+					"description": "",
+					"config": {
+						"toolId": "agent-final-test-agent-1761210002",
+						"category": "agent",
+						"params": {
+							"prompt": "Node 4",
+							"temperature": 0.4
+						}
+					},
+					"position": {
+						"x": 1200,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "seq-node-5",
+					"type": "agent",
+					"name": "Agent 5",
+					"description": "",
+					"config": {
+						"toolId": "agent-final-test-agent-1761210002",
+						"category": "agent",
+						"params": {
+							"prompt": "Node 5",
+							"temperature": 0.5
+						}
+					},
+					"position": {
+						"x": 1500,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "e-seq-1",
+					"source": "seq-node-1",
+					"target": "seq-node-2"
+				},
+				{
+					"id": "e-seq-2",
+					"source": "seq-node-2",
+					"target": "seq-node-3"
+				},
+				{
+					"id": "e-seq-3",
+					"source": "seq-node-3",
+					"target": "seq-node-4"
+				},
+				{
+					"id": "e-seq-4",
+					"source": "seq-node-4",
+					"target": "seq-node-5"
+				}
+			],
+			"startNodeId": "seq-node-1",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-23T09:00:03.011Z",
+			"updatedAt": "2025-10-23T09:00:03.548Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-23T09:00:03.011Z",
+				"updatedAt": "2025-10-23T09:00:03.011Z"
+			}
+		},
+		{
+			"id": "final-test-1761210306",
+			"name": "Final Test Auto",
+			"description": "",
+			"nodes": [
+				{
+					"id": "node-1",
+					"type": "trigger",
+					"name": "Trigger",
+					"description": "",
+					"config": {
+						"toolId": "manual-trigger",
+						"params": {}
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-2",
+					"type": "agent",
+					"name": "New Agent",
+					"description": "",
+					"config": {
+						"toolId": "agent-final-test-agent-1761210306",
+						"category": "agent",
+						"params": {
+							"prompt": "Config após salvar",
+							"temperature": 0.9
+						}
+					},
+					"position": {
+						"x": 0,
+						"y": 0
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "e1",
+					"source": "node-1",
+					"target": "node-2"
+				}
+			],
+			"startNodeId": "node-1",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-23T09:05:06.507Z",
+			"updatedAt": "2025-10-23T09:05:06.662Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-23T09:05:06.507Z",
+				"updatedAt": "2025-10-23T09:05:06.507Z"
+			}
+		},
+		{
+			"id": "chain-test-1761210306",
+			"name": "Chain Test",
+			"description": "",
+			"nodes": [
+				{
+					"id": "n1",
+					"type": "trigger",
+					"name": "Trigger",
+					"description": "",
+					"config": {
+						"toolId": "manual-trigger",
+						"params": {
+							"msg": "Inicio"
+						}
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "n2",
+					"type": "agent",
+					"name": "Agent 1",
+					"description": "",
+					"config": {
+						"toolId": "agent-final-test-agent-1761210306",
+						"params": {
+							"prompt": "Versão Final",
+							"temperature": 0.9
+						}
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "n3",
+					"type": "agent",
+					"name": "Agent 2",
+					"description": "",
+					"config": {
+						"toolId": "agent-final-test-agent-1761210306",
+						"params": {
+							"prompt": "{{n2.response}}"
+						}
+					},
+					"position": {
+						"x": 700,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "n4",
+					"type": "agent",
+					"name": "Agent 3",
+					"description": "",
+					"config": {
+						"toolId": "agent-final-test-agent-1761210306",
+						"params": {
+							"prompt": "{{n3.response}}"
+						}
+					},
+					"position": {
+						"x": 1000,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "e1",
+					"source": "n1",
+					"target": "n2"
+				},
+				{
+					"id": "e2",
+					"source": "n2",
+					"target": "n3"
+				},
+				{
+					"id": "e3",
+					"source": "n3",
+					"target": "n4"
+				}
+			],
+			"startNodeId": "n1",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-23T09:05:06.747Z",
+			"updatedAt": "2025-10-23T09:05:32.219Z",
+			"runCount": 1,
+			"metadata": {
+				"createdAt": "2025-10-23T09:05:06.747Z",
+				"updatedAt": "2025-10-23T09:05:32.219Z",
+				"lastRunAt": "2025-10-23T09:05:32.219Z"
+			}
+		},
+		{
+			"id": "seq-test-1761210307",
+			"name": "Sequential Add Test",
+			"description": "",
+			"nodes": [
+				{
+					"id": "seq-node-1",
+					"type": "agent",
+					"name": "Agent 1",
+					"description": "",
+					"config": {
+						"toolId": "agent-final-test-agent-1761210306",
+						"category": "agent",
+						"params": {
+							"prompt": "Node 1",
+							"temperature": 0.1
+						}
+					},
+					"position": {
+						"x": 300,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "seq-node-2",
+					"type": "agent",
+					"name": "Agent 2",
+					"description": "",
+					"config": {
+						"toolId": "agent-final-test-agent-1761210306",
+						"category": "agent",
+						"params": {
+							"prompt": "Node 2",
+							"temperature": 0.2
+						}
+					},
+					"position": {
+						"x": 600,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "seq-node-3",
+					"type": "agent",
+					"name": "Agent 3",
+					"description": "",
+					"config": {
+						"toolId": "agent-final-test-agent-1761210306",
+						"category": "agent",
+						"params": {
+							"prompt": "Node 3",
+							"temperature": 0.3
+						}
+					},
+					"position": {
+						"x": 900,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "seq-node-4",
+					"type": "agent",
+					"name": "Agent 4",
+					"description": "",
+					"config": {
+						"toolId": "agent-final-test-agent-1761210306",
+						"category": "agent",
+						"params": {
+							"prompt": "Node 4",
+							"temperature": 0.4
+						}
+					},
+					"position": {
+						"x": 1200,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "seq-node-5",
+					"type": "agent",
+					"name": "Agent 5",
+					"description": "",
+					"config": {
+						"toolId": "agent-final-test-agent-1761210306",
+						"category": "agent",
+						"params": {
+							"prompt": "Node 5",
+							"temperature": 0.5
+						}
+					},
+					"position": {
+						"x": 1500,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "e-seq-1",
+					"source": "seq-node-1",
+					"target": "seq-node-2"
+				},
+				{
+					"id": "e-seq-2",
+					"source": "seq-node-2",
+					"target": "seq-node-3"
+				},
+				{
+					"id": "e-seq-3",
+					"source": "seq-node-3",
+					"target": "seq-node-4"
+				},
+				{
+					"id": "e-seq-4",
+					"source": "seq-node-4",
+					"target": "seq-node-5"
+				}
+			],
+			"startNodeId": "seq-node-1",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-23T09:05:07.047Z",
+			"updatedAt": "2025-10-23T09:05:07.821Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-23T09:05:07.047Z",
+				"updatedAt": "2025-10-23T09:05:07.047Z"
+			}
 		}
 	],
 	"executions": [],
@@ -834,6 +1492,57 @@
 			},
 			"createdAt": "2025-10-23T07:19:46.432Z",
 			"updatedAt": "2025-10-23T07:19:46.432Z"
+		},
+		{
+			"id": "test-workflow-agent-1761209845",
+			"name": "Workflow Test Agent",
+			"model": "deepseek-v3.1",
+			"systemPrompt": "Assistente de teste",
+			"temperature": 0.7,
+			"maxTokens": 50,
+			"enabled": true,
+			"tools": [],
+			"metadata": {
+				"createdAt": "2025-10-23T08:57:25.377Z",
+				"updatedAt": "2025-10-23T08:57:25.377Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-23T08:57:25.377Z",
+			"updatedAt": "2025-10-23T08:57:25.377Z"
+		},
+		{
+			"id": "final-test-agent-1761210002",
+			"name": "Final Test",
+			"model": "deepseek-v3.1",
+			"systemPrompt": "Test",
+			"temperature": 0.7,
+			"maxTokens": 50,
+			"enabled": true,
+			"tools": [],
+			"metadata": {
+				"createdAt": "2025-10-23T09:00:02.452Z",
+				"updatedAt": "2025-10-23T09:00:02.452Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-23T09:00:02.452Z",
+			"updatedAt": "2025-10-23T09:00:02.452Z"
+		},
+		{
+			"id": "final-test-agent-1761210306",
+			"name": "Final Test",
+			"model": "deepseek-v3.1",
+			"systemPrompt": "Test",
+			"temperature": 0.7,
+			"maxTokens": 50,
+			"enabled": true,
+			"tools": [],
+			"metadata": {
+				"createdAt": "2025-10-23T09:05:06.465Z",
+				"updatedAt": "2025-10-23T09:05:06.465Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-23T09:05:06.465Z",
+			"updatedAt": "2025-10-23T09:05:06.465Z"
 		}
 	],
 	"mcps": [],
