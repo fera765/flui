@@ -1,0 +1,168 @@
+/* 
+ * Flui - Theme System
+ * 3 Elegant Themes: Dark, Ocean, Sunset
+ */
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+  }
+}
+
+/* ========================================
+   THEME 1: DARK (Default)
+   Elegant dark theme with purple accents
+   ======================================== */
+.theme-dark {
+  --background: 224 71% 4%;
+  --foreground: 213 31% 91%;
+
+  --card: 224 71% 6%;
+  --card-foreground: 213 31% 91%;
+
+  --popover: 224 71% 6%;
+  --popover-foreground: 213 31% 91%;
+
+  --primary: 263 70% 50%;
+  --primary-foreground: 210 20% 98%;
+
+  --secondary: 215 28% 17%;
+  --secondary-foreground: 210 20% 98%;
+
+  --muted: 215 28% 17%;
+  --muted-foreground: 217 11% 65%;
+
+  --accent: 263 70% 50%;
+  --accent-foreground: 210 20% 98%;
+
+  --destructive: 0 63% 31%;
+  --destructive-foreground: 210 20% 98%;
+
+  --border: 215 28% 17%;
+  --input: 215 28% 17%;
+  --ring: 263 70% 50%;
+}
+
+/* ========================================
+   THEME 2: OCEAN
+   Fresh ocean theme with blue-teal palette
+   ======================================== */
+.theme-ocean {
+  --background: 200 20% 96%;
+  --foreground: 200 50% 10%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 200 50% 10%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 200 50% 10%;
+
+  --primary: 189 94% 43%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 200 20% 90%;
+  --secondary-foreground: 200 50% 20%;
+
+  --muted: 200 20% 90%;
+  --muted-foreground: 200 10% 40%;
+
+  --accent: 174 72% 56%;
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 200 20% 82%;
+  --input: 200 20% 82%;
+  --ring: 189 94% 43%;
+}
+
+/* ========================================
+   THEME 3: SUNSET
+   Warm sunset theme with orange-pink gradient
+   ======================================== */
+.theme-sunset {
+  --background: 30 40% 97%;
+  --foreground: 30 40% 10%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 30 40% 10%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 30 40% 10%;
+
+  --primary: 14 91% 60%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 30 40% 92%;
+  --secondary-foreground: 30 40% 20%;
+
+  --muted: 30 40% 92%;
+  --muted-foreground: 30 20% 45%;
+
+  --accent: 330 81% 60%;
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 30 40% 88%;
+  --input: 30 40% 88%;
+  --ring: 14 91% 60%;
+}
+
+/* Dark mode overrides for Ocean theme */
+.theme-ocean.dark {
+  --background: 200 50% 8%;
+  --foreground: 200 20% 92%;
+
+  --card: 200 50% 10%;
+  --card-foreground: 200 20% 92%;
+
+  --popover: 200 50% 10%;
+  --popover-foreground: 200 20% 92%;
+
+  --primary: 189 94% 43%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 200 40% 15%;
+  --secondary-foreground: 200 20% 92%;
+
+  --muted: 200 40% 15%;
+  --muted-foreground: 200 20% 65%;
+
+  --accent: 174 72% 56%;
+  --accent-foreground: 0 0% 100%;
+
+  --border: 200 40% 15%;
+  --input: 200 40% 15%;
+  --ring: 189 94% 43%;
+}
+
+/* Dark mode overrides for Sunset theme */
+.theme-sunset.dark {
+  --background: 30 30% 8%;
+  --foreground: 30 10% 92%;
+
+  --card: 30 30% 10%;
+  --card-foreground: 30 10% 92%;
+
+  --popover: 30 30% 10%;
+  --popover-foreground: 30 10% 92%;
+
+  --primary: 14 91% 60%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 30 20% 15%;
+  --secondary-foreground: 30 10% 92%;
+
+  --muted: 30 20% 15%;
+  --muted-foreground: 30 10% 65%;
+
+  --accent: 330 81% 60%;
+  --accent-foreground: 0 0% 100%;
+
+  --border: 30 20% 15%;
+  --input: 30 20% 15%;
+  --ring: 14 91% 60%;
+}
