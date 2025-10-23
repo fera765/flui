@@ -1386,6 +1386,93 @@
 				"createdAt": "2025-10-23T09:05:07.047Z",
 				"updatedAt": "2025-10-23T09:05:07.047Z"
 			}
+		},
+		{
+			"id": "e2e-auto-1761212145007",
+			"name": "E2E Complete Test Automation",
+			"description": "Teste completo E2E",
+			"nodes": [
+				{
+					"id": "node-1",
+					"type": "agent",
+					"name": "Agent Node 1",
+					"description": "Node 1 para teste",
+					"config": {
+						"toolId": "agent-e2e-test-1761212144758",
+						"category": "agent",
+						"params": {
+							"prompt": "Edição 3 FINAL"
+						}
+					},
+					"position": {
+						"x": 300,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-2",
+					"type": "agent",
+					"name": "Agent Node 2",
+					"description": "Node 2 para teste",
+					"config": {
+						"toolId": "agent-e2e-test-1761212144758",
+						"category": "agent",
+						"params": {
+							"prompt": "Usar output do Node 1: {{node-1.response}}",
+							"temperature": 0.9
+						}
+					},
+					"position": {
+						"x": 600,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-3",
+					"type": "agent",
+					"name": "Agent Node 3",
+					"description": "Node 3 para teste",
+					"config": {
+						"toolId": "agent-e2e-test-1761212144758",
+						"category": "agent",
+						"params": {
+							"prompt": "Node 1: {{node-1.response}} | Node 2: {{node-2.response}}",
+							"temperature": 0.7
+						}
+					},
+					"position": {
+						"x": 900,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "e1",
+					"source": "node-1",
+					"target": "node-2"
+				},
+				{
+					"id": "e2",
+					"source": "node-2",
+					"target": "node-3"
+				}
+			],
+			"startNodeId": "node-1",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-23T09:35:45.014Z",
+			"updatedAt": "2025-10-23T09:35:59.604Z",
+			"runCount": 1,
+			"metadata": {
+				"createdAt": "2025-10-23T09:35:45.014Z",
+				"updatedAt": "2025-10-23T09:35:56.485Z",
+				"lastRunAt": "2025-10-23T09:35:56.485Z"
+			}
 		}
 	],
 	"executions": [],
@@ -1543,6 +1630,108 @@
 			},
 			"createdAt": "2025-10-23T09:05:06.465Z",
 			"updatedAt": "2025-10-23T09:05:06.465Z"
+		},
+		{
+			"id": "e2e-agent-1761211909877",
+			"name": "E2E Test Agent",
+			"model": "deepseek-v3.1",
+			"systemPrompt": "Assistente de teste E2E",
+			"temperature": 0.7,
+			"maxTokens": 50,
+			"enabled": true,
+			"tools": [],
+			"metadata": {
+				"createdAt": "2025-10-23T09:31:49.959Z",
+				"updatedAt": "2025-10-23T09:31:49.959Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-23T09:31:49.960Z",
+			"updatedAt": "2025-10-23T09:31:49.960Z"
+		},
+		{
+			"id": "e2e-agent-1761211943615",
+			"name": "E2E Test Agent",
+			"model": "deepseek-v3.1",
+			"systemPrompt": "Assistente de teste E2E",
+			"temperature": 0.7,
+			"maxTokens": 50,
+			"enabled": true,
+			"tools": [],
+			"metadata": {
+				"createdAt": "2025-10-23T09:32:23.682Z",
+				"updatedAt": "2025-10-23T09:32:23.682Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-23T09:32:23.682Z",
+			"updatedAt": "2025-10-23T09:32:23.682Z"
+		},
+		{
+			"id": "e2e-agent-1761211976288",
+			"name": "E2E Test Agent",
+			"model": "deepseek-v3.1",
+			"systemPrompt": "Assistente de teste E2E",
+			"temperature": 0.7,
+			"maxTokens": 50,
+			"enabled": true,
+			"tools": [],
+			"metadata": {
+				"createdAt": "2025-10-23T09:32:56.340Z",
+				"updatedAt": "2025-10-23T09:32:56.340Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-23T09:32:56.340Z",
+			"updatedAt": "2025-10-23T09:32:56.340Z"
+		},
+		{
+			"id": "e2e-agent-1761212012379",
+			"name": "E2E Test Agent",
+			"model": "deepseek-v3.1",
+			"systemPrompt": "Assistente de teste E2E",
+			"temperature": 0.7,
+			"maxTokens": 50,
+			"enabled": true,
+			"tools": [],
+			"metadata": {
+				"createdAt": "2025-10-23T09:33:32.431Z",
+				"updatedAt": "2025-10-23T09:33:32.431Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-23T09:33:32.431Z",
+			"updatedAt": "2025-10-23T09:33:32.431Z"
+		},
+		{
+			"id": "e2e-agent-1761212048817",
+			"name": "E2E Test Agent",
+			"model": "deepseek-v3.1",
+			"systemPrompt": "Assistente de teste E2E",
+			"temperature": 0.7,
+			"maxTokens": 50,
+			"enabled": true,
+			"tools": [],
+			"metadata": {
+				"createdAt": "2025-10-23T09:34:08.845Z",
+				"updatedAt": "2025-10-23T09:34:08.845Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-23T09:34:08.845Z",
+			"updatedAt": "2025-10-23T09:34:08.845Z"
+		},
+		{
+			"id": "e2e-test-1761212144758",
+			"name": "E2E Test Agent 1761212144758",
+			"model": "deepseek-v3.1",
+			"systemPrompt": "Assistente de teste E2E - responda sempre \"OK\"",
+			"temperature": 0.7,
+			"maxTokens": 50,
+			"enabled": true,
+			"tools": [],
+			"metadata": {
+				"createdAt": "2025-10-23T09:35:44.809Z",
+				"updatedAt": "2025-10-23T09:35:44.809Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-23T09:35:44.809Z",
+			"updatedAt": "2025-10-23T09:35:44.809Z"
 		}
 	],
 	"mcps": [],
