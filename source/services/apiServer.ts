@@ -1063,6 +1063,33 @@ app.post('/api/tools', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/tools/categories - Listar categorias disponíveis (DEVE VIR ANTES DE /:id)
+app.get('/api/tools/categories', (_req: Request, res: Response) => {
+  try {
+    const registry = getToolRegistry();
+    const categories = registry.getCategories();
+    res.json(categories);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/tools/:id/metrics - Obter métricas de uma ferramenta (DEVE VIR ANTES DE /:id)
+app.get('/api/tools/:id/metrics', (req: Request, res: Response) => {
+  try {
+    const registry = getToolRegistry();
+    const metrics = registry.getMetrics(req.params.id);
+    
+    if (!metrics) {
+      return res.status(404).json({ error: 'Tool não encontrada' });
+    }
+    
+    res.json(metrics);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // GET /api/tools/:id - Detalhes de uma ferramenta
 app.get('/api/tools/:id', (req: Request, res: Response) => {
   try {
@@ -1417,33 +1444,6 @@ app.patch('/api/automations/:automationId/nodes/:nodeId/config', (req: Request, 
     });
   } catch (error: any) {
     console.error('❌ Erro ao atualizar config:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// GET /api/tools/categories - Listar categorias disponíveis
-app.get('/api/tools/categories', (_req: Request, res: Response) => {
-  try {
-    const registry = getToolRegistry();
-    const categories = registry.getCategories();
-    res.json(categories);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// GET /api/tools/:id/metrics - Obter métricas de uma ferramenta
-app.get('/api/tools/:id/metrics', (req: Request, res: Response) => {
-  try {
-    const registry = getToolRegistry();
-    const metrics = registry.getMetrics(req.params.id);
-    
-    if (!metrics) {
-      return res.status(404).json({ error: 'Tool não encontrada' });
-    }
-    
-    res.json(metrics);
-  } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });

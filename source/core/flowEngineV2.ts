@@ -190,6 +190,16 @@ export class FlowEngineV2 {
         output = await this.executeConditionNode(node, inputData);
       } else if (node.type === 'loop') {
         output = await this.executeLoopNode(node, inputData);
+      } else if (node.type === 'manual-trigger' || node.type === 'cron-trigger' || node.type === 'webhook-trigger') {
+        // Triggers são nodes especiais que apenas iniciam o fluxo
+        output = {
+          success: true,
+          triggered: true,
+          timestamp: new Date().toISOString(),
+          triggerType: node.type,
+          triggerData: inputData || {},
+          message: node.config.triggerMessage || `Trigger ${node.type} ativado`
+        };
       } else {
         throw new Error(`Tipo de node não suportado: ${node.type}`);
       }

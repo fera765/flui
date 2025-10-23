@@ -1,0 +1,18 @@
+{
+	"automations": [],
+	"executions": [],
+	"agents": [],
+	"mcps": [],
+	"sessions": [],
+	"config": {
+		"llm": {
+			"endpoint": "https://api.openai.com/v1",
+			"apiKey": "test-key",
+			"model": "gpt-4",
+			"temperature": 0.8,
+			"maxTokens": 2000
+		},
+		"theme": "default",
+		"locale": "pt-BR"
+	}
+}
