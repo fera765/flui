@@ -1,5 +1,6 @@
 // Flui API Client
-const API_BASE = 'http://localhost:3001';
+// Use empty string to use Vite proxy (configured in vite.config.ts)
+const API_BASE = '';
 
 class ApiClient {
   private async fetch<T>(endpoint: string, options?: RequestInit): Promise<T> {

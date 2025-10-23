@@ -20,7 +20,7 @@ const navigation = [
 
 export function Sidebar() {
   return (
-    <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:border-r border-border bg-card">
+    <aside className="flex flex-col w-64 border-r border-border bg-card">
       <div className="flex-1 flex flex-col min-h-0">
         <div className="flex items-center h-16 px-6 border-b border-border">
           <div className="flex items-center gap-2">
