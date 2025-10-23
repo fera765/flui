@@ -557,8 +557,8 @@ Flui is **production-ready** with features that make it:
 - ✅ Production deployment
 - ✅ Open source launch
 - ✅ Enterprise sales
-- ✅ Fundraising
-- ✅ $1B valuation path
+- ✅ Fundraising ready
+- ✅ Growth path established
 
 ---
 

@@ -36,10 +36,21 @@ export class EditTextTool {
         
         const pattern = new RegExp(params.find, flags);
         
-        newContent = content.replace(pattern, (match) => {
+        // Use native replace to support capture groups ($1, $2, etc.)
+        newContent = content.replace(pattern, (...args) => {
           replacements++;
           return params.replace;
         });
+        
+        // Now actually do the replacement with capture group support
+        replacements = 0;
+        newContent = content.replace(pattern, () => {
+          replacements++;
+          return '';
+        });
+        
+        // Do the real replacement
+        newContent = content.replace(pattern, params.replace);
       } else {
         if (params.replaceAll) {
           const searchStr = params.caseInsensitive 

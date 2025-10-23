@@ -154,14 +154,20 @@ npm test -- --coverage
 
 ## Test Coverage
 
+**196 tests across 20 test suites - 100% passing**
+
 The test suite covers:
 
-- **Agent Management**: CRUD operations, validation, MCP integration
-- **MCP Management**: Connection, sync, testing
-- **Automations**: Workflow creation, execution, node management
-- **Tools**: Registration, execution, metadata
-- **Flows**: Execution engine, context management
-- **Integration Tests**: End-to-end workflows
+- **API Tests** (41 tests): Agent, MCP, and Automation CRUD operations
+- **System Tools** (19 tests): File, text, and execution tools
+- **Tool Registry** (10 tests): Registration, discovery, validation
+- **TodoWrite Tool** (10 tests): CRUD operations, persistence
+- **MCP Import** (9 tests): NPM, GitHub, URL import methods
+- **E2E Tests** (26 tests): Deep references, complex automations, extreme workflows
+- **Architecture Tests** (20 tests): Executors, orchestration, observability
+- **Real Integration** (52 tests): Complete workflow testing
+- **MCP API Integration** (5 tests): Real MCP server testing
+- **Complete Workflow** (4 tests): End-to-end scenarios
 
 ## Project Structure
 

@@ -7,14 +7,14 @@
  * - Agent output linking
  */
 
-import { nanoid } from 'nanoid';
+import { generateId } from '../../source/utils/id.js';
 
 describe('Complete Workflow Integration', () => {
   describe('Agent with MCP Integration', () => {
     it('should create agent with MCP tools and execute', async () => {
       // 1. Create MCP
       const mcp = {
-        id: nanoid(),
+        id: generateId(),
         name: 'Test MCP Server',
         description: 'MCP for testing',
         version: '1.0.0',
@@ -36,7 +36,7 @@ describe('Complete Workflow Integration', () => {
 
       // 2. Create agent with MCP
       const agent = {
-        id: nanoid(),
+        id: generateId(),
         name: 'Data Processing Agent',
         description: 'Agent that processes data using MCP tools',
         systemPrompt: 'You are a data processing agent. Use the available tools to fetch and process data.',
@@ -59,7 +59,7 @@ describe('Complete Workflow Integration', () => {
     it('should execute automation with agent and MCP tools', async () => {
       // Create automation workflow
       const automation = {
-        id: nanoid(),
+        id: generateId(),
         name: 'Data Processing Workflow',
         description: 'Fetch data via MCP and process with agent',
         nodes: [
@@ -123,7 +123,7 @@ describe('Complete Workflow Integration', () => {
   describe('Agent Output Linking', () => {
     it('should link outputs between multiple agents', async () => {
       const automation = {
-        id: nanoid(),
+        id: generateId(),
         name: 'Multi-Agent Pipeline',
         description: 'Sequential agent execution with output linking',
         nodes: [
@@ -181,7 +181,7 @@ describe('Complete Workflow Integration', () => {
 
     it('should support conditional branching with agent outputs', async () => {
       const automation = {
-        id: nanoid(),
+        id: generateId(),
         name: 'Conditional Agent Flow',
         description: 'Branch execution based on agent output',
         nodes: [
@@ -260,7 +260,7 @@ describe('Complete Workflow Integration', () => {
   describe('Complex Automation Scenarios', () => {
     it('should handle parallel agent execution', async () => {
       const automation = {
-        id: nanoid(),
+        id: generateId(),
         name: 'Parallel Processing',
         description: 'Execute multiple agents in parallel',
         nodes: [
@@ -335,7 +335,7 @@ describe('Complete Workflow Integration', () => {
 
     it('should support loop execution with agents', async () => {
       const automation = {
-        id: nanoid(),
+        id: generateId(),
         name: 'Iterative Agent Processing',
         description: 'Loop through data with agent processing',
         nodes: [
@@ -380,7 +380,7 @@ describe('Complete Workflow Integration', () => {
 
     it('should handle webhook trigger with agent response', async () => {
       const automation = {
-        id: nanoid(),
+        id: generateId(),
         name: 'Webhook to Agent',
         description: 'Webhook triggers agent execution',
         nodes: [
@@ -434,7 +434,7 @@ describe('Complete Workflow Integration', () => {
   describe('MCP Function Exposure', () => {
     it('should expose MCP functions as tools', async () => {
       const mcp = {
-        id: nanoid(),
+        id: generateId(),
         name: 'External API MCP',
         description: 'MCP exposing external API functions',
         version: '1.0.0',
@@ -490,7 +490,7 @@ describe('Complete Workflow Integration', () => {
 
     it('should use MCP tools in agent', async () => {
       const agent = {
-        id: nanoid(),
+        id: generateId(),
         name: 'User Management Agent',
         description: 'Agent for managing users via MCP',
         systemPrompt: 'You manage users. Use the available tools to get, create, and update users.',
@@ -510,7 +510,7 @@ describe('Complete Workflow Integration', () => {
   describe('Error Handling and Validation', () => {
     it('should validate automation before execution', () => {
       const invalidAutomation = {
-        id: nanoid(),
+        id: generateId(),
         name: 'Invalid Automation',
         description: 'Missing required fields',
         nodes: [],
@@ -526,7 +526,7 @@ describe('Complete Workflow Integration', () => {
 
     it('should handle missing agent in automation', () => {
       const automation = {
-        id: nanoid(),
+        id: generateId(),
         name: 'Automation with Missing Agent',
         description: 'References non-existent agent',
         nodes: [
@@ -553,7 +553,7 @@ describe('Complete Workflow Integration', () => {
 
     it('should validate MCP configuration', () => {
       const validMCP = {
-        id: nanoid(),
+        id: generateId(),
         name: 'Valid MCP',
         description: 'Properly configured MCP',
         version: '1.0.0',
