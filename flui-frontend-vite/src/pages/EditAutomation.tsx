@@ -132,6 +132,7 @@ export default function EditAutomation() {
           description: node.description,
           toolId: node.config?.toolId,
           category: node.config?.category || node.type,
+          toolType: node.config?.category || node.type, // ✅ FIX: ElegantNode precisa de toolType
           color: node.config?.color,
           icon: node.config?.icon,
           status: 'idle',
@@ -194,7 +195,8 @@ export default function EditAutomation() {
         description: tool.description,
         toolId: tool.id,
         category: tool.category,
-        type: tool.category, // 🔥 FIX: Adicionar type também no data
+        toolType: tool.category, // ✅ FIX: ElegantNode precisa de toolType
+        type: tool.category, // Para compatibilidade
         color: tool.ui.color,
         icon: tool.ui.icon,
         status: 'idle',

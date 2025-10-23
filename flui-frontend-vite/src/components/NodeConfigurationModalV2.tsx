@@ -89,37 +89,60 @@ export default function NodeConfigurationModalV2({
   }, [isOpen, automationId, nodeId]);
 
   // Carregar outputs disponíveis dos nodes pais
+  // ✅ FIX: Função recursiva para encontrar TODOS os predecessores (não apenas pais diretos)
+  const getAllPredecessors = (targetNodeId: string, edges: any[]): string[] => {
+    const predecessors = new Set<string>();
+    const visited = new Set<string>();
+    
+    const findPredecessors = (nodeId: string) => {
+      if (visited.has(nodeId)) return;
+      visited.add(nodeId);
+      
+      // Encontrar todos os nodes que apontam para este node
+      const directParents = edges
+        .filter((edge: any) => edge.target === nodeId)
+        .map((edge: any) => edge.source);
+      
+      for (const parentId of directParents) {
+        predecessors.add(parentId);
+        // Recursivamente encontrar predecessores do parent
+        findPredecessors(parentId);
+      }
+    };
+    
+    findPredecessors(targetNodeId);
+    return Array.from(predecessors);
+  };
+
   const loadAvailableOutputs = async () => {
     try {
       // Se temos nodes e edges locais (automação temporária), calcular localmente
       if ((automationId.startsWith('temp-') || nodeData) && allNodes && allEdges) {
         console.log('🔗 [NodeConfigModalV2] Calculando availableOutputs localmente');
         
-        // Encontrar nodes pais (nodes que têm edges conectadas a este node)
-        const parentNodeIds = allEdges
-          .filter((edge: any) => edge.target === nodeId)
-          .map((edge: any) => edge.source);
+        // ✅ FIX: Encontrar TODOS os predecessores (não apenas pais diretos)
+        const predecessorNodeIds = getAllPredecessors(nodeId, allEdges);
         
-        console.log('🔗 Parent nodes:', parentNodeIds);
+        console.log('🔗 [NodeConfigModalV2] Predecessors encontrados:', predecessorNodeIds);
         
-        // Para cada node pai, buscar seus outputs (params da tool)
+        // Para cada predecessor, buscar seus outputs (params da tool)
         const allOutputs: LinkedOutputField[] = [];
         
-        for (const parentId of parentNodeIds) {
-          const parentNode = allNodes.find((n: any) => n.id === parentId);
-          if (parentNode) {
-            const parentToolId = parentNode.data?.toolId || parentNode.toolId;
+        for (const predecessorId of predecessorNodeIds) {
+          const predecessorNode = allNodes.find((n: any) => n.id === predecessorId);
+          if (predecessorNode) {
+            const predecessorToolId = predecessorNode.data?.toolId || predecessorNode.toolId;
             
-            // Buscar tool metadata do node pai
+            // Buscar tool metadata do predecessor
             try {
-              const toolResponse = await axios.get(`${API_BASE_URL}/tools/${parentToolId}`);
-              const parentTool = toolResponse.data;
+              const toolResponse = await axios.get(`${API_BASE_URL}/tools/${predecessorToolId}`);
+              const predecessorTool = toolResponse.data;
               
               // Adicionar todos os params como outputs disponíveis
-              parentTool.params?.forEach((param: any) => {
+              predecessorTool.params?.forEach((param: any) => {
                 allOutputs.push({
-                  nodeId: parentId,
-                  nodeName: parentNode.data?.label || parentTool.name,
+                  nodeId: predecessorId,
+                  nodeName: predecessorNode.data?.label || predecessorTool.name,
                   key: param.name,
                   label: param.name,
                   type: param.type,
@@ -130,8 +153,8 @@ export default function NodeConfigurationModalV2({
               // Adicionar outputs padrão de qualquer tool
               ['result', 'output', 'data', 'response'].forEach((key) => {
                 allOutputs.push({
-                  nodeId: parentId,
-                  nodeName: parentNode.data?.label || parentTool.name,
+                  nodeId: predecessorId,
+                  nodeName: predecessorNode.data?.label || predecessorTool.name,
                   key,
                   label: key,
                   type: 'string',
@@ -139,7 +162,7 @@ export default function NodeConfigurationModalV2({
                 });
               });
             } catch (err) {
-              console.error('❌ Erro ao carregar tool do node pai:', parentId, err);
+              console.error('❌ Erro ao carregar tool do predecessor:', predecessorId, err);
             }
           }
         }
