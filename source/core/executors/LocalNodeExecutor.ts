@@ -32,20 +32,14 @@ export class LocalNodeExecutor implements NodeExecutor {
         executionId: input.context.executionId,
         traceId: input.context.traceId,
         nodeId: input.context.nodeId,
+        automationId: input.context.automationId,
         previousResults: input.previousOutputs || {},
         globalContext: {},
       };
 
       // Execute tool using static method
-      const registry = getToolRegistry();
-      const tool = registry.get(toolId);
-      
-      if (!tool) {
-        throw new Error(`Tool not found: ${toolId}`);
-      }
-
-      const toolResult = await this.toolExecutor.executeTool(
-        tool,
+      const toolResult = await ToolExecutor.execute(
+        toolId,
         input.params.params || input.params,
         toolContext
       );
@@ -58,7 +52,7 @@ export class LocalNodeExecutor implements NodeExecutor {
         error: toolResult.error,
         duration,
         metadata: {
-          logs: toolResult.logs,
+          logs: (toolResult as any).logs || [],
         },
       };
     } catch (error: any) {

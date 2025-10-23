@@ -284,8 +284,9 @@ export class ObservabilityProvider implements ExecutionObserver {
       metrics = metrics.filter(m => m.name === filter.name);
     }
 
-    if (filter?.since) {
-      metrics = metrics.filter(m => m.timestamp >= filter.since);
+    if (filter?.since !== undefined) {
+      const sinceTime = filter.since;
+      metrics = metrics.filter(m => m.timestamp >= sinceTime);
     }
 
     if (filter?.tags) {
@@ -338,8 +339,9 @@ export class ObservabilityProvider implements ExecutionObserver {
       logs = logs.filter(l => l.level === filter.level);
     }
 
-    if (filter?.since) {
-      logs = logs.filter(l => l.timestamp >= filter.since!);
+    if (filter?.since !== undefined) {
+      const sinceDate = filter.since;
+      logs = logs.filter(l => l.timestamp >= sinceDate);
     }
 
     if (filter?.executionId) {
