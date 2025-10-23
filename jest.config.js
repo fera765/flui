@@ -15,7 +15,7 @@ export default {
     ],
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(nanoid|conf)/)',
+    'node_modules/(?!(nanoid|conf|dot-prop|env-paths|ajv|json-schema-traverse|require-from-string|uri-js|punycode)/)',
   ],
   testMatch: ['**/__tests__/**/*.test.ts'],
   collectCoverageFrom: [

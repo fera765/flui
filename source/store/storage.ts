@@ -191,12 +191,12 @@ export const saveAutomation = (automation: Automation): void => {
   config.set('automations', automations);
 };
 
-export const deleteAutomation = (id: string): void => {
+export const deleteAutomation = (id: string): boolean => {
   const automations = getAutomations();
-  config.set(
-    'automations',
-    automations.filter((a) => a.id !== id)
-  );
+  const initialLength = automations.length;
+  const filtered = automations.filter((a) => a.id !== id);
+  config.set('automations', filtered);
+  return filtered.length < initialLength;
 };
 
 // ============= UTILITY =============
