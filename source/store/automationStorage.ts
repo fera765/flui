@@ -48,15 +48,29 @@ function validateAndNormalizeAutomation(automation: any): Automation {
   };
   
   // Garantir que cada node tem campos necessários
-  normalized.nodes = normalized.nodes.map((node: any) => ({
-    id: node.id || nanoid(),
-    type: node.type || 'trigger',
-    name: node.name || 'Node',
-    description: node.description || '',
-    config: node.config || {},
-    position: node.position || { x: 0, y: 0 },
-    nextNodes: Array.isArray(node.nextNodes) ? node.nextNodes : [],
-  }));
+  normalized.nodes = normalized.nodes.map((node: any) => {
+    // ✅ FIX: Mapear tipos antigos/inválidos para tipos válidos
+    let nodeType = node.type || 'trigger';
+    
+    // Migração automática de tipos legados
+    if (nodeType === 'system') {
+      nodeType = 'trigger'; // system nodes são geralmente triggers
+      console.log(`🔄 [Storage] Migrando tipo "system" → "trigger" para node ${node.id}`);
+    } else if (nodeType === 'tool' && node.config?.category === 'system') {
+      nodeType = 'trigger'; // tools de sistema são triggers
+      console.log(`🔄 [Storage] Migrando tipo "tool" (system) → "trigger" para node ${node.id}`);
+    }
+    
+    return {
+      id: node.id || nanoid(),
+      type: nodeType,
+      name: node.name || 'Node',
+      description: node.description || '',
+      config: node.config || {},
+      position: node.position || { x: 0, y: 0 },
+      nextNodes: Array.isArray(node.nextNodes) ? node.nextNodes : [],
+    };
+  });
   
   // Garantir que cada edge tem id
   normalized.edges = normalized.edges.map((edge: any, index: number) => ({

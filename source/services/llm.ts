@@ -85,12 +85,19 @@ export const sendMessage = async (
   const store = useStore.getState();
   const config = store.config;
 
-  if (!config || !config.llm.apiKey) {
+  // ✅ FIX: Endpoint https://api.llm7.io/v1 não requer API key
+  const needsApiKey = config?.llm?.endpoint && !config.llm.endpoint.includes('llm7.io');
+  
+  if (!config || !config.llm) {
     throw new Error('LLM não configurado. Use /settings para configurar.');
+  }
+  
+  if (needsApiKey && !config.llm.apiKey) {
+    throw new Error('API Key é obrigatória para este endpoint. Configure em /settings.');
   }
 
   if (!openaiClient) {
-    initializeLLM(config.llm.endpoint, config.llm.apiKey);
+    initializeLLM(config.llm.endpoint, config.llm.apiKey || '');
   }
 
   if (!openaiClient) {

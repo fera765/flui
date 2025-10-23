@@ -442,6 +442,111 @@ app.get('/api/agents/:id/as-tool', (req: Request, res: Response) => {
   }
 });
 
+// ============= LLM CONFIG ENDPOINTS =============
+
+// GET /api/llm/config - Obter configuração LLM
+app.get('/api/llm/config', async (_req: Request, res: Response) => {
+  try {
+    const { getConfig } = await import('../store/storage.js');
+    const config = getConfig();
+    
+    if (!config || !config.llm) {
+      return res.status(404).json({ error: 'Configuração LLM não encontrada' });
+    }
+    
+    // Retornar sem expor API key completa
+    res.json({
+      endpoint: config.llm.endpoint,
+      apiKey: config.llm.apiKey ? '***' : '',
+      hasApiKey: !!config.llm.apiKey,
+      model: config.llm.model,
+      temperature: config.llm.temperature,
+      maxTokens: config.llm.maxTokens,
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/llm/config - Atualizar configuração LLM
+app.post('/api/llm/config', async (req: Request, res: Response) => {
+  try {
+    const { setConfig, getConfig } = await import('../store/storage.js');
+    const { initializeLLM } = await import('./llm.js');
+    
+    const { endpoint, apiKey, model, temperature, maxTokens } = req.body;
+    
+    if (!endpoint) {
+      return res.status(400).json({ error: 'Endpoint é obrigatório' });
+    }
+    
+    const newLLMConfig = {
+      endpoint,
+      apiKey: apiKey || '',
+      model: model || 'gpt-4-turbo-preview',
+      temperature: temperature !== undefined ? temperature : 0.7,
+      maxTokens: maxTokens || 2000,
+    };
+    
+    // Atualizar config no storage (conf)
+    const currentConfig = getConfig();
+    const updatedConfig = {
+      ...currentConfig,
+      llm: newLLMConfig,
+    };
+    setConfig(updatedConfig);
+    
+    // ✅ FIX: Também atualizar no zustand store
+    const store = useStore.getState();
+    store.updateConfig(updatedConfig);
+    console.log('✅ Configuração LLM atualizada no storage e store');
+    
+    // Reinicializar cliente LLM (sempre, mesmo sem API key para este endpoint)
+    initializeLLM(endpoint, apiKey || '');
+    console.log('✅ Cliente LLM reinicializado');
+    
+    res.json({ success: true, message: 'Configuração LLM atualizada' });
+  } catch (error: any) {
+    console.error('❌ Erro ao atualizar config LLM:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/models - Obter modelos disponíveis do LLM endpoint configurado
+app.get('/api/models', async (_req: Request, res: Response) => {
+  try {
+    const { getConfig } = await import('../store/storage.js');
+    const config = getConfig();
+    
+    if (!config || !config.llm || !config.llm.endpoint) {
+      return res.status(400).json({ error: 'LLM endpoint não configurado' });
+    }
+    
+    // Fazer request para o endpoint /models
+    const headers: any = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (config.llm.apiKey) {
+      headers['Authorization'] = `Bearer ${config.llm.apiKey}`;
+    }
+    
+    const response = await fetch(`${config.llm.endpoint}/models`, { headers });
+    
+    if (!response.ok) {
+      throw new Error(`Erro ao buscar modelos: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    // Retornar no mesmo formato que o endpoint retorna
+    res.json(data);
+  } catch (error: any) {
+    console.error('❌ Erro ao buscar modelos:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ============= AGENTS ENDPOINTS =============
 
 app.get('/api/agents', (_req: Request, res: Response) => {
@@ -1688,6 +1793,41 @@ app.post('/api/automations/:id/chat', async (req: Request, res: Response) => {
 });
 
 export const startApiServer = async () => {
+  // 🔥 Inicializar configuração LLM padrão
+  console.log('⚙️  Inicializando configuração LLM...');
+  const { getConfig, setConfig } = await import('../store/storage.js');
+  let config = getConfig();
+  if (!config || !config.llm) {
+    console.log('⚠️  Config LLM não encontrada, criando padrão...');
+    const defaultConfig = {
+      llm: {
+        endpoint: 'https://api.llm7.io/v1',
+        apiKey: '', // API key opcional para este endpoint
+        model: 'gpt-4-turbo-preview',
+        temperature: 0.7,
+        maxTokens: 2000,
+      },
+      theme: 'default' as const,
+      locale: 'pt-BR',
+    };
+    setConfig(defaultConfig);
+    config = defaultConfig;
+  }
+  
+  // ✅ FIX: Carregar config no zustand store
+  const store = useStore.getState();
+  if (config) {
+    store.updateConfig(config);
+    console.log('✅ Configuração carregada no store');
+  }
+  
+  // Inicializar cliente LLM (sempre, mesmo sem API key para este endpoint)
+  const { initializeLLM } = await import('./llm.js');
+  if (config && config.llm) {
+    initializeLLM(config.llm.endpoint, config.llm.apiKey || '');
+    console.log('✅ Cliente LLM inicializado');
+  }
+  
   // Registrar todas as ferramentas (agora é async)
   console.log('🔧 Registrando ferramentas...');
   await registerAllTools();

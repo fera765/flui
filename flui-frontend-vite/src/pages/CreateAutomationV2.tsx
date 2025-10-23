@@ -331,21 +331,32 @@ export default function CreateAutomationV2() {
       throw new Error('Adicione pelo menos um nó à automação');
     }
 
-    // Converter para formato de FlowDefinition
-    const flowNodes = nodes.map((node) => ({
-      id: node.id,
-      type: node.data.category || node.type || 'tool', // 🔥 FIX: Use category/type instead of hardcoded 'tool'
-      name: node.data.label,
-      description: node.data.description,
-      config: {
-        toolId: node.data.toolId,
-        category: node.data.category,
-        color: node.data.color,
-        icon: node.data.icon,
-        params: node.data.config || {},
-      },
-      position: node.position,
-    }));
+    // ✅ FIX: Converter para formato de FlowDefinition PRESERVANDO TODAS AS CONFIGS
+    const flowNodes = nodes.map((node) => {
+      // ✅ FIX: Mapear categoria para tipo válido do backend
+      let nodeType = node.data.category || node.type || 'tool';
+      
+      // Converter categorias frontend → tipos backend válidos
+      if (nodeType === 'system') {
+        nodeType = 'trigger'; // system nodes são triggers
+      }
+      
+      return {
+        id: node.id,
+        type: nodeType,
+        name: node.data.label,
+        description: node.data.description,
+        config: {
+          toolId: node.data.toolId,
+          category: node.data.category, // Mantém category original no config
+          color: node.data.color,
+          icon: node.data.icon,
+          // ✅ CRÍTICO: Salvar TODA a configuração incluindo linkers de output
+          params: node.data.config || {},
+        },
+        position: node.position,
+      };
+    });
 
     const flowEdges = edges.map((edge) => ({
       id: edge.id,

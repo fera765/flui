@@ -175,8 +175,11 @@ const ElegantNode = memo(({ data, selected }: NodeProps<ElegantNodeData>) => {
           {data.onConfigure && (
             <button
               onClick={(e) => {
+                console.log('🖱️  [ElegantNode] Botão configurar clicado!', data.label);
                 e.stopPropagation();
+                console.log('🔧 [ElegantNode] Chamando onConfigure...');
                 data.onConfigure?.();
+                console.log('✅ [ElegantNode] onConfigure chamado');
               }}
               className={`p-2 hover:bg-white/10 rounded-lg transition-all hover:scale-110 ${colors.text}`}
               title="Configurar"

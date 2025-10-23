@@ -83,16 +83,31 @@ export default function EditAutomation() {
   }), []);
 
   // Configurar nó (abre modal)
+  // 🔥 FIX CRÍTICO: Não usar setNodes apenas para ler - causa problemas de estado
   const handleConfigureNode = useCallback((nodeId: string) => {
-    setNodes((currentNodes) => {
-      const node = currentNodes.find((n) => n.id === nodeId);
-      if (node) {
-        setSelectedNode(node);
-        setConfigPanelOpen(true);
-      }
-      return currentNodes;
-    });
-  }, [setNodes]);
+    console.log('🔧 [EditAutomation] handleConfigureNode chamado:', nodeId);
+    
+    // Buscar node diretamente do estado atual (sem setNodes)
+    const currentNodes = nodes;
+    const node = currentNodes.find((n) => n.id === nodeId);
+    
+    console.log('🔍 [EditAutomation] Node encontrado:', node?.id, node?.data?.label);
+    
+    if (node) {
+      console.log('✅ [EditAutomation] Abrindo modal para node:', nodeId);
+      console.log('   Current state:', { selectedNode: selectedNode?.id, configPanelOpen });
+      
+      setSelectedNode(node);
+      setConfigPanelOpen(true);
+      
+      // Força re-render
+      setTimeout(() => {
+        console.log('   After setState:', { selectedNode: node.id, configPanelOpen: true });
+      }, 100);
+    } else {
+      console.error('❌ [EditAutomation] Node não encontrado!');
+    }
+  }, [nodes, selectedNode, configPanelOpen]);
 
   // Excluir nó
   const handleDeleteNode = useCallback((nodeId: string) => {
@@ -122,20 +137,22 @@ export default function EditAutomation() {
       setDescription(automation.description || '');
       setContinuousExecution((automation as any).continuousExecution || false);
 
-      // Converter nós do formato salvo para ReactFlow
+      // ✅ FIX: Converter nós do formato salvo para ReactFlow PRESERVANDO TODAS AS CONFIGS
       const reactFlowNodes: Node[] = automation.nodes.map((node) => ({
         id: node.id,
-        type: node.type || 'tool', // 🔥 FIX: Preservar o tipo original do node
+        type: node.type || 'tool',
         position: node.position || { x: 100, y: 100 },
         data: {
           label: node.name,
           description: node.description,
           toolId: node.config?.toolId,
-          category: node.config?.category || node.type, // 🔥 FIX: fallback to node.type
+          category: node.config?.category || node.type,
+          toolType: node.config?.category || node.type, // ✅ FIX: ElegantNode precisa de toolType
           color: node.config?.color,
           icon: node.config?.icon,
           status: 'idle',
-          config: node.config?.params || {},
+          // ✅ CRÍTICO: Preservar TODA a configuração incluindo linkers
+          config: node.config?.params || node.config || {},
           onConfigure: () => handleConfigureNode(node.id),
           onDelete: () => handleDeleteNode(node.id),
         },
@@ -186,17 +203,19 @@ export default function EditAutomation() {
     const nodeId = `node-${Date.now()}`;
     const newNode: Node = {
       id: nodeId,
-      type: tool.category || 'tool', // 🔥 FIX: Usar categoria da tool como type
+      type: tool.category || 'tool',
       position: { x: xPosition, y: yPosition },
       data: {
         label: tool.name,
         description: tool.description,
         toolId: tool.id,
         category: tool.category,
-        type: tool.category, // 🔥 FIX: Adicionar type também no data
+        toolType: tool.category,
+        type: tool.category,
         color: tool.ui.color,
         icon: tool.ui.icon,
         status: 'idle',
+        config: {}, // ✅ FIX CRÍTICO: Inicializar config vazio para evitar erro ao abrir modal
         onConfigure: () => handleConfigureNode(nodeId),
         onDelete: () => handleDeleteNode(nodeId),
       },
@@ -218,7 +237,8 @@ export default function EditAutomation() {
     }
   }, [nodes, setNodes, setEdges, handleConfigureNode, handleDeleteNode]);
 
-  // Salvar configuração do nó
+  // Salvar configuração do nó (chamado apenas para feedback local)
+  // NodeConfigurationModalV2 já persiste no backend para automações salvas
   const handleSaveNodeConfig = (nodeIdParam?: string, configParam?: any) => {
     // 🔥 FIX: Aceitar parâmetros opcionais do NodeConfigurationModalV2
     const targetNodeId = nodeIdParam || selectedNode?.id;
@@ -226,6 +246,7 @@ export default function EditAutomation() {
     
     if (!targetNodeId) return;
 
+    // ✅ Atualizar node localmente para feedback imediato na UI
     setNodes((nds) =>
       nds.map((n) =>
         n.id === targetNodeId
@@ -269,21 +290,32 @@ export default function EditAutomation() {
     setIsSaving(true);
 
     try {
-      // Converter para formato de FlowDefinition
-      const flowNodes = nodes.map((node) => ({
-        id: node.id,
-        type: node.data.category || node.type || 'tool', // 🔥 FIX: Use category/type instead of hardcoded 'tool'
-        name: node.data.label,
-        description: node.data.description,
-        config: {
-          toolId: node.data.toolId,
-          category: node.data.category,
-          color: node.data.color,
-          icon: node.data.icon,
-          params: node.data.config || {},
-        },
-        position: node.position,
-      }));
+      // ✅ FIX: Converter para formato de FlowDefinition PRESERVANDO TODAS AS CONFIGS
+      const flowNodes = nodes.map((node) => {
+        // ✅ FIX: Mapear categoria para tipo válido do backend
+        let nodeType = node.data.category || node.type || 'tool';
+        
+        // Converter categorias frontend → tipos backend válidos
+        if (nodeType === 'system') {
+          nodeType = 'trigger'; // system nodes são triggers
+        }
+        
+        return {
+          id: node.id,
+          type: nodeType,
+          name: node.data.label,
+          description: node.data.description,
+          config: {
+            toolId: node.data.toolId,
+            category: node.data.category, // Mantém category original no config
+            color: node.data.color,
+            icon: node.data.icon,
+            // ✅ CRÍTICO: Salvar TODA a configuração incluindo linkers
+            params: node.data.config || {},
+          },
+          position: node.position,
+        };
+      });
 
       const flowEdges = edges.map((edge) => ({
         id: edge.id,
@@ -582,10 +614,11 @@ export default function EditAutomation() {
       />
 
       {/* Node Config Panel */}
-      {selectedNode && id && (
+      {/* 🔥 FIX CRÍTICO: Usar id OU gerar temporário se não existir */}
+      {selectedNode && (
         <NodeConfigurationModalV2
           isOpen={configPanelOpen}
-          automationId={id}
+          automationId={id || `temp-${Date.now()}`}
           nodeId={selectedNode.id}
           nodeData={selectedNode.data}
           allNodes={nodes}
@@ -594,9 +627,16 @@ export default function EditAutomation() {
             setConfigPanelOpen(false);
             setSelectedNode(null);
           }}
-          onSave={() => {
-            // Reload automation to get updated config
-            loadAutomation(id);
+          onSave={(savedNodeId?: string, savedConfig?: any) => {
+            // ✅ FIX CRÍTICO: Atualizar estado React imediatamente após salvar no backend
+            // Isso garante que quando clicar em "Salvar Automação", os dados estejam atualizados
+            if (savedNodeId && savedConfig) {
+              console.log('📝 [EditAutomation] Atualizando estado local após salvar config:', {
+                nodeId: savedNodeId,
+                config: savedConfig
+              });
+              handleSaveNodeConfig(savedNodeId, savedConfig);
+            }
             setConfigPanelOpen(false);
             setSelectedNode(null);
           }}

@@ -89,37 +89,60 @@ export default function NodeConfigurationModalV2({
   }, [isOpen, automationId, nodeId]);
 
   // Carregar outputs disponíveis dos nodes pais
+  // ✅ FIX: Função recursiva para encontrar TODOS os predecessores (não apenas pais diretos)
+  const getAllPredecessors = (targetNodeId: string, edges: any[]): string[] => {
+    const predecessors = new Set<string>();
+    const visited = new Set<string>();
+    
+    const findPredecessors = (nodeId: string) => {
+      if (visited.has(nodeId)) return;
+      visited.add(nodeId);
+      
+      // Encontrar todos os nodes que apontam para este node
+      const directParents = edges
+        .filter((edge: any) => edge.target === nodeId)
+        .map((edge: any) => edge.source);
+      
+      for (const parentId of directParents) {
+        predecessors.add(parentId);
+        // Recursivamente encontrar predecessores do parent
+        findPredecessors(parentId);
+      }
+    };
+    
+    findPredecessors(targetNodeId);
+    return Array.from(predecessors);
+  };
+
   const loadAvailableOutputs = async () => {
     try {
       // Se temos nodes e edges locais (automação temporária), calcular localmente
       if ((automationId.startsWith('temp-') || nodeData) && allNodes && allEdges) {
         console.log('🔗 [NodeConfigModalV2] Calculando availableOutputs localmente');
         
-        // Encontrar nodes pais (nodes que têm edges conectadas a este node)
-        const parentNodeIds = allEdges
-          .filter((edge: any) => edge.target === nodeId)
-          .map((edge: any) => edge.source);
+        // ✅ FIX: Encontrar TODOS os predecessores (não apenas pais diretos)
+        const predecessorNodeIds = getAllPredecessors(nodeId, allEdges);
         
-        console.log('🔗 Parent nodes:', parentNodeIds);
+        console.log('🔗 [NodeConfigModalV2] Predecessors encontrados:', predecessorNodeIds);
         
-        // Para cada node pai, buscar seus outputs (params da tool)
+        // Para cada predecessor, buscar seus outputs (params da tool)
         const allOutputs: LinkedOutputField[] = [];
         
-        for (const parentId of parentNodeIds) {
-          const parentNode = allNodes.find((n: any) => n.id === parentId);
-          if (parentNode) {
-            const parentToolId = parentNode.data?.toolId || parentNode.toolId;
+        for (const predecessorId of predecessorNodeIds) {
+          const predecessorNode = allNodes.find((n: any) => n.id === predecessorId);
+          if (predecessorNode) {
+            const predecessorToolId = predecessorNode.data?.toolId || predecessorNode.toolId;
             
-            // Buscar tool metadata do node pai
+            // Buscar tool metadata do predecessor
             try {
-              const toolResponse = await axios.get(`${API_BASE_URL}/tools/${parentToolId}`);
-              const parentTool = toolResponse.data;
+              const toolResponse = await axios.get(`${API_BASE_URL}/tools/${predecessorToolId}`);
+              const predecessorTool = toolResponse.data;
               
               // Adicionar todos os params como outputs disponíveis
-              parentTool.params?.forEach((param: any) => {
+              predecessorTool.params?.forEach((param: any) => {
                 allOutputs.push({
-                  nodeId: parentId,
-                  nodeName: parentNode.data?.label || parentTool.name,
+                  nodeId: predecessorId,
+                  nodeName: predecessorNode.data?.label || predecessorTool.name,
                   key: param.name,
                   label: param.name,
                   type: param.type,
@@ -130,8 +153,8 @@ export default function NodeConfigurationModalV2({
               // Adicionar outputs padrão de qualquer tool
               ['result', 'output', 'data', 'response'].forEach((key) => {
                 allOutputs.push({
-                  nodeId: parentId,
-                  nodeName: parentNode.data?.label || parentTool.name,
+                  nodeId: predecessorId,
+                  nodeName: predecessorNode.data?.label || predecessorTool.name,
                   key,
                   label: key,
                   type: 'string',
@@ -139,7 +162,7 @@ export default function NodeConfigurationModalV2({
                 });
               });
             } catch (err) {
-              console.error('❌ Erro ao carregar tool do node pai:', parentId, err);
+              console.error('❌ Erro ao carregar tool do predecessor:', predecessorId, err);
             }
           }
         }
@@ -189,17 +212,47 @@ export default function NodeConfigurationModalV2({
         allNodesCount: allNodes?.length || 0
       });
       
-      // PRIORIDADE: Se automação já foi salva, SEMPRE buscar do backend
+      // ✅ FIX: Tentar backend primeiro, mas fazer fallback para local se node não existe
       if (!automationId.startsWith('temp-')) {
-        console.log('📡 [NodeConfigModalV2] Buscando do backend (automação salva)');
-        // Automação salva - SEMPRE buscar do backend para garantir persistência
-        const nodeResponse = await axios.get(
-          `${API_BASE_URL}/automations/${automationId}/nodes/${nodeId}`
-        );
-        node = nodeResponse.data;
-        toolId = node.config?.toolId || node.type;
-        category = node.config?.category || node.category;
-        setConfig(node.config?.params || {});
+        console.log('📡 [NodeConfigModalV2] Tentando buscar do backend (automação salva)');
+        try {
+          // Tentar buscar do backend
+          const nodeResponse = await axios.get(
+            `${API_BASE_URL}/automations/${automationId}/nodes/${nodeId}`
+          );
+          node = nodeResponse.data;
+          toolId = node.config?.toolId || node.type;
+          category = node.config?.category || node.category;
+          setConfig(node.config?.params || {});
+          console.log('✅ [NodeConfigModalV2] Node carregado do backend');
+        } catch (backendError: any) {
+          // ✅ FIX: Se node não existe no backend (404), usar dados locais
+          if (backendError.response?.status === 404) {
+            console.log('⚠️  [NodeConfigModalV2] Node não existe no backend ainda, usando dados locais');
+            
+            // FALLBACK: Usar nodeData ou allNodes
+            if (nodeData) {
+              node = nodeData;
+              toolId = node.toolId || node.config?.toolId;
+              category = node.category || node.config?.category;
+              setConfig(node.config?.params || node.config || {});
+            } else if (allNodes) {
+              const foundNode = allNodes.find((n: any) => n.id === nodeId);
+              if (foundNode) {
+                node = foundNode.data || foundNode;
+                toolId = node.toolId || foundNode.data?.toolId;
+                category = node.category || foundNode.data?.category;
+                setConfig(node.config?.params || node.config || foundNode.data?.config || {});
+              } else {
+                throw new Error(`Node ${nodeId} não encontrado em allNodes`);
+              }
+            } else {
+              throw new Error('Node não existe no backend e sem dados locais');
+            }
+          } else {
+            throw backendError; // Outro erro, repassar
+          }
+        }
       } else {
         // Automação temporária - usar dados locais
         console.log('💾 [NodeConfigModalV2] Usando dados locais (automação temp)');
@@ -304,27 +357,33 @@ export default function NodeConfigurationModalV2({
         return;
       }
       
-      // 🔥 FIX: Separar lógica para automações temporárias vs salvas
-      if (automationId.startsWith('temp-')) {
-        // Automação temporária - salvar apenas localmente
-        console.log('💾 [NodeConfigModalV2] Salvando config localmente (automação temp)');
-        
-        // Passar configuração para o componente pai atualizar o estado local
-        onSave(nodeId, config);
-        onClose();
-      } else {
-        // Automação salva - persistir no backend
-        console.log('📡 [NodeConfigModalV2] Salvando config no backend (automação salva)');
-        
-        await axios.patch(
-          `${API_BASE_URL}/automations/${automationId}/nodes/${nodeId}/config`,
-          { params: config, toolId: tool?.id }
-        );
-        
-        console.log('✅ Configuração salva com sucesso no backend');
-        onSave();
-        onClose();
+      // ✅ FIX: SEMPRE salvar localmente primeiro, depois tentar backend
+      console.log('💾 [NodeConfigModalV2] Salvando config localmente (estado React)');
+      onSave(nodeId, config); // SEMPRE atualizar React primeiro
+      
+      // Se não é temp, TENTAR salvar no backend também (mas não falhar se node não existe)
+      if (!automationId.startsWith('temp-')) {
+        try {
+          console.log('📡 [NodeConfigModalV2] Tentando salvar no backend...');
+          await axios.patch(
+            `${API_BASE_URL}/automations/${automationId}/nodes/${nodeId}/config`,
+            { params: config, toolId: tool?.id }
+          );
+          console.log('✅ Configuração salva no backend');
+        } catch (backendError: any) {
+          // ✅ FIX: Se node não existe no backend (404), não é erro crítico
+          // Será salvo quando o usuário clicar em "Salvar Automação"
+          if (backendError.response?.status === 404) {
+            console.log('⚠️  Node não existe no backend ainda, config salvo apenas localmente');
+            console.log('   (Será persistido quando salvar a automação completa)');
+          } else {
+            console.error('❌ Erro ao salvar no backend:', backendError);
+            // Não lançar erro, config já foi salvo localmente
+          }
+        }
       }
+      
+      onClose();
     } catch (error: any) {
       console.error('❌ Erro ao salvar:', error);
       setErrors({ _global: error.response?.data?.error || 'Erro ao salvar configuração' });

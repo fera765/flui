@@ -5,6 +5,7 @@ import EditAutomation from './pages/EditAutomation'
 import AutomationsPage from './pages/AutomationsPage'
 import AgentsPage from './pages/AgentsPage'
 import EditAgent from './pages/EditAgent'
+import AgentChat from './pages/AgentChat'
 import MCPsPage from './pages/MCPsPage'
 import EditMCP from './pages/EditMCP'
 import LogsPage from './pages/LogsPage'
@@ -20,6 +21,7 @@ function App() {
       <Route path="/automations/:executionId/logs" element={<LogsPage />} />
       <Route path="/agents" element={<AgentsPage />} />
       <Route path="/agents/:id/edit" element={<EditAgent />} />
+      <Route path="/agents/:id/chat" element={<AgentChat />} />
       <Route path="/mcps" element={<MCPsPage />} />
       <Route path="/mcps/:id/edit" element={<EditMCP />} />
       <Route path="/tools" element={<ToolsPage />} />
