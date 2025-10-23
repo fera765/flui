@@ -1,39 +1,5 @@
 {
-	"automations": [
-		{
-			"id": "891ca4e00e580af0",
-			"name": "Test Node Operations",
-			"description": "Para testar node endpoints",
-			"nodes": [
-				{
-					"id": "node-test-1",
-					"type": "manual-trigger",
-					"name": "Updated",
-					"description": "",
-					"config": {
-						"msg": "patched successfully"
-					},
-					"position": {
-						"x": 0,
-						"y": 0
-					},
-					"nextNodes": []
-				}
-			],
-			"edges": [],
-			"startNodeId": "node-test-1",
-			"enabled": true,
-			"continuousExecution": false,
-			"version": "2.0.0",
-			"createdAt": "2025-10-23T22:07:24.373Z",
-			"updatedAt": "2025-10-23T22:08:26.040Z",
-			"runCount": 0,
-			"metadata": {
-				"createdAt": "2025-10-23T22:07:24.372Z",
-				"updatedAt": "2025-10-23T22:07:24.372Z"
-			}
-		}
-	],
+	"automations": [],
 	"executions": [],
 	"agents": [],
 	"mcps": [],
