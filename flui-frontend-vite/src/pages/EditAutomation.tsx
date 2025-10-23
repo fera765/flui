@@ -122,20 +122,21 @@ export default function EditAutomation() {
       setDescription(automation.description || '');
       setContinuousExecution((automation as any).continuousExecution || false);
 
-      // Converter nós do formato salvo para ReactFlow
+      // ✅ FIX: Converter nós do formato salvo para ReactFlow PRESERVANDO TODAS AS CONFIGS
       const reactFlowNodes: Node[] = automation.nodes.map((node) => ({
         id: node.id,
-        type: node.type || 'tool', // 🔥 FIX: Preservar o tipo original do node
+        type: node.type || 'tool',
         position: node.position || { x: 100, y: 100 },
         data: {
           label: node.name,
           description: node.description,
           toolId: node.config?.toolId,
-          category: node.config?.category || node.type, // 🔥 FIX: fallback to node.type
+          category: node.config?.category || node.type,
           color: node.config?.color,
           icon: node.config?.icon,
           status: 'idle',
-          config: node.config?.params || {},
+          // ✅ CRÍTICO: Preservar TODA a configuração incluindo linkers
+          config: node.config?.params || node.config || {},
           onConfigure: () => handleConfigureNode(node.id),
           onDelete: () => handleDeleteNode(node.id),
         },
@@ -271,10 +272,10 @@ export default function EditAutomation() {
     setIsSaving(true);
 
     try {
-      // Converter para formato de FlowDefinition
+      // ✅ FIX: Converter para formato de FlowDefinition PRESERVANDO TODAS AS CONFIGS
       const flowNodes = nodes.map((node) => ({
         id: node.id,
-        type: node.data.category || node.type || 'tool', // 🔥 FIX: Use category/type instead of hardcoded 'tool'
+        type: node.data.category || node.type || 'tool',
         name: node.data.label,
         description: node.data.description,
         config: {
@@ -282,6 +283,7 @@ export default function EditAutomation() {
           category: node.data.category,
           color: node.data.color,
           icon: node.data.icon,
+          // ✅ CRÍTICO: Salvar TODA a configuração incluindo linkers
           params: node.data.config || {},
         },
         position: node.position,

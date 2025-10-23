@@ -331,10 +331,10 @@ export default function CreateAutomationV2() {
       throw new Error('Adicione pelo menos um nó à automação');
     }
 
-    // Converter para formato de FlowDefinition
+    // ✅ FIX: Converter para formato de FlowDefinition PRESERVANDO TODAS AS CONFIGS
     const flowNodes = nodes.map((node) => ({
       id: node.id,
-      type: node.data.category || node.type || 'tool', // 🔥 FIX: Use category/type instead of hardcoded 'tool'
+      type: node.data.category || node.type || 'tool',
       name: node.data.label,
       description: node.data.description,
       config: {
@@ -342,6 +342,7 @@ export default function CreateAutomationV2() {
         category: node.data.category,
         color: node.data.color,
         icon: node.data.icon,
+        // ✅ CRÍTICO: Salvar TODA a configuração incluindo linkers de output
         params: node.data.config || {},
       },
       position: node.position,

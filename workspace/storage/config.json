@@ -62,6 +62,127 @@
 				"updatedAt": "2025-10-23T00:46:18.359Z",
 				"lastRunAt": "2025-10-23T00:46:18.359Z"
 			}
+		},
+		{
+			"id": "persist-test-1761187579",
+			"name": "Persistence Test",
+			"description": "",
+			"nodes": [
+				{
+					"id": "node-1",
+					"type": "tool",
+					"name": "Trigger",
+					"description": "",
+					"config": {
+						"toolId": "manual-trigger",
+						"params": {
+							"triggerMessage": "Test message"
+						}
+					},
+					"position": {
+						"x": 0,
+						"y": 0
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-2",
+					"type": "agent",
+					"name": "Agent",
+					"description": "",
+					"config": {
+						"toolId": "agent-test",
+						"params": {
+							"prompt": "{{node-1.triggerMessage}} - Updated!",
+							"temperature": 0.9,
+							"newField": "{{node-1.data}}"
+						}
+					},
+					"position": {
+						"x": 0,
+						"y": 0
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "e1",
+					"source": "node-1",
+					"target": "node-2"
+				}
+			],
+			"startNodeId": "node-1",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-23T02:46:19.123Z",
+			"updatedAt": "2025-10-23T02:46:19.184Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-23T02:46:19.122Z",
+				"updatedAt": "2025-10-23T02:46:19.123Z"
+			}
+		},
+		{
+			"id": "real-test-1761187579",
+			"name": "Real Agent Test",
+			"description": "",
+			"nodes": [
+				{
+					"id": "node-trigger",
+					"type": "tool",
+					"name": "Trigger",
+					"description": "",
+					"config": {
+						"toolId": "manual-trigger",
+						"params": {
+							"debugMode": true
+						}
+					},
+					"position": {
+						"x": 0,
+						"y": 0
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-agent",
+					"type": "agent",
+					"name": "Agent",
+					"description": "",
+					"config": {
+						"toolId": "agent-test-agent-1761187579",
+						"params": {
+							"prompt": "Diga olá!"
+						}
+					},
+					"position": {
+						"x": 0,
+						"y": 0
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "e1",
+					"source": "node-trigger",
+					"target": "node-agent"
+				}
+			],
+			"startNodeId": "node-trigger",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-23T02:46:19.758Z",
+			"updatedAt": "2025-10-23T02:46:21.640Z",
+			"runCount": 1,
+			"metadata": {
+				"createdAt": "2025-10-23T02:46:19.758Z",
+				"updatedAt": "2025-10-23T02:46:21.640Z",
+				"lastRunAt": "2025-10-23T02:46:21.640Z"
+			}
 		}
 	],
 	"executions": [],
@@ -83,6 +204,23 @@
 			},
 			"createdAt": "2025-10-23T00:46:14.484Z",
 			"updatedAt": "2025-10-23T00:46:14.484Z"
+		},
+		{
+			"id": "test-agent-1761187579",
+			"name": "Test Agent",
+			"model": "deepseek-v3.1",
+			"systemPrompt": "Responda de forma curta.",
+			"temperature": 0.7,
+			"maxTokens": 100,
+			"enabled": true,
+			"tools": [],
+			"metadata": {
+				"createdAt": "2025-10-23T02:46:19.742Z",
+				"updatedAt": "2025-10-23T02:46:19.742Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-23T02:46:19.742Z",
+			"updatedAt": "2025-10-23T02:46:19.742Z"
 		}
 	],
 	"mcps": [],
@@ -91,7 +229,7 @@
 		"llm": {
 			"endpoint": "https://api.llm7.io/v1",
 			"apiKey": "",
-			"model": "gpt-4-turbo-preview",
+			"model": "deepseek-v3.1",
 			"temperature": 0.7,
 			"maxTokens": 2000
 		},

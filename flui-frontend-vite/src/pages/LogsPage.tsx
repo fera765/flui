@@ -292,18 +292,26 @@ Responda de forma clara e direta, focando nas informações relevantes do contex
         </div>
       </header>
 
-      {/* Main Content - Split Layout */}
+      {/* Main Content - Elegant Split Layout */}
       <main className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-180px)]">
-          {/* Logs Panel */}
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/20 rounded-xl overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-purple-500/20 bg-slate-900/50">
-              <div className="flex items-center gap-2">
-                <Terminal className="w-5 h-5 text-purple-400" />
-                <h2 className="text-lg font-semibold text-white">Logs de Execução</h2>
-                <span className="ml-auto text-sm text-purple-400">
-                  {execution.logs.length} eventos
-                </span>
+          {/* Logs Panel - Elegant Design */}
+          <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-purple-500/30 rounded-2xl overflow-hidden flex flex-col shadow-2xl shadow-purple-500/10">
+            <div className="p-4 border-b border-purple-500/30 bg-gradient-to-r from-slate-900/80 to-purple-900/20">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-500/20 rounded-lg">
+                  <Terminal className="w-5 h-5 text-purple-400" />
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-lg font-bold text-white">Logs de Execução</h2>
+                  <p className="text-xs text-purple-400">Monitoramento em tempo real</p>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-500/20 border border-purple-500/30 rounded-full">
+                  <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></div>
+                  <span className="text-sm font-semibold text-purple-300">
+                    {execution.logs.length} eventos
+                  </span>
+                </div>
               </div>
             </div>
             
@@ -345,45 +353,96 @@ Responda de forma clara e direta, focando nas informações relevantes do contex
             </div>
           </div>
 
-          {/* Chat Panel */}
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/20 rounded-xl overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-purple-500/20 bg-slate-900/50">
-              <div className="flex items-center gap-2">
-                <MessageCircle className="w-5 h-5 text-cyan-400" />
-                <h2 className="text-lg font-semibold text-white">Chat Contextual</h2>
+          {/* Chat Panel - Elegant Design with AI Badge */}
+          <div className="bg-gradient-to-br from-cyan-900/20 to-slate-800/80 backdrop-blur-xl border border-cyan-500/30 rounded-2xl overflow-hidden flex flex-col shadow-2xl shadow-cyan-500/10">
+            <div className="p-4 border-b border-cyan-500/30 bg-gradient-to-r from-slate-900/80 to-cyan-900/20">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-lg">
+                  <MessageCircle className="w-5 h-5 text-cyan-400" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg font-bold text-white">Chat Contextual</h2>
+                    <span className="px-2 py-0.5 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 rounded-full text-xs font-semibold text-cyan-300">
+                      AI REAL
+                    </span>
+                  </div>
+                  <p className="text-xs text-cyan-400">
+                    Assistente inteligente com contexto da execução
+                  </p>
+                </div>
               </div>
-              <p className="text-xs text-purple-400 mt-1">
-                Converse sobre esta execução com contexto completo
-              </p>
             </div>
             
-            {/* Chat Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {/* Chat Messages - Elegant Bubbles */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {chatMessages.length === 0 ? (
-                <div className="text-center text-purple-400 py-12">
-                  <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p className="text-sm">Inicie uma conversa sobre esta automação</p>
-                  <p className="text-xs mt-2 opacity-70">
-                    Pergunte sobre status, erros, resultados ou qualquer informação da execução
+                <div className="text-center text-cyan-400 py-12">
+                  <div className="relative inline-block mb-4">
+                    <MessageCircle className="w-16 h-16 mx-auto opacity-30" />
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full animate-pulse"></div>
+                  </div>
+                  <p className="text-base font-semibold mb-2">💬 Assistente AI Pronto</p>
+                  <p className="text-sm opacity-70 max-w-sm mx-auto">
+                    Pergunte sobre status, erros, resultados ou qualquer informação desta execução
                   </p>
+                  <div className="mt-6 flex flex-wrap justify-center gap-2">
+                    <button
+                      onClick={() => setInputMessage('Qual é o status atual?')}
+                      className="px-3 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-full text-xs text-cyan-300 transition"
+                    >
+                      Status atual
+                    </button>
+                    <button
+                      onClick={() => setInputMessage('Houve algum erro?')}
+                      className="px-3 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-full text-xs text-cyan-300 transition"
+                    >
+                      Verificar erros
+                    </button>
+                    <button
+                      onClick={() => setInputMessage('Quais nodes foram executados?')}
+                      className="px-3 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-full text-xs text-cyan-300 transition"
+                    >
+                      Nodes executados
+                    </button>
+                  </div>
                 </div>
               ) : (
                 chatMessages.map((msg) => (
                   <div
                     key={msg.id}
-                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}
                   >
-                    <div
-                      className={`max-w-[80%] rounded-lg p-3 ${
-                        msg.role === 'user'
-                          ? 'bg-purple-500/20 text-purple-100 border border-purple-500/30'
-                          : 'bg-slate-700/50 text-slate-100 border border-slate-600/30'
-                      }`}
-                    >
-                      <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                      <span className="text-xs opacity-60 mt-1 block">
-                        {new Date(msg.timestamp).toLocaleTimeString()}
-                      </span>
+                    <div className="flex items-end gap-2 max-w-[85%]">
+                      {msg.role === 'assistant' && (
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                          <MessageCircle className="w-4 h-4 text-white" />
+                        </div>
+                      )}
+                      <div
+                        className={`rounded-2xl p-4 shadow-lg ${
+                          msg.role === 'user'
+                            ? 'bg-gradient-to-br from-purple-600 to-pink-600 text-white rounded-br-sm'
+                            : 'bg-gradient-to-br from-slate-800 to-slate-700 text-slate-100 border border-cyan-500/20 rounded-bl-sm'
+                        }`}
+                      >
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className={`text-xs ${msg.role === 'user' ? 'text-purple-200' : 'text-cyan-400'} opacity-70`}>
+                            {new Date(msg.timestamp).toLocaleTimeString()}
+                          </span>
+                          {msg.role === 'assistant' && (
+                            <span className="text-xs bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded-full">
+                              AI
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {msg.role === 'user' && (
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                          <span className="text-white text-sm font-bold">U</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))
@@ -398,22 +457,32 @@ Responda de forma clara e direta, focando nas informações relevantes do contex
               <div ref={chatEndRef} />
             </div>
 
-            {/* Chat Input */}
-            <div className="p-4 border-t border-purple-500/20 bg-slate-900/50">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  placeholder="Pergunte sobre status, erros, resultados..."
-                  className="flex-1 bg-slate-800 border border-purple-500/20 rounded-lg px-4 py-2 text-white placeholder-purple-400/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  disabled={isSendingMessage}
-                />
+            {/* Chat Input - Elegant Design */}
+            <div className="p-4 border-t border-cyan-500/30 bg-gradient-to-r from-slate-900/90 to-cyan-900/20">
+              <div className="flex gap-3">
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                    placeholder="💬 Pergunte sobre status, erros, nodes executados..."
+                    className="w-full bg-slate-800/50 border-2 border-cyan-500/30 rounded-xl px-4 py-3 pr-12 text-white placeholder-cyan-400/40 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
+                    disabled={isSendingMessage}
+                  />
+                  {inputMessage && (
+                    <button
+                      onClick={() => setInputMessage('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-cyan-400/50 hover:text-cyan-400 transition"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
                 <button
                   onClick={handleSendMessage}
                   disabled={!inputMessage.trim() || isSendingMessage}
-                  className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white rounded-lg transition"
+                  className="px-5 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 disabled:from-gray-700 disabled:to-gray-800 disabled:cursor-not-allowed text-white rounded-xl transition-all shadow-lg hover:shadow-cyan-500/50 disabled:shadow-none font-semibold"
                 >
                   {isSendingMessage ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -422,6 +491,9 @@ Responda de forma clara e direta, focando nas informações relevantes do contex
                   )}
                 </button>
               </div>
+              <p className="text-xs text-cyan-400/50 mt-2 text-center">
+                🤖 Powered by AI Real - Contexto completo da execução
+              </p>
             </div>
           </div>
         </div>
