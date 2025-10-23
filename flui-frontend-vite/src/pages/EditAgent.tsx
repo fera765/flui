@@ -21,11 +21,13 @@ export default function EditAgent() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [availableTools, setAvailableTools] = useState<any[]>([]);
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
 
   useEffect(() => {
     if (id) {
       loadAgent(id);
       loadAvailableTools();
+      loadAvailableModels();
     }
   }, [id]);
 
@@ -36,6 +38,27 @@ export default function EditAgent() {
       setAvailableTools(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Erro ao carregar tools:', error);
+    }
+  };
+
+  const loadAvailableModels = async () => {
+    try {
+      const res = await fetch('http://localhost:3001/api/models');
+      const data = await res.json();
+      
+      if (Array.isArray(data)) {
+        const modelIds = data.map((model: any) => model.id || model.name);
+        setAvailableModels(modelIds);
+        console.log(`✅ ${modelIds.length} modelos carregados para edição`);
+      } else {
+        console.warn('Formato de resposta inesperado para modelos:', data);
+        // Fallback para modelos padrão
+        setAvailableModels(['gpt-4', 'gpt-4-turbo', 'gpt-3.5-turbo', 'claude-3-opus', 'claude-3-sonnet']);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar modelos:', error);
+      // Fallback para modelos padrão em caso de erro
+      setAvailableModels(['gpt-4', 'gpt-4-turbo', 'gpt-3.5-turbo', 'claude-3-opus', 'claude-3-sonnet']);
     }
   };
 
@@ -169,18 +192,37 @@ export default function EditAgent() {
           <div className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
             <label className="block text-purple-300 text-sm font-medium mb-2">
               Modelo
+              {availableModels.length > 0 && (
+                <span className="ml-2 text-xs text-green-400">
+                  ✓ {availableModels.length} modelo(s) disponível(is)
+                </span>
+              )}
             </label>
             <select
               value={agent.model}
               onChange={(e) => setAgent({ ...agent, model: e.target.value })}
               className="w-full bg-slate-900/50 border border-purple-500/30 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 outline-none transition"
             >
-              <option value="gpt-4">GPT-4</option>
-              <option value="gpt-4-turbo">GPT-4 Turbo</option>
-              <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-              <option value="claude-3-opus">Claude 3 Opus</option>
-              <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+              {availableModels.length > 0 ? (
+                availableModels.map(model => (
+                  <option key={model} value={model}>{model}</option>
+                ))
+              ) : (
+                // Fallback para modelos padrão se não conseguiu carregar
+                <>
+                  <option value="gpt-4">GPT-4</option>
+                  <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                  <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                  <option value="claude-3-opus">Claude 3 Opus</option>
+                  <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+                </>
+              )}
             </select>
+            {availableModels.length === 0 && (
+              <p className="text-xs text-yellow-400 mt-1">
+                ⚠️ Não foi possível carregar modelos do endpoint LLM. Usando lista padrão.
+              </p>
+            )}
           </div>
 
           {/* System Prompt */}

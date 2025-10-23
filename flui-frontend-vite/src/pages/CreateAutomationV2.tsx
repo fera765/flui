@@ -342,6 +342,7 @@ export default function CreateAutomationV2() {
         category: node.data.category,
         color: node.data.color,
         icon: node.data.icon,
+        // 🔥 FIX: Manter estrutura consistente - params dentro de config
         params: node.data.config || {},
       },
       position: node.position,

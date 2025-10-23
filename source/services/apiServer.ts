@@ -442,6 +442,63 @@ app.get('/api/agents/:id/as-tool', (req: Request, res: Response) => {
   }
 });
 
+// ============= MODELS ENDPOINT =============
+
+// GET /api/models - Listar modelos disponíveis do endpoint LLM configurado
+app.get('/api/models', async (req: Request, res: Response) => {
+  try {
+    const store = useStore.getState();
+    const config = store.config;
+    
+    if (!config?.llm?.endpoint) {
+      return res.status(400).json({ error: 'Endpoint LLM não configurado' });
+    }
+
+    const headers: any = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (config.llm.apiKey) {
+      headers['Authorization'] = `Bearer ${config.llm.apiKey}`;
+    }
+
+    const response = await fetch(`${config.llm.endpoint}/models`, { headers });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json() as any;
+    
+    // Suportar ambos os formatos (OpenAI e outros)
+    let models: any[] = [];
+    if (Array.isArray(data)) {
+      // Formato direto: [{id, object, ...}, ...]
+      models = data;
+    } else if (data.data && Array.isArray(data.data)) {
+      // Formato OpenAI: { data: [...] }
+      models = data.data;
+    }
+    
+    // Retornar apenas informações essenciais
+    const simplifiedModels = models.map((model: any) => ({
+      id: model.id,
+      name: model.id, // Para compatibilidade
+      object: model.object || 'model',
+      created: model.created,
+      owned_by: model.owned_by || 'unknown',
+    }));
+
+    res.json(simplifiedModels);
+  } catch (error: any) {
+    console.error('❌ Erro ao carregar modelos:', error);
+    res.status(500).json({ 
+      error: 'Erro ao carregar modelos do endpoint LLM',
+      details: error.message 
+    });
+  }
+});
+
 // ============= AGENTS ENDPOINTS =============
 
 app.get('/api/agents', (_req: Request, res: Response) => {
@@ -531,6 +588,108 @@ app.delete('/api/agents/:id', (req: Request, res: Response) => {
     store.deleteAgent(req.params.id);
     res.json({ success: true });
   } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/agents/:id/chat - Chat com agente
+app.post('/api/agents/:id/chat', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { message, history = [] } = req.body;
+    
+    const store = useStore.getState();
+    const agent = store.agents.find(a => a.id === id);
+    
+    if (!agent) {
+      return res.status(404).json({ error: 'Agente não encontrado' });
+    }
+
+    if (!agent.enabled) {
+      return res.status(400).json({ error: 'Agente está desabilitado' });
+    }
+
+    // Configurar headers para streaming
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    // Função para enviar chunk via streaming
+    const sendChunk = (data: any) => {
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+    };
+
+    try {
+      // Simular processamento do agente
+      sendChunk({ type: 'content', content: 'Processando sua mensagem...\n\n' });
+      
+      // Simular delay de processamento
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Simular resposta baseada no prompt do sistema
+      const responses = [
+        `Entendi sua pergunta: "${message}"\n\nBaseado no meu conhecimento e nas ferramentas disponíveis, aqui está minha resposta:`,
+        `Interessante pergunta! Deixe-me analisar isso para você...\n\n`,
+        `Vou ajudá-lo com isso. Deixe-me processar a informação...\n\n`
+      ];
+      
+      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+      sendChunk({ type: 'content', content: randomResponse });
+      
+      // Simular uso de ferramentas se o agente tem ferramentas
+      if (agent.tools && agent.tools.length > 0) {
+        sendChunk({ type: 'tool', toolName: 'web_search', result: 'Pesquisando informações relevantes...' });
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        sendChunk({ type: 'tool', toolName: 'data_analysis', result: 'Analisando dados encontrados...' });
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      // Simular resposta final
+      const finalResponse = `Com base na sua pergunta "${message}", posso fornecer as seguintes informações:\n\n` +
+        `1. Esta é uma resposta simulada do agente ${agent.name}\n` +
+        `2. O agente está usando o modelo ${agent.model}\n` +
+        `3. Temperatura configurada: ${agent.temperature}\n` +
+        `4. Máximo de tokens: ${agent.maxTokens}\n\n` +
+        `Se você tiver mais perguntas ou precisar de ajuda específica, estarei aqui para ajudar!`;
+      
+      sendChunk({ type: 'content', content: finalResponse });
+      
+      // Simular geração de arquivo ocasional
+      if (Math.random() > 0.7) {
+        const fileName = `resposta_${Date.now()}.txt`;
+        const fileContent = `Resposta do Agente ${agent.name}\n\nPergunta: ${message}\n\nResposta: ${finalResponse}`;
+        sendChunk({ 
+          type: 'file', 
+          name: fileName, 
+          content: fileContent, 
+          fileType: 'text/plain' 
+        });
+      }
+      
+      // Simular geração de link ocasional
+      if (Math.random() > 0.8) {
+        sendChunk({ 
+          type: 'link', 
+          url: 'https://example.com/related-resource', 
+          title: 'Recurso Relacionado',
+          description: 'Link útil relacionado à sua pergunta'
+        });
+      }
+      
+      // Finalizar streaming
+      res.write('data: [DONE]\n\n');
+      res.end();
+      
+    } catch (error: any) {
+      console.error('Erro no chat do agente:', error);
+      sendChunk({ type: 'error', content: `Erro: ${error.message}` });
+      res.write('data: [DONE]\n\n');
+      res.end();
+    }
+    
+  } catch (error: any) {
+    console.error('Erro no endpoint de chat:', error);
     res.status(500).json({ error: error.message });
   }
 });
