@@ -25,13 +25,21 @@ export const sendStreamingMessage = async (
   const store = useStore.getState();
   const config = store.config;
 
-  if (!config || !config.llm.apiKey) {
+  // ✅ FIX: Endpoint https://api.llm7.io/v1 não requer API key
+  const needsApiKey = config?.llm?.endpoint && !config.llm.endpoint.includes('llm7.io');
+  
+  if (!config || !config.llm) {
     onError(new Error('LLM não configurado. Use /settings para configurar.'));
+    return;
+  }
+  
+  if (needsApiKey && !config.llm.apiKey) {
+    onError(new Error('API Key é obrigatória para este endpoint. Configure em /settings.'));
     return;
   }
 
   if (!openaiClient) {
-    initializeStreamingLLM(config.llm.endpoint, config.llm.apiKey);
+    initializeStreamingLLM(config.llm.endpoint, config.llm.apiKey || '');
   }
 
   if (!openaiClient) {
@@ -92,8 +100,15 @@ export const listModelsStreaming = async (): Promise<string[]> => {
   const store = useStore.getState();
   const config = store.config;
 
-  if (!config || !config.llm.apiKey) {
+  // ✅ FIX: Endpoint https://api.llm7.io/v1 não requer API key
+  const needsApiKey = config?.llm?.endpoint && !config.llm.endpoint.includes('llm7.io');
+  
+  if (!config || !config.llm) {
     throw new Error('LLM não configurado.');
+  }
+  
+  if (needsApiKey && !config.llm.apiKey) {
+    throw new Error('API Key é obrigatória para este endpoint.');
   }
 
   if (!openaiClient) {

@@ -1,7 +1,101 @@
 {
-	"automations": [],
+	"automations": [
+		{
+			"id": "test-automation-1761180374",
+			"name": "Test Automation 00:46:14",
+			"description": "Automação de teste com gatilho manual e agente",
+			"nodes": [
+				{
+					"id": "node-trigger",
+					"type": "tool",
+					"name": "Manual Trigger",
+					"description": "Gatilho manual",
+					"config": {
+						"toolId": "manual-trigger",
+						"category": "system",
+						"params": {
+							"triggerMessage": "Test automation started",
+							"debugMode": true
+						}
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-agent",
+					"type": "agent",
+					"name": "Test Agent Node",
+					"description": "Executa o agente de teste",
+					"config": {
+						"toolId": "agent-test-agent-1761180374",
+						"category": "agent",
+						"params": {
+							"prompt": "Olá! Por favor, responda com uma saudação curta."
+						}
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "edge-1",
+					"source": "node-trigger",
+					"target": "node-agent"
+				}
+			],
+			"startNodeId": "node-trigger",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-23T00:46:14.504Z",
+			"updatedAt": "2025-10-23T00:46:18.359Z",
+			"runCount": 1,
+			"metadata": {
+				"createdAt": "2025-10-23T00:46:14.504Z",
+				"updatedAt": "2025-10-23T00:46:18.359Z",
+				"lastRunAt": "2025-10-23T00:46:18.359Z"
+			}
+		}
+	],
 	"executions": [],
-	"agents": [],
+	"agents": [
+		{
+			"id": "test-agent-1761180374",
+			"name": "Test Agent 00:46:14",
+			"description": "Agente de teste criado automaticamente",
+			"model": "deepseek-v3.1",
+			"systemPrompt": "Você é um assistente útil e eficiente.",
+			"temperature": 0.7,
+			"maxTokens": 1000,
+			"enabled": true,
+			"tools": [],
+			"metadata": {
+				"createdAt": "2025-10-23T00:46:14.483Z",
+				"updatedAt": "2025-10-23T00:46:14.483Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-23T00:46:14.484Z",
+			"updatedAt": "2025-10-23T00:46:14.484Z"
+		}
+	],
 	"mcps": [],
-	"sessions": []
+	"sessions": [],
+	"config": {
+		"llm": {
+			"endpoint": "https://api.llm7.io/v1",
+			"apiKey": "",
+			"model": "gpt-4-turbo-preview",
+			"temperature": 0.7,
+			"maxTokens": 2000
+		},
+		"theme": "default",
+		"locale": "pt-BR"
+	}
 }

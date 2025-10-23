@@ -20,6 +20,7 @@ function App() {
       <Route path="/automations/:executionId/logs" element={<LogsPage />} />
       <Route path="/agents" element={<AgentsPage />} />
       <Route path="/agents/:id/edit" element={<EditAgent />} />
+      <Route path="/agents/:id/chat" element={<AgentChat />} />
       <Route path="/mcps" element={<MCPsPage />} />
       <Route path="/mcps/:id/edit" element={<EditMCP />} />
       <Route path="/tools" element={<ToolsPage />} />

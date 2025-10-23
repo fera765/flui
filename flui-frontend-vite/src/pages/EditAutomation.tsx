@@ -218,7 +218,8 @@ export default function EditAutomation() {
     }
   }, [nodes, setNodes, setEdges, handleConfigureNode, handleDeleteNode]);
 
-  // Salvar configuração do nó
+  // Salvar configuração do nó (chamado apenas para feedback local)
+  // NodeConfigurationModalV2 já persiste no backend para automações salvas
   const handleSaveNodeConfig = (nodeIdParam?: string, configParam?: any) => {
     // 🔥 FIX: Aceitar parâmetros opcionais do NodeConfigurationModalV2
     const targetNodeId = nodeIdParam || selectedNode?.id;
@@ -226,6 +227,7 @@ export default function EditAutomation() {
     
     if (!targetNodeId) return;
 
+    // ✅ Atualizar node localmente para feedback imediato na UI
     setNodes((nds) =>
       nds.map((n) =>
         n.id === targetNodeId
@@ -594,9 +596,10 @@ export default function EditAutomation() {
             setConfigPanelOpen(false);
             setSelectedNode(null);
           }}
-          onSave={() => {
-            // Reload automation to get updated config
-            loadAutomation(id);
+          onSave={(savedNodeId?: string, savedConfig?: any) => {
+            // ✅ FIX: Atualizar estado local imediatamente ao invés de recarregar tudo
+            // NodeConfigurationModalV2 já chama handleSaveNodeConfig que persiste no backend
+            // Apenas fechar modal aqui
             setConfigPanelOpen(false);
             setSelectedNode(null);
           }}

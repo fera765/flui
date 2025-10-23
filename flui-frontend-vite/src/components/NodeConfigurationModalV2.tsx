@@ -322,7 +322,9 @@ export default function NodeConfigurationModalV2({
         );
         
         console.log('✅ Configuração salva com sucesso no backend');
-        onSave();
+        
+        // ✅ FIX: Passar config atualizado para componente pai atualizar UI
+        onSave(nodeId, config);
         onClose();
       }
     } catch (error: any) {

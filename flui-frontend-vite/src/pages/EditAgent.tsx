@@ -21,11 +21,21 @@ export default function EditAgent() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [availableTools, setAvailableTools] = useState<any[]>([]);
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [llmConfig, setLLMConfig] = useState(() => {
+    const saved = localStorage.getItem('llmConfig');
+    return saved ? JSON.parse(saved) : {
+      endpoint: 'https://api.llm7.io/v1',
+      apiKey: '',
+      defaultModel: 'gpt-4',
+    };
+  });
 
   useEffect(() => {
     if (id) {
       loadAgent(id);
       loadAvailableTools();
+      loadModels();
     }
   }, [id]);
 
@@ -36,6 +46,42 @@ export default function EditAgent() {
       setAvailableTools(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Erro ao carregar tools:', error);
+    }
+  };
+
+  // ✅ FIX: Carregar modelos reais do endpoint
+  const loadModels = async () => {
+    if (!llmConfig.endpoint) {
+      console.log('⚠️ Endpoint não configurado');
+      return;
+    }
+
+    try {
+      const headers: any = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (llmConfig.apiKey) {
+        headers['Authorization'] = `Bearer ${llmConfig.apiKey}`;
+      }
+
+      const response = await fetch(`${llmConfig.endpoint}/models`, { headers });
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        let models: string[] = [];
+        if (Array.isArray(data)) {
+          models = data.map((m: any) => m.id);
+        } else if (data.data && Array.isArray(data.data)) {
+          models = data.data.map((m: any) => m.id);
+        }
+        
+        setAvailableModels(models);
+        console.log(`✅ ${models.length} modelos carregados em EditAgent`);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao carregar modelos:', error);
     }
   };
 
@@ -167,20 +213,44 @@ export default function EditAgent() {
 
           {/* Modelo */}
           <div className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
-            <label className="block text-purple-300 text-sm font-medium mb-2">
-              Modelo
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-purple-300 text-sm font-medium">
+                Modelo
+              </label>
+              {availableModels.length > 0 && (
+                <span className="text-xs text-green-400">
+                  ✓ {availableModels.length} disponível(is)
+                </span>
+              )}
+            </div>
             <select
               value={agent.model}
               onChange={(e) => setAgent({ ...agent, model: e.target.value })}
               className="w-full bg-slate-900/50 border border-purple-500/30 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 outline-none transition"
             >
-              <option value="gpt-4">GPT-4</option>
-              <option value="gpt-4-turbo">GPT-4 Turbo</option>
-              <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-              <option value="claude-3-opus">Claude 3 Opus</option>
-              <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+              {/* ✅ FIX: Usar modelos carregados dinamicamente do endpoint */}
+              {availableModels.length > 0 ? (
+                <>
+                  {availableModels.map(model => (
+                    <option key={model} value={model}>{model}</option>
+                  ))}
+                </>
+              ) : (
+                <>
+                  {/* Fallback: modelos padrão se não conseguiu carregar */}
+                  <option value="gpt-4">GPT-4</option>
+                  <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                  <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                  <option value="claude-3-opus">Claude 3 Opus</option>
+                  <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+                </>
+              )}
             </select>
+            {!llmConfig.endpoint && (
+              <p className="text-xs text-yellow-400 mt-2">
+                ⚠️ Configure o endpoint LLM na página de Agentes para carregar modelos disponíveis
+              </p>
+            )}
           </div>
 
           {/* System Prompt */}
