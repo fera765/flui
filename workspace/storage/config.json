@@ -1473,6 +1473,283 @@
 				"updatedAt": "2025-10-23T09:35:56.485Z",
 				"lastRunAt": "2025-10-23T09:35:56.485Z"
 			}
+		},
+		{
+			"id": "bug-auto-1761219394776",
+			"name": "Bug Test Automation",
+			"description": "Testing config persistence",
+			"nodes": [
+				{
+					"id": "node-1",
+					"type": "agent",
+					"name": "Test Agent Node",
+					"description": "",
+					"config": {
+						"toolId": "agent-bug-test-1761219394271",
+						"category": "agent",
+						"params": {}
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [],
+			"startNodeId": "node-1",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-23T11:36:34.782Z",
+			"updatedAt": "2025-10-23T11:36:34.783Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-23T11:36:34.782Z",
+				"updatedAt": "2025-10-23T11:36:34.782Z"
+			}
+		},
+		{
+			"id": "chain-auto-1761219408991",
+			"name": "Chain Test",
+			"description": "",
+			"nodes": [
+				{
+					"id": "n1",
+					"type": "agent",
+					"name": "Node 1",
+					"description": "",
+					"config": {
+						"toolId": "agent-bug-test-1761219408493",
+						"category": "agent",
+						"params": {
+							"prompt": "Node 1"
+						}
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "n2",
+					"type": "agent",
+					"name": "Node 2",
+					"description": "",
+					"config": {
+						"toolId": "agent-bug-test-1761219408493",
+						"category": "agent",
+						"params": {
+							"prompt": "Node 2"
+						}
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "n3",
+					"type": "agent",
+					"name": "Node 3",
+					"description": "",
+					"config": {
+						"toolId": "agent-bug-test-1761219408493",
+						"category": "agent",
+						"params": {
+							"prompt": "Node 3"
+						}
+					},
+					"position": {
+						"x": 700,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "e1",
+					"source": "n1",
+					"target": "n2"
+				},
+				{
+					"id": "e2",
+					"source": "n2",
+					"target": "n3"
+				}
+			],
+			"startNodeId": "n1",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-23T11:36:49.000Z",
+			"updatedAt": "2025-10-23T11:36:49.000Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-23T11:36:49.000Z",
+				"updatedAt": "2025-10-23T11:36:49.000Z"
+			}
+		},
+		{
+			"id": "bug-auto-1761219571360",
+			"name": "Bug Test Automation",
+			"description": "Testing config persistence",
+			"nodes": [
+				{
+					"id": "node-1",
+					"type": "agent",
+					"name": "Test Agent Node",
+					"description": "",
+					"config": {
+						"toolId": "agent-bug-test-1761219570884",
+						"category": "agent",
+						"params": {}
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [],
+			"startNodeId": "node-1",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-23T11:39:31.367Z",
+			"updatedAt": "2025-10-23T11:39:31.368Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-23T11:39:31.367Z",
+				"updatedAt": "2025-10-23T11:39:31.367Z"
+			}
+		},
+		{
+			"id": "chain-auto-1761219585206",
+			"name": "Chain Test",
+			"description": "",
+			"nodes": [
+				{
+					"id": "n1",
+					"type": "agent",
+					"name": "Node 1",
+					"description": "",
+					"config": {
+						"toolId": "agent-bug-test-1761219584710",
+						"category": "agent",
+						"params": {
+							"prompt": "Node 1"
+						}
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "n2",
+					"type": "agent",
+					"name": "Node 2",
+					"description": "",
+					"config": {
+						"toolId": "agent-bug-test-1761219584710",
+						"category": "agent",
+						"params": {
+							"prompt": "Node 2"
+						}
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "n3",
+					"type": "agent",
+					"name": "Node 3",
+					"description": "",
+					"config": {
+						"toolId": "agent-bug-test-1761219584710",
+						"category": "agent",
+						"params": {
+							"prompt": "Node 3"
+						}
+					},
+					"position": {
+						"x": 700,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "e1",
+					"source": "n1",
+					"target": "n2"
+				},
+				{
+					"id": "e2",
+					"source": "n2",
+					"target": "n3"
+				}
+			],
+			"startNodeId": "n1",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-23T11:39:45.214Z",
+			"updatedAt": "2025-10-23T11:39:45.214Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-23T11:39:45.214Z",
+				"updatedAt": "2025-10-23T11:39:45.214Z"
+			}
+		},
+		{
+			"id": "direct-test-1761219689",
+			"name": "Direct Test",
+			"description": "",
+			"nodes": [
+				{
+					"id": "n1",
+					"type": "agent",
+					"name": "Node 1",
+					"description": "",
+					"config": {
+						"toolId": "agent-direct-test-1761219689",
+						"category": "agent",
+						"params": {
+							"prompt": "TESTE PERSISTENCIA",
+							"temperature": 0.9
+						}
+					},
+					"position": {
+						"x": 0,
+						"y": 0
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [],
+			"startNodeId": "n1",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-23T11:41:29.748Z",
+			"updatedAt": "2025-10-23T11:41:32.024Z",
+			"runCount": 1,
+			"metadata": {
+				"createdAt": "2025-10-23T11:41:29.748Z",
+				"updatedAt": "2025-10-23T11:41:32.024Z",
+				"lastRunAt": "2025-10-23T11:41:32.024Z"
+			}
 		}
 	],
 	"executions": [],
@@ -1749,6 +2026,108 @@
 			},
 			"createdAt": "2025-10-23T10:34:22.040Z",
 			"updatedAt": "2025-10-23T10:34:22.040Z"
+		},
+		{
+			"id": "real-ui-test-1761219284125",
+			"name": "Real UI Test Agent 1761219284125",
+			"model": "deepseek-v3.1",
+			"systemPrompt": "Assistente de teste UI real",
+			"temperature": 0.7,
+			"maxTokens": 50,
+			"enabled": true,
+			"tools": [],
+			"metadata": {
+				"createdAt": "2025-10-23T11:34:44.194Z",
+				"updatedAt": "2025-10-23T11:34:44.194Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-23T11:34:44.194Z",
+			"updatedAt": "2025-10-23T11:34:44.194Z"
+		},
+		{
+			"id": "bug-test-1761219394271",
+			"name": "Bug Test Agent 1761219394271",
+			"model": "deepseek-v3.1",
+			"systemPrompt": "Test",
+			"temperature": 0.7,
+			"maxTokens": 50,
+			"enabled": true,
+			"tools": [],
+			"metadata": {
+				"createdAt": "2025-10-23T11:36:34.319Z",
+				"updatedAt": "2025-10-23T11:36:34.319Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-23T11:36:34.319Z",
+			"updatedAt": "2025-10-23T11:36:34.319Z"
+		},
+		{
+			"id": "bug-test-1761219408493",
+			"name": "Bug Test Agent 1761219408493",
+			"model": "deepseek-v3.1",
+			"systemPrompt": "Test",
+			"temperature": 0.7,
+			"maxTokens": 50,
+			"enabled": true,
+			"tools": [],
+			"metadata": {
+				"createdAt": "2025-10-23T11:36:48.546Z",
+				"updatedAt": "2025-10-23T11:36:48.546Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-23T11:36:48.546Z",
+			"updatedAt": "2025-10-23T11:36:48.546Z"
+		},
+		{
+			"id": "bug-test-1761219570884",
+			"name": "Bug Test Agent 1761219570884",
+			"model": "deepseek-v3.1",
+			"systemPrompt": "Test",
+			"temperature": 0.7,
+			"maxTokens": 50,
+			"enabled": true,
+			"tools": [],
+			"metadata": {
+				"createdAt": "2025-10-23T11:39:30.938Z",
+				"updatedAt": "2025-10-23T11:39:30.938Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-23T11:39:30.938Z",
+			"updatedAt": "2025-10-23T11:39:30.938Z"
+		},
+		{
+			"id": "bug-test-1761219584710",
+			"name": "Bug Test Agent 1761219584710",
+			"model": "deepseek-v3.1",
+			"systemPrompt": "Test",
+			"temperature": 0.7,
+			"maxTokens": 50,
+			"enabled": true,
+			"tools": [],
+			"metadata": {
+				"createdAt": "2025-10-23T11:39:44.757Z",
+				"updatedAt": "2025-10-23T11:39:44.757Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-23T11:39:44.757Z",
+			"updatedAt": "2025-10-23T11:39:44.757Z"
+		},
+		{
+			"id": "direct-test-1761219689",
+			"name": "Test",
+			"model": "deepseek-v3.1",
+			"systemPrompt": "Test",
+			"temperature": 0.7,
+			"maxTokens": 50,
+			"enabled": true,
+			"tools": [],
+			"metadata": {
+				"createdAt": "2025-10-23T11:41:29.726Z",
+				"updatedAt": "2025-10-23T11:41:29.726Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-23T11:41:29.726Z",
+			"updatedAt": "2025-10-23T11:41:29.726Z"
 		}
 	],
 	"mcps": [],

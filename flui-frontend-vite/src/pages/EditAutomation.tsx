@@ -83,16 +83,31 @@ export default function EditAutomation() {
   }), []);
 
   // Configurar nó (abre modal)
+  // 🔥 FIX CRÍTICO: Não usar setNodes apenas para ler - causa problemas de estado
   const handleConfigureNode = useCallback((nodeId: string) => {
-    setNodes((currentNodes) => {
-      const node = currentNodes.find((n) => n.id === nodeId);
-      if (node) {
-        setSelectedNode(node);
-        setConfigPanelOpen(true);
-      }
-      return currentNodes;
-    });
-  }, [setNodes]);
+    console.log('🔧 [EditAutomation] handleConfigureNode chamado:', nodeId);
+    
+    // Buscar node diretamente do estado atual (sem setNodes)
+    const currentNodes = nodes;
+    const node = currentNodes.find((n) => n.id === nodeId);
+    
+    console.log('🔍 [EditAutomation] Node encontrado:', node?.id, node?.data?.label);
+    
+    if (node) {
+      console.log('✅ [EditAutomation] Abrindo modal para node:', nodeId);
+      console.log('   Current state:', { selectedNode: selectedNode?.id, configPanelOpen });
+      
+      setSelectedNode(node);
+      setConfigPanelOpen(true);
+      
+      // Força re-render
+      setTimeout(() => {
+        console.log('   After setState:', { selectedNode: node.id, configPanelOpen: true });
+      }, 100);
+    } else {
+      console.error('❌ [EditAutomation] Node não encontrado!');
+    }
+  }, [nodes, selectedNode, configPanelOpen]);
 
   // Excluir nó
   const handleDeleteNode = useCallback((nodeId: string) => {
@@ -599,10 +614,11 @@ export default function EditAutomation() {
       />
 
       {/* Node Config Panel */}
-      {selectedNode && id && (
+      {/* 🔥 FIX CRÍTICO: Usar id OU gerar temporário se não existir */}
+      {selectedNode && (
         <NodeConfigurationModalV2
           isOpen={configPanelOpen}
-          automationId={id}
+          automationId={id || `temp-${Date.now()}`}
           nodeId={selectedNode.id}
           nodeData={selectedNode.data}
           allNodes={nodes}
