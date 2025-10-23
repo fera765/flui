@@ -561,11 +561,172 @@
 			"continuousExecution": false,
 			"version": "2.0.0",
 			"createdAt": "2025-10-23T06:19:29.547Z",
-			"updatedAt": "2025-10-23T06:19:29.841Z",
-			"runCount": 0,
+			"updatedAt": "2025-10-23T07:17:03.411Z",
+			"runCount": 1,
 			"metadata": {
 				"createdAt": "2025-10-23T06:19:29.546Z",
-				"updatedAt": "2025-10-23T06:19:29.546Z"
+				"updatedAt": "2025-10-23T07:17:03.411Z",
+				"lastRunAt": "2025-10-23T07:17:03.411Z"
+			}
+		},
+		{
+			"id": "e2e-workflow-1761203986",
+			"name": "E2E Complete Workflow",
+			"description": "Teste completo com 5 nodes",
+			"nodes": [
+				{
+					"id": "node-1",
+					"type": "trigger",
+					"name": "Trigger",
+					"description": "Node inicial",
+					"config": {
+						"toolId": "manual-trigger",
+						"category": "system",
+						"params": {
+							"message": "Inicio"
+						}
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-2",
+					"type": "agent",
+					"name": "Processador 1",
+					"description": "Primeiro processador",
+					"config": {
+						"toolId": "agent-e2e-agent-1761203986",
+						"category": "agent",
+						"params": {
+							"prompt": "Processe: {{node-1.message}}",
+							"temperature": 0.7
+						}
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-3",
+					"type": "agent",
+					"name": "Processador 2",
+					"description": "Segundo processador",
+					"config": {
+						"toolId": "agent-e2e-agent-1761203986",
+						"category": "agent",
+						"params": {
+							"prompt": "ATUALIZADO: {{node-2.response}}",
+							"temperature": 0.95,
+							"newParam": "valor teste"
+						}
+					},
+					"position": {
+						"x": 700,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-4",
+					"type": "agent",
+					"name": "Processador 3",
+					"description": "Terceiro processador",
+					"config": {
+						"toolId": "agent-e2e-agent-1761203986",
+						"category": "agent",
+						"params": {
+							"prompt": "Finalize: {{node-3.response}}",
+							"temperature": 0.9
+						}
+					},
+					"position": {
+						"x": 1000,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-5",
+					"type": "agent",
+					"name": "Finalizador",
+					"description": "Node final",
+					"config": {
+						"toolId": "agent-e2e-agent-1761203986",
+						"category": "agent",
+						"params": {
+							"prompt": "Resumo de {{node-1.message}}, {{node-2.response}}, {{node-3.response}}, {{node-4.response}}",
+							"temperature": 0.7
+						}
+					},
+					"position": {
+						"x": 1300,
+						"y": 100
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-6",
+					"type": "agent",
+					"name": "Extra Node",
+					"description": "",
+					"config": {
+						"toolId": "agent-e2e-agent-1761203986",
+						"category": "agent",
+						"params": {
+							"prompt": "Extra: {{node-5.response}}",
+							"temperature": 0.8
+						}
+					},
+					"position": {
+						"x": 1600,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [
+				{
+					"id": "e1",
+					"source": "node-1",
+					"target": "node-2"
+				},
+				{
+					"id": "e2",
+					"source": "node-2",
+					"target": "node-3"
+				},
+				{
+					"id": "e3",
+					"source": "node-3",
+					"target": "node-4"
+				},
+				{
+					"id": "e4",
+					"source": "node-4",
+					"target": "node-5"
+				},
+				{
+					"id": "e5",
+					"source": "node-5",
+					"target": "node-6"
+				}
+			],
+			"startNodeId": "node-1",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-23T07:19:46.478Z",
+			"updatedAt": "2025-10-23T07:20:02.167Z",
+			"runCount": 1,
+			"metadata": {
+				"createdAt": "2025-10-23T07:19:46.477Z",
+				"updatedAt": "2025-10-23T07:20:02.167Z",
+				"lastRunAt": "2025-10-23T07:20:02.167Z"
 			}
 		}
 	],
@@ -656,6 +817,23 @@
 			},
 			"createdAt": "2025-10-23T06:19:29.509Z",
 			"updatedAt": "2025-10-23T06:19:29.509Z"
+		},
+		{
+			"id": "e2e-agent-1761203986",
+			"name": "E2E Test Agent",
+			"model": "deepseek-v3.1",
+			"systemPrompt": "Responda de forma ultra curta (max 5 palavras).",
+			"temperature": 0.7,
+			"maxTokens": 50,
+			"enabled": true,
+			"tools": [],
+			"metadata": {
+				"createdAt": "2025-10-23T07:19:46.429Z",
+				"updatedAt": "2025-10-23T07:19:46.432Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-23T07:19:46.432Z",
+			"updatedAt": "2025-10-23T07:19:46.432Z"
 		}
 	],
 	"mcps": [],
