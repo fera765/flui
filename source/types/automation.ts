@@ -12,6 +12,8 @@ export const AutomationNodeTypeSchema = z.enum([
   'file_operation',
   'data_transform',
   'webhook',
+  'tool',      // ✅ FIX: Suporte para nodes de ferramenta genéricos
+  'system',    // ✅ FIX: Suporte para nodes de sistema/trigger manual
 ]);
 
 export type AutomationNodeType = z.infer<typeof AutomationNodeTypeSchema>;

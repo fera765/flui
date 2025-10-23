@@ -183,6 +183,43 @@
 				"updatedAt": "2025-10-23T02:46:21.640Z",
 				"lastRunAt": "2025-10-23T02:46:21.640Z"
 			}
+		},
+		{
+			"id": "test-system-type",
+			"name": "Test System Type",
+			"description": "",
+			"nodes": [
+				{
+					"id": "node-system",
+					"type": "system",
+					"name": "System Trigger",
+					"description": "",
+					"config": {
+						"toolId": "manual-trigger",
+						"category": "system",
+						"params": {
+							"test": "value"
+						}
+					},
+					"position": {
+						"x": 0,
+						"y": 0
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [],
+			"startNodeId": "node-system",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-23T04:54:35.814Z",
+			"updatedAt": "2025-10-23T04:54:35.819Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-23T04:54:35.813Z",
+				"updatedAt": "2025-10-23T04:54:35.813Z"
+			}
 		}
 	],
 	"executions": [],
