@@ -83,7 +83,7 @@ describe('Tool Registry Integration - REAL', () => {
       const result = await fileWriteTool!.execute({
         path: testFile,
         content: 'Written via registry',
-      });
+      }, {} as any);
 
       expect(result.success).toBe(true);
 
@@ -100,10 +100,10 @@ describe('Tool Registry Integration - REAL', () => {
       const registry = getToolRegistry();
       const fileReadTool = registry.getTool('file-read');
 
-      const result = await fileReadTool!.execute({ path: testFile });
+      const result = await fileReadTool!.execute({ path: testFile }, {} as any);
 
       expect(result.success).toBe(true);
-      expect(result.content).toBe('Content to read');
+      expect((result as any).content).toBe('Content to read');
     });
 
     it('should execute shell-exec tool through registry', async () => {
@@ -112,10 +112,10 @@ describe('Tool Registry Integration - REAL', () => {
 
       const result = await shellTool!.execute({
         command: 'echo "Registry test"',
-      });
+      }, {} as any);
 
       expect(result.success).toBe(true);
-      expect(result.stdout).toContain('Registry test');
+      expect((result as any).stdout).toContain('Registry test');
     });
 
     it('should execute http-request tool through registry', async () => {
@@ -124,11 +124,11 @@ describe('Tool Registry Integration - REAL', () => {
 
       const result = await httpTool!.execute({
         url: 'https://jsonplaceholder.typicode.com/posts/1',
-      });
+      }, {} as any);
 
       expect(result.success).toBe(true);
-      expect(result.status).toBe(200);
-      expect(result.data).toBeTruthy();
+      expect((result as any).status).toBe(200);
+      expect((result as any).data).toBeTruthy();
     });
 
     it('should execute text-search tool through registry', async () => {
@@ -141,10 +141,10 @@ describe('Tool Registry Integration - REAL', () => {
       const result = await searchTool!.execute({
         path: testFile,
         pattern: 'Find',
-      });
+      }, {} as any);
 
       expect(result.success).toBe(true);
-      expect(result.matches).toHaveLength(2);
+      expect((result as any).matches).toHaveLength(2);
     });
   });
 

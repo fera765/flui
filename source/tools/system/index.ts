@@ -18,16 +18,37 @@ import { TaskTool } from './TaskTool.js';
 import { WebFetchTool } from './WebFetchTool.js';
 
 /**
+ * Adapter to make system tools compatible with ExecutionContext
+ */
+function createToolAdapter(baseTool: any) {
+  return {
+    ...baseTool,
+    execute: async (args: any, context?: any) => {
+      // System tools don't need context, call with args only
+      return await baseTool.execute(args);
+    },
+  };
+}
+
+/**
  * Register all system tools in the tool registry
  */
-export function registerSystemTools(): Partial<Tool>[] {
-  return [
+export function registerSystemTools(): any[] {
+  const tools = [
     {
       id: 'file-search',
       name: 'File Search',
       description: 'Find files by pattern in directories',
       category: 'system',
       version: '1.0.0',
+      output: {
+        type: 'object',
+        description: 'Operation result',
+      },
+      output: {
+        type: 'object',
+        description: 'Search results with list of matching files',
+      },
       params: [
         {
           name: 'path',
@@ -59,6 +80,10 @@ export function registerSystemTools(): Partial<Tool>[] {
       description: 'Read file contents',
       category: 'system',
       version: '1.0.0',
+      output: {
+        type: 'object',
+        description: 'Operation result',
+      },
       params: [
         {
           name: 'path',
@@ -84,6 +109,10 @@ export function registerSystemTools(): Partial<Tool>[] {
       description: 'List folder contents with details',
       category: 'system',
       version: '1.0.0',
+      output: {
+        type: 'object',
+        description: 'Operation result',
+      },
       params: [
         {
           name: 'path',
@@ -109,6 +138,10 @@ export function registerSystemTools(): Partial<Tool>[] {
       description: 'Read multiple files at once',
       category: 'system',
       version: '1.0.0',
+      output: {
+        type: 'object',
+        description: 'Operation result',
+      },
       params: [
         {
           name: 'paths',
@@ -140,6 +173,10 @@ export function registerSystemTools(): Partial<Tool>[] {
       description: 'Write content to file',
       category: 'system',
       version: '1.0.0',
+      output: {
+        type: 'object',
+        description: 'Operation result',
+      },
       params: [
         {
           name: 'path',
@@ -177,6 +214,10 @@ export function registerSystemTools(): Partial<Tool>[] {
       description: 'Search for text patterns in files',
       category: 'system',
       version: '1.0.0',
+      output: {
+        type: 'object',
+        description: 'Operation result',
+      },
       params: [
         {
           name: 'path',
@@ -214,6 +255,10 @@ export function registerSystemTools(): Partial<Tool>[] {
       description: 'Find and replace text in files',
       category: 'system',
       version: '1.0.0',
+      output: {
+        type: 'object',
+        description: 'Operation result',
+      },
       params: [
         {
           name: 'path',
@@ -257,6 +302,10 @@ export function registerSystemTools(): Partial<Tool>[] {
       description: 'Execute shell commands in sandbox',
       category: 'system',
       version: '1.0.0',
+      output: {
+        type: 'object',
+        description: 'Operation result',
+      },
       params: [
         {
           name: 'command',
@@ -288,6 +337,10 @@ export function registerSystemTools(): Partial<Tool>[] {
       description: 'Run and manage background tasks',
       category: 'system',
       version: '1.0.0',
+      output: {
+        type: 'object',
+        description: 'Operation result',
+      },
       params: [
         {
           name: 'action',
@@ -319,6 +372,10 @@ export function registerSystemTools(): Partial<Tool>[] {
       description: 'Make HTTP requests to external APIs',
       category: 'system',
       version: '1.0.0',
+      output: {
+        type: 'object',
+        description: 'Operation result',
+      },
       params: [
         {
           name: 'url',
@@ -351,4 +408,7 @@ export function registerSystemTools(): Partial<Tool>[] {
       },
     },
   ];
+
+  // Wrap all tools with adapter for ExecutionContext compatibility
+  return tools.map(tool => createToolAdapter(tool));
 }

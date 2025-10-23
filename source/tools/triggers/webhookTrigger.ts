@@ -6,7 +6,7 @@
  */
 
 import { Tool, ExecutionContext, ToolResult } from '../../core/types.js';
-import { nanoid } from 'nanoid';
+import { generateId } from '../../utils/id.js';
 import crypto from 'crypto';
 
 // Armazenar webhooks ativos
@@ -153,7 +153,7 @@ export const webhookTrigger: Tool = {
       const rateLimit = params.rateLimit || 60;
       
       // Gerar ID único
-      const webhookId = context?.nodeId || `webhook-${nanoid(10)}`;
+      const webhookId = context?.nodeId || `webhook-${generateId()}`;
       
       // Gerar caminho do webhook
       let webhookPath = params.webhookPath;
