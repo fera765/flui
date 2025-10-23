@@ -8,7 +8,7 @@
  * - Provides observability hooks
  */
 
-import { nanoid } from 'nanoid';
+import { generateId } from '../../utils/id.js';
 import {
   NodeExecutor,
   ExecutionInput,
@@ -312,8 +312,8 @@ export class ExecutionOrchestrator {
    */
   private buildContext(partial?: Partial<ExecutionContext>): ExecutionContext {
     return {
-      executionId: partial?.executionId || nanoid(),
-      traceId: partial?.traceId || nanoid(),
+      executionId: partial?.executionId || generateId(),
+      traceId: partial?.traceId || generateId(),
       nodeId: partial?.nodeId || 'unknown',
       automationId: partial?.automationId || 'unknown',
       timestamp: partial?.timestamp || new Date().toISOString(),

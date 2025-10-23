@@ -6,7 +6,7 @@
  */
 
 import { ExecutionContext, ExecutionResult, ExecutionObserver } from './types.js';
-import { nanoid } from 'nanoid';
+import { generateId } from '../../utils/id.js';
 
 export interface LogEntry {
   timestamp: string;
@@ -46,7 +46,7 @@ export class ObservabilityProvider implements ExecutionObserver {
    */
   createSpan(name: string, parentSpan?: string): string {
     const span: Span = {
-      id: nanoid(),
+      id: generateId(),
       name,
       parentId: parentSpan,
       startTime: Date.now(),

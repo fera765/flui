@@ -1,6 +1,6 @@
 import Conf from 'conf';
 import { join } from 'path';
-import { nanoid } from 'nanoid';
+import { generateId } from '../utils/id.js';
 import { Automation, AutomationExecution, AutomationSchema } from '../types/automation.js';
 
 // 🎯 STORAGE CENTRALIZADO: workspace/storage/config.json
@@ -27,7 +27,7 @@ function validateAndNormalizeAutomation(automation: any): Automation {
   
   // Garantir campos básicos
   const normalized: any = {
-    id: automation.id || nanoid(),
+    id: automation.id || generateId(),
     name: automation.name || 'Nova Automação',
     description: automation.description || '',
     nodes: Array.isArray(automation.nodes) ? automation.nodes : [],
@@ -62,7 +62,7 @@ function validateAndNormalizeAutomation(automation: any): Automation {
     }
     
     return {
-      id: node.id || nanoid(),
+      id: node.id || generateId(),
       type: nodeType,
       name: node.name || 'Node',
       description: node.description || '',

@@ -1,4 +1,4 @@
-import { nanoid } from 'nanoid';
+import { generateId } from '../utils/id.js';
 import { Automation } from '../types/automation.js';
 
 export const getDefaultAutomations = (): Automation[] => {
@@ -7,7 +7,7 @@ export const getDefaultAutomations = (): Automation[] => {
   return [
     // AUTOMAÇÃO 1: Monitor de Preços com Análise de Mercado
     {
-      id: nanoid(),
+      id: generateId(),
       name: 'Monitor de Preços e Análise de Mercado',
       description:
         'Monitora preços de produtos, analisa tendências de mercado usando agentes especializados, gera relatório PDF e envia por email',
@@ -158,7 +158,7 @@ Inclua:
 
     // AUTOMAÇÃO 2: Criação de Conteúdo Multimídia Completo
     {
-      id: nanoid(),
+      id: generateId(),
       name: 'Criação de Conteúdo Multimídia com IA',
       description:
         'Cria conteúdo completo: pesquisa, redação, geração de imagens, conversão para áudio, legendas e publicação automática',

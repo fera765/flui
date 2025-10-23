@@ -9,7 +9,7 @@
  * - Health checks and garbage collection
  */
 
-import { nanoid } from 'nanoid';
+import { generateId } from '../utils/id.js';
 import { spawn, ChildProcess } from 'child_process';
 import { mkdir, writeFile, readFile, rm } from 'fs/promises';
 import { join } from 'path';
@@ -180,7 +180,7 @@ export class MCPSandboxManager {
    * Create a new sandbox
    */
   private async createSandbox(mcpId: string): Promise<MCPSandbox> {
-    const sandboxId = nanoid();
+    const sandboxId = generateId();
     const workDir = join(this.baseDir, sandboxId);
 
     // Create work directory

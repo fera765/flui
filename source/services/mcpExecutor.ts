@@ -12,7 +12,7 @@ import { spawn, exec } from 'child_process';
 import { promisify } from 'util';
 import { join } from 'path';
 import { readFile, access, constants } from 'fs/promises';
-import { nanoid } from 'nanoid';
+import { generateId } from '../utils/id.js';
 import { MCPClient, MCPTool as MCPClientTool } from './mcpClient.js';
 
 const execAsync = promisify(exec);
@@ -251,7 +251,7 @@ export class MCPExecutor {
         ? config.server
         : `https://github.com/${config.server}`;
 
-      const tempDir = join(process.cwd(), 'workspace', 'mcp-temp', nanoid());
+      const tempDir = join(process.cwd(), 'workspace', 'mcp-temp', generateId());
       
       console.log(`📂 [MCPExecutor] Clonando para: ${tempDir}`);
 

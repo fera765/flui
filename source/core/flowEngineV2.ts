@@ -8,7 +8,7 @@
  * - Conexão automática e inteligente
  */
 
-import { nanoid } from 'nanoid';
+import { generateId } from '../utils/id.js';
 import { ToolExecutor } from './toolExecutor.js';
 import { getToolRegistry } from './toolRegistry.js';
 import { ExecutionContext } from './types.js';
@@ -46,7 +46,7 @@ export class FlowEngineV2 {
     this.abortController = new AbortController();
     
     this.execution = {
-      id: nanoid(),
+      id: generateId(),
       flowId: flow.id,
       status: 'pending',
       startedAt: new Date().toISOString(),

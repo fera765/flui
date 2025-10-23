@@ -1,5 +1,5 @@
 import { Agent, MCP } from '../types/index.js';
-import { nanoid } from 'nanoid';
+import { generateId } from '../utils/id.js';
 
 // ============= AGENTES PADRÃO =============
 export const getDefaultAgents = (): Omit<Agent, 'id' | 'createdAt' | 'updatedAt'>[] => {

@@ -10,10 +10,10 @@
 
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { mkdir, writeFile, rm } from 'fs/promises';
+import { mkdir, writeFile, rm, readFile } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { nanoid } from 'nanoid';
+import { generateId } from '../utils/id.js';
 import { MCP, MCPTool } from '../types/index.js';
 
 const execAsync = promisify(exec);
@@ -82,7 +82,7 @@ export class MCPImporter {
       const packageSpec = `${config.package}@${version}`;
 
       // Install package to cache
-      const installDir = join(this.cacheDir, nanoid());
+      const installDir = join(this.cacheDir, generateId());
       await mkdir(installDir, { recursive: true });
 
       console.log(`📦 Installing ${packageSpec}...`);
@@ -100,7 +100,7 @@ export class MCPImporter {
       const tools = await this.discoverToolsFromPackage(installDir, config.package);
 
       const mcp: MCP = {
-        id: nanoid(),
+        id: generateId(),
         name: config.package,
         description: `MCP from npm: ${config.package}`,
         version,
@@ -134,7 +134,7 @@ export class MCPImporter {
   async importFromNPX(config: NPXImportConfig): Promise<ImportResult> {
     try {
       const mcp: MCP = {
-        id: nanoid(),
+        id: generateId(),
         name: config.package,
         description: `MCP via npx: ${config.package}`,
         version: 'latest',
@@ -174,7 +174,7 @@ export class MCPImporter {
    */
   async importFromGitHub(config: GitHubImportConfig): Promise<ImportResult> {
     try {
-      const cloneDir = join(this.cacheDir, nanoid());
+      const cloneDir = join(this.cacheDir, generateId());
       await mkdir(cloneDir, { recursive: true });
 
       // Build git clone URL
@@ -192,18 +192,23 @@ export class MCPImporter {
 
       const serverPath = config.path ? join(cloneDir, config.path) : cloneDir;
 
-      // Install dependencies
-      console.log(`📦 Installing dependencies...`);
-      await execAsync('npm install', {
-        cwd: serverPath,
-        timeout: 180000,
-      });
+      // Install dependencies (if package.json exists)
+      try {
+        await readFile(join(serverPath, 'package.json'), 'utf-8');
+        console.log(`📦 Installing dependencies...`);
+        await execAsync('npm install', {
+          cwd: serverPath,
+          timeout: 180000,
+        });
+      } catch (error) {
+        console.log(`ℹ️  No package.json found, skipping npm install`);
+      }
 
       // Discover tools
       const tools = await this.discoverToolsFromPath(serverPath);
 
       const mcp: MCP = {
-        id: nanoid(),
+        id: generateId(),
         name: config.repo.split('/').pop() || 'github-mcp',
         description: `MCP from GitHub: ${config.repo}`,
         version: ref,
@@ -259,19 +264,39 @@ export class MCPImporter {
       // Discover MCP capabilities
       console.log(`🌐 Connecting to ${config.endpoint}...`);
       
-      const response = await fetch(`${config.endpoint}/mcp/info`, {
+      // Try /mcp/info first, fallback to root endpoint
+      let mcpInfo: any;
+      let response = await fetch(`${config.endpoint}/mcp/info`, {
         method: 'GET',
         headers,
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        // Try root endpoint
+        response = await fetch(config.endpoint, {
+          method: 'GET',
+          headers,
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
       }
 
-      const mcpInfo: any = await response.json();
+      // Try to parse as JSON, fallback to generic info
+      try {
+        mcpInfo = await response.json();
+      } catch (error) {
+        mcpInfo = {
+          name: 'url-mcp',
+          description: `MCP from ${config.endpoint}`,
+          version: '1.0.0',
+          tools: [],
+        };
+      }
 
       const mcp: MCP = {
-        id: nanoid(),
+        id: generateId(),
         name: mcpInfo.name || 'url-mcp',
         description: mcpInfo.description || `MCP from ${config.endpoint}`,
         version: mcpInfo.version || '1.0.0',
@@ -360,7 +385,7 @@ export class MCPImporter {
       // need to analyze the package exports
       return [
         {
-          id: nanoid(),
+          id: generateId(),
           name: packageJson.name || 'unknown',
           description: packageJson.description || '',
           parameters: {},

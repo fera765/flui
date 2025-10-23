@@ -2,7 +2,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { writeFile, mkdir, rm } from 'fs/promises';
 import { join } from 'path';
-import { nanoid } from 'nanoid';
+import { generateId } from '../utils/id.js';
 import { tmpdir } from 'os';
 
 const execAsync = promisify(exec);
@@ -26,7 +26,7 @@ export class Sandbox {
   private sandboxPath: string;
 
   constructor() {
-    this.sandboxId = nanoid();
+    this.sandboxId = generateId();
     this.sandboxPath = join(tmpdir(), 'flui-sandbox', this.sandboxId);
   }
 

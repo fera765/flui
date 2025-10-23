@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { nanoid } from 'nanoid';
+import { generateId } from '../utils/id.js';
 import { Agent, Message, MCP, Session, View, Theme, Config } from '../types/index.js';
 import * as storage from './storage.js';
 
@@ -125,7 +125,7 @@ export const useStore = create<AppState>((set, get) => ({
 
   createSession: (name) => {
     const session: Session = {
-      id: nanoid(),
+      id: generateId(),
       name,
       messages: [],
       createdAt: new Date().toISOString(),
@@ -174,7 +174,7 @@ export const useStore = create<AppState>((set, get) => ({
   addMessage: (message) => {
     const newMessage: Message = {
       ...message,
-      id: nanoid(),
+      id: generateId(),
       timestamp: new Date().toISOString(),
     };
 
@@ -223,7 +223,7 @@ export const useStore = create<AppState>((set, get) => ({
   createAgent: (agent) => {
     const newAgent: Agent = {
       ...agent,
-      id: (agent as any).id || nanoid(), // Respect provided ID if exists
+      id: (agent as any).id || generateId(), // Respect provided ID if exists
       createdAt: (agent as any).createdAt || new Date().toISOString(),
       updatedAt: (agent as any).updatedAt || new Date().toISOString(),
     };
@@ -266,7 +266,7 @@ export const useStore = create<AppState>((set, get) => ({
     const newMCP: MCP = {
       ...mcp,
       // Usar ID fornecido se existir, senão gerar novo
-      id: (mcp as any).id || nanoid(),
+      id: (mcp as any).id || generateId(),
     };
     storage.saveMCP(newMCP);
     set({ mcps: [...get().mcps, newMCP] });

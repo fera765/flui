@@ -640,6 +640,51 @@ app.get('/api/mcps/:id', (req: Request, res: Response) => {
   res.json(mcp);
 });
 
+// POST /api/mcps/import - Import MCP from multiple sources
+app.post('/api/mcps/import', async (req: Request, res: Response) => {
+  try {
+    const { MCPImporter } = await import('./MCPImporter.js');
+    const importer = new MCPImporter();
+
+    const { type, ...config } = req.body;
+
+    let result;
+
+    switch (type) {
+      case 'npm':
+        result = await importer.importFromNPM(config);
+        break;
+      case 'npx':
+        result = await importer.importFromNPX(config);
+        break;
+      case 'github':
+        result = await importer.importFromGitHub(config);
+        break;
+      case 'url':
+        result = await importer.importFromURL(config);
+        break;
+      default:
+        return res.status(400).json({
+          success: false,
+          error: `Unknown import type: ${type}. Use: npm, npx, github, or url`,
+        });
+    }
+
+    if (result.success && result.mcp) {
+      // Save to store
+      const store = useStore.getState();
+      store.createMCP(result.mcp);
+    }
+
+    res.json(result);
+  } catch (error: any) {
+    res.json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
 app.post('/api/mcps', async (req: Request, res: Response) => {
   try {
     const mcp = req.body;

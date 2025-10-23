@@ -13,7 +13,7 @@
  * - Rollback em caso de erro
  */
 
-import { nanoid } from 'nanoid';
+import { generateId } from '../utils/id.js';
 import { ToolExecutor } from './toolExecutor.js';
 import { getToolRegistry } from './toolRegistry.js';
 import { ExecutionContext, ToolResult } from './types.js';
@@ -38,7 +38,7 @@ export class FlowEngine {
     this.abortController = new AbortController();
     
     this.execution = {
-      id: nanoid(),
+      id: generateId(),
       flowId: flow.id,
       status: 'pending',
       startedAt: new Date().toISOString(),
