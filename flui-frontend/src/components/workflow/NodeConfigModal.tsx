@@ -12,7 +12,9 @@ export function NodeConfigModal() {
   const {
     isConfigModalOpen,
     closeConfigModal,
-    selectedNode,
+    selectedNode: storeSelectedNode,
+    selectedNodeId,
+    nodes,
     updateNode,
     openLinkerModal,
   } = useWorkflowStore()
@@ -26,11 +28,18 @@ export function NodeConfigModal() {
 
   const [config, setConfig] = useState<Record<string, any>>({})
 
+  // ✅ FIX: Always get fresh node from store to catch updates from linking
+  const selectedNode = selectedNodeId 
+    ? nodes.find(n => n.id === selectedNodeId) || storeSelectedNode
+    : storeSelectedNode
+
+  // ✅ FIX: Sync local state with store changes (for linking)
   useEffect(() => {
     if (selectedNode) {
+      console.log('[NodeConfigModal] Syncing config from node:', selectedNode.data.config)
       setConfig(selectedNode.data.config || {})
     }
-  }, [selectedNode])
+  }, [selectedNodeId, nodes, selectedNode?.data.config])
 
   if (!selectedNode) return null
 
@@ -88,6 +97,7 @@ export function NodeConfigModal() {
 
   const handleSave = () => {
     // ✅ Salvar apenas config, nome/descrição são do agente/tool
+    console.log('[NodeConfigModal] Saving config:', config)
     updateNode(selectedNode.id, {
       config,
     })

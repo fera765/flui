@@ -98,33 +98,18 @@ export function WorkflowEditor() {
   // ✅ BIDIRECTIONAL SYNC: Store → ReactFlow
   // Subscribe to store changes (for delete operations)
   useEffect(() => {
-    const unsubscribe = useWorkflowStore.subscribe(
-      (state) => state.nodes,
-      (storeNodes) => {
-        console.log('[WorkflowEditor] Store nodes changed:', storeNodes.length)
-        isSyncingFromStore.current = true
-        setNodes(storeNodes)
-        requestAnimationFrame(() => {
-          isSyncingFromStore.current = false
-        })
-      }
-    )
-    
-    const unsubscribeEdges = useWorkflowStore.subscribe(
-      (state) => state.edges,
-      (storeEdges) => {
-        console.log('[WorkflowEditor] Store edges changed:', storeEdges.length)
-        isSyncingFromStore.current = true
-        setEdges(storeEdges)
-        requestAnimationFrame(() => {
-          isSyncingFromStore.current = false
-        })
-      }
-    )
+    const unsubscribe = useWorkflowStore.subscribe((state) => {
+      console.log('[WorkflowEditor] Store changed - nodes:', state.nodes.length, 'edges:', state.edges.length)
+      isSyncingFromStore.current = true
+      setNodes(state.nodes)
+      setEdges(state.edges)
+      requestAnimationFrame(() => {
+        isSyncingFromStore.current = false
+      })
+    })
     
     return () => {
       unsubscribe()
-      unsubscribeEdges()
     }
   }, [setNodes, setEdges])
 
@@ -160,8 +145,13 @@ export function WorkflowEditor() {
           type: node.data.type,
           name: node.data.name,
           description: node.data.description,
-          config: node.data.config,
+          config: node.data.config || {},
           position: node.position,
+          // ✅ FIX: Preserve node identifiers needed for configuration
+          ...(node.data.agentId && { agentId: node.data.agentId }),
+          ...(node.data.toolId && { toolId: node.data.toolId }),
+          ...(node.data.mcpId && { mcpId: node.data.mcpId }),
+          ...(node.data.mcpToolId && { mcpToolId: node.data.mcpToolId }),
         })),
         edges: latestEdges.map((edge) => ({
           id: edge.id,
@@ -202,17 +192,27 @@ export function WorkflowEditor() {
     try {
       const automation = await api.getAutomation(automationId)
       if (automation && automation.nodes && automation.edges) {
-        const loadedNodes = automation.nodes.map((node: any) => ({
-          id: node.id,
-          type: 'custom',
-          position: node.position || { x: 0, y: 0 },
-          data: {
-            type: node.type,
-            name: node.name,
-            description: node.description,
-            config: node.config,
-          },
-        }))
+        console.log('[WorkflowEditor] Loading automation:', automationId, 'with', automation.nodes.length, 'nodes')
+        
+        const loadedNodes = automation.nodes.map((node: any) => {
+          console.log('[WorkflowEditor] Loading node:', node.id, 'config:', node.config)
+          return {
+            id: node.id,
+            type: 'custom',
+            position: node.position || { x: 0, y: 0 },
+            data: {
+              type: node.type,
+              name: node.name,
+              description: node.description,
+              config: node.config || {},
+              // ✅ FIX: Preserve additional node data (agentId, toolId, mcpId, mcpToolId)
+              ...(node.agentId && { agentId: node.agentId }),
+              ...(node.toolId && { toolId: node.toolId }),
+              ...(node.mcpId && { mcpId: node.mcpId }),
+              ...(node.mcpToolId && { mcpToolId: node.mcpToolId }),
+            },
+          }
+        })
         
         const loadedEdges = automation.edges.map((edge: any) => ({
           id: edge.id,
@@ -225,6 +225,7 @@ export function WorkflowEditor() {
         setNodes(loadedNodes)
         setEdges(loadedEdges)
         hasUnsavedChanges.current = false
+        console.log('[WorkflowEditor] Automation loaded successfully')
       }
     } catch (error: any) {
       console.error('Erro ao carregar automação:', error)
@@ -289,8 +290,13 @@ export function WorkflowEditor() {
           type: node.data.type,
           name: node.data.name,
           description: node.data.description,
-          config: node.data.config,
+          config: node.data.config || {},
           position: node.position,
+          // ✅ FIX: Preserve node identifiers needed for configuration
+          ...(node.data.agentId && { agentId: node.data.agentId }),
+          ...(node.data.toolId && { toolId: node.data.toolId }),
+          ...(node.data.mcpId && { mcpId: node.data.mcpId }),
+          ...(node.data.mcpToolId && { mcpToolId: node.data.mcpToolId }),
         })),
         edges: latestEdges.map((edge) => ({
           id: edge.id,
