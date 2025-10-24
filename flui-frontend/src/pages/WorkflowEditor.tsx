@@ -80,10 +80,13 @@ export function WorkflowEditor() {
   // ✅ BIDIRECTIONAL SYNC: ReactFlow ↔ Zustand Store
   // Sync ReactFlow → Store
   useEffect(() => {
-    if (!isSyncingFromStore.current) {
+    if (!isSyncingFromStore.current && nodes.length > 0) {
       workflowStore.setNodes(nodes)
       hasUnsavedChanges.current = true
-      triggerAutosave()
+      // ✅ FIX: Só dispara autosave se não for automação nova
+      if (currentAutomationId && currentAutomationId !== 'new') {
+        triggerAutosave()
+      }
     }
   }, [nodes])
 
@@ -91,7 +94,10 @@ export function WorkflowEditor() {
     if (!isSyncingFromStore.current) {
       workflowStore.setEdges(edges)
       hasUnsavedChanges.current = true
-      triggerAutosave()
+      // ✅ FIX: Só dispara autosave se não for automação nova
+      if (currentAutomationId && currentAutomationId !== 'new') {
+        triggerAutosave()
+      }
     }
   }, [edges])
   
@@ -99,7 +105,7 @@ export function WorkflowEditor() {
   // Subscribe to store changes (for delete operations)
   useEffect(() => {
     const unsubscribe = useWorkflowStore.subscribe((state) => {
-      console.log('[WorkflowEditor] Store changed - nodes:', state.nodes.length, 'edges:', state.edges.length)
+      // ✅ FIX: Reduzir logging verboso
       isSyncingFromStore.current = true
       setNodes(state.nodes)
       setEdges(state.edges)
@@ -113,7 +119,7 @@ export function WorkflowEditor() {
     }
   }, [setNodes, setEdges])
 
-  // 🔄 AUTOSAVE: Salva automaticamente após 2 segundos de inatividade
+  // 🔄 AUTOSAVE: Salva automaticamente após 5 segundos de inatividade
   const triggerAutosave = useCallback(() => {
     if (!currentAutomationId || currentAutomationId === 'new') return
     
@@ -121,21 +127,31 @@ export function WorkflowEditor() {
       clearTimeout(autosaveTimeoutRef.current)
     }
     
+    // ✅ FIX: Aumentar delay para 5 segundos e evitar saves desnecessários
     autosaveTimeoutRef.current = setTimeout(() => {
       if (hasUnsavedChanges.current) {
+        console.log('[WorkflowEditor] 💾 Autosave triggered after 5s of inactivity')
         performSilentSave()
       }
-    }, 2000)
+    }, 5000) // Aumentado de 2s para 5s
   }, [currentAutomationId])
 
   // 💾 Silent Save: Salva sem mostrar toast
   const performSilentSave = async () => {
     if (!currentAutomationId || currentAutomationId === 'new') return
     
+    // ✅ FIX: Evitar múltiplos saves simultâneos
+    if (isSaving) {
+      console.log('[WorkflowEditor] ⏭️ Skipping autosave - save already in progress')
+      return
+    }
+    
     try {
       const storeState = useWorkflowStore.getState()
       const latestNodes = storeState.nodes
       const latestEdges = storeState.edges
+      
+      console.log('[WorkflowEditor] 💾 Autosave:', latestNodes.length, 'nodes,', latestEdges.length, 'edges')
       
       const automationData = {
         name: `Automation ${currentAutomationId}`,
@@ -163,7 +179,7 @@ export function WorkflowEditor() {
       
       await updateAutomation({ id: currentAutomationId, data: automationData })
       hasUnsavedChanges.current = false
-      console.log('✅ Autosave concluído')
+      console.log('[WorkflowEditor] ✅ Autosave completed')
     } catch (error) {
       console.error('❌ Erro no autosave:', error)
     }
