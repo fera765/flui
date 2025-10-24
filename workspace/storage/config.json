@@ -995,10 +995,10 @@
 	"sessions": [],
 	"config": {
 		"llm": {
-			"endpoint": "https://api.openai.com/v1",
-			"apiKey": "test-key",
-			"model": "gpt-4",
-			"temperature": 0.8,
+			"endpoint": "https://api.llm7.io/v1",
+			"apiKey": "",
+			"model": "deepseek-v3.1",
+			"temperature": 0.7,
 			"maxTokens": 2000
 		},
 		"theme": "default",

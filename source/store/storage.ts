@@ -48,6 +48,24 @@ if (!config.get('automations')) {
 if (!config.get('sessions')) {
   config.set('sessions', []);
 }
+
+// 🔧 INICIALIZAR CONFIG DEFAULT SE NÃO EXISTIR
+if (!config.get('config')) {
+  const defaultConfig: Config = {
+    llm: {
+      endpoint: 'https://api.llm7.io/v1',
+      apiKey: '',
+      model: 'deepseek-v3.1',
+      temperature: 0.7,
+      maxTokens: 2000,
+    },
+    theme: 'default' as const,
+    locale: 'pt-BR',
+  };
+  config.set('config', defaultConfig);
+  console.log('✅ [Storage] Config padrão criado com endpoint LLM7');
+}
+
 console.log('✅ [Storage] Storage inicializado');
 
 // ============= CONFIG =============
