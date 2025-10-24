@@ -171,7 +171,16 @@ export const sendMessage = async (
         requestParams.tool_choice = 'auto';
       }
 
+      console.log(`📤 [LLM] Enviando request para: ${config.llm.endpoint}`);
+      console.log(`📤 [LLM] Model: ${model}, Messages: ${currentMessages.length}, Tools: ${tools.length}`);
+
       const response = await openaiClient.chat.completions.create(requestParams);
+
+      console.log(`📥 [LLM] Resposta recebida:`, {
+        finishReason: response.choices[0]?.finish_reason,
+        hasToolCalls: !!response.choices[0]?.message?.tool_calls,
+        toolCallsCount: response.choices[0]?.message?.tool_calls?.length || 0,
+      });
 
       const message = response.choices[0]?.message;
       if (!message) {
@@ -183,7 +192,8 @@ export const sendMessage = async (
 
       // Verificar se há tool calls
       if (message.tool_calls && message.tool_calls.length > 0) {
-        console.log(`🔧 [LLM] ${message.tool_calls.length} tool call(s) detectada(s)`);
+        console.log(`🔧 [LLM] ${message.tool_calls.length} tool call(s) detectada(s)`, 
+          message.tool_calls.map(tc => tc.function.name));
 
         // Executar cada tool call
         for (const toolCall of message.tool_calls) {
@@ -223,16 +233,23 @@ export const sendMessage = async (
       }
 
       // Se chegou aqui, não há mais tool calls - retornar resposta final
+      console.log(`✅ [LLM] Resposta final recebida após ${iterationCount} iterações`);
+      
       const content = message.content;
       if (typeof content === 'string') {
+        console.log(`💬 [LLM] Conteúdo: ${content.substring(0, 100)}${content.length > 100 ? '...' : ''}`);
         return content;
       } else if (content && Array.isArray(content)) {
         // Concatenar partes do conteúdo
-        return (content as any[]).map((part: any) => 
+        const result = (content as any[]).map((part: any) => 
           typeof part === 'string' ? part : 
           'text' in part ? part.text : ''
         ).join('');
+        console.log(`💬 [LLM] Conteúdo array: ${result.substring(0, 100)}${result.length > 100 ? '...' : ''}`);
+        return result;
       }
+      
+      console.warn(`⚠️  [LLM] Sem conteúdo na resposta`);
       return 'Sem resposta do modelo.';
     }
 
@@ -253,6 +270,14 @@ export const sendMessage = async (
 
   } catch (error: any) {
     console.error('❌ [LLM] Erro:', error);
+    console.error('❌ [LLM] Error details:', {
+      message: error.message,
+      status: error.status,
+      code: error.code,
+    });
+    if (error.stack) {
+      console.error('❌ [LLM] Stack:', error.stack);
+    }
     throw new Error(`Erro ao comunicar com LLM: ${error.message}`);
   }
 };

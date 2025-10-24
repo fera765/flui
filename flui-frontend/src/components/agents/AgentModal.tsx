@@ -6,6 +6,8 @@ import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useModels, useTools, useMCPs } from '@/hooks/useAgents'
+import { RefreshCw, AlertCircle } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import type { Agent } from '@/types/api'
 
 const agentSchema = z.object({
@@ -31,9 +33,10 @@ interface AgentModalProps {
 export function AgentModal({ isOpen, onClose, agent, onSubmit, isLoading }: AgentModalProps) {
   const [activeTab, setActiveTab] = useState<'general' | 'tools'>('general')
   const [selectedTools, setSelectedTools] = useState<string[]>(agent?.tools || [])
-  const [selectedMCPTools, setSelectedMCPTools] = useState<string[]>(agent?.mcpToolIds || [])
+  const [selectedMCPTools, setSelectedMCPTools] = useState<string[]>((agent as any)?.mcpToolIds || [])
 
-  const { data: models = [] } = useModels()
+  const queryClient = useQueryClient()
+  const { data: models = [], isLoading: isLoadingModels, error: modelsError, refetch: refetchModels } = useModels()
   const { data: tools = [] } = useTools()
   const { data: mcps = [] } = useMCPs()
   
@@ -70,7 +73,7 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isLoading }: Agen
       ...data,
       tools: selectedTools,
       mcpToolIds: selectedMCPTools,
-    })
+    } as any)
     onClose()
   }
 
@@ -154,20 +157,55 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isLoading }: Agen
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Model *
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-foreground">
+                  Model *
+                </label>
+                <button
+                  type="button"
+                  onClick={() => refetchModels()}
+                  disabled={isLoadingModels}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+                  title="Refresh models from LLM endpoint"
+                >
+                  <RefreshCw className={`w-3 h-3 ${isLoadingModels ? 'animate-spin' : ''}`} />
+                  Refresh
+                </button>
+              </div>
+              
+              {modelsError && (
+                <div className="mb-2 p-2 bg-destructive/10 border border-destructive/20 rounded-lg flex items-start gap-2 text-xs">
+                  <AlertCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-destructive">Failed to load models</p>
+                    <p className="text-muted-foreground mt-0.5">
+                      Configure LLM in Settings first, or using mock models
+                    </p>
+                  </div>
+                </div>
+              )}
+              
               <select
                 {...register('model')}
-                className="w-full h-10 px-3 border border-input bg-background rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                disabled={isLoadingModels}
+                className="w-full h-10 px-3 border border-input bg-background rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
               >
-                <option value="">Select a model</option>
+                <option value="">
+                  {isLoadingModels ? 'Loading models...' : 'Select a model'}
+                </option>
                 {((models as any)?.data || models || []).map((model: any) => (
                   <option key={model.id} value={model.id}>
                     {model.id}
                   </option>
                 ))}
               </select>
+              
+              {!isLoadingModels && !modelsError && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {((models as any)?.data || models || []).length} model(s) available
+                </p>
+              )}
+              
               {errors.model && (
                 <p className="mt-1 text-sm text-destructive">{errors.model.message}</p>
               )}
