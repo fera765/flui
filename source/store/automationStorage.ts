@@ -59,7 +59,7 @@ function validateAndNormalizeAutomation(automation: any): Automation {
     // ✅ REMOVIDO: Migração automática de tipos (causava problemas)
     // Os tipos agora são aceitos conforme definidos no AutomationNodeTypeSchema
     
-    return {
+    const normalizedNode = {
       id: node.id || generateId(),
       type: nodeType,  // Aceitar tipo conforme enviado
       name: node.name || 'Node',
@@ -67,7 +67,24 @@ function validateAndNormalizeAutomation(automation: any): Automation {
       config: node.config || {},
       position: node.position || { x: 0, y: 0 },
       nextNodes: Array.isArray(node.nextNodes) ? node.nextNodes : [],
+      // ✅ FIX: Preserve node identifiers needed for configuration
+      ...(node.agentId && { agentId: node.agentId }),
+      ...(node.toolId && { toolId: node.toolId }),
+      ...(node.mcpId && { mcpId: node.mcpId }),
+      ...(node.mcpToolId && { mcpToolId: node.mcpToolId }),
     };
+    
+    // Log para debug
+    if (node.agentId || node.toolId || node.mcpId || node.mcpToolId) {
+      console.log(`✅ [Storage] Node ${node.id} preserving IDs:`, {
+        agentId: node.agentId,
+        toolId: node.toolId,
+        mcpId: node.mcpId,
+        mcpToolId: node.mcpToolId,
+      });
+    }
+    
+    return normalizedNode;
   });
   
   // Garantir que cada edge tem id
@@ -153,8 +170,25 @@ export const getAutomation = (id: string): Automation | null => {
   const automation = automations.find((a) => a.id === id);
   if (!automation) return null;
   
+  console.log(`📖 [Storage] Loading automation ${id} with ${automation.nodes?.length || 0} nodes`);
+  
   // Migrar ao carregar
-  return migrateAutomation(automation);
+  const migrated = migrateAutomation(automation);
+  
+  // Log dos nodes para debug
+  migrated.nodes.forEach((node: any) => {
+    if (node.agentId || node.toolId || node.mcpId || node.mcpToolId) {
+      console.log(`  📦 Node ${node.id} (${node.type}):`, {
+        agentId: node.agentId,
+        toolId: node.toolId,
+        mcpId: node.mcpId,
+        mcpToolId: node.mcpToolId,
+        config: Object.keys(node.config || {}),
+      });
+    }
+  });
+  
+  return migrated;
 };
 
 export const saveAutomation = (automation: any): Automation => {

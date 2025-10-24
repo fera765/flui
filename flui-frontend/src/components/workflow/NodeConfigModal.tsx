@@ -47,6 +47,15 @@ export function NodeConfigModal() {
   let params: any[] = []
   let itemData: any = null
   
+  console.log('[NodeConfigModal] Selected node:', {
+    id: selectedNode.id,
+    type: selectedNode.data.type,
+    agentId: selectedNode.data.agentId,
+    toolId: selectedNode.data.toolId,
+    mcpId: selectedNode.data.mcpId,
+    mcpToolId: selectedNode.data.mcpToolId,
+  })
+  
   if (selectedNode.data.type === 'agent' && selectedNode.data.agentId) {
     // ✅ Agent node - apenas o input (message)
     const agent = agents.find((a: any) => a.id === selectedNode.data.agentId)
@@ -93,7 +102,18 @@ export function NodeConfigModal() {
     const tool = tools.find((t: any) => t.id === selectedNode.data.toolId)
     params = tool?.params || []
     itemData = tool
+    
+    if (!tool) {
+      console.warn('[NodeConfigModal] Tool not found for toolId:', selectedNode.data.toolId)
+    }
   }
+  
+  // Log final de params
+  console.log('[NodeConfigModal] Resolved params:', {
+    count: params.length,
+    params: params.map(p => p.key),
+    hasItemData: !!itemData,
+  })
 
   const handleSave = () => {
     // ✅ Salvar apenas config, nome/descrição são do agente/tool
