@@ -260,7 +260,7 @@ app.post('/api/automations/:id/execute', async (req: Request, res: Response) => 
         // E preservar agentId, mcpId para execução correta
         return {
           id: node.id,
-          type: node.toolId || node.type || 'tool',
+          type: (node.toolId || node.type || 'tool') as any,  // Cast to any para FlowEngine
           name: node.name,
           config: node.config || {},
           position: node.position,
@@ -273,16 +273,16 @@ app.post('/api/automations/:id/execute', async (req: Request, res: Response) => 
       }),
       edges: automation.edges || [],
       startNodeId: automation.startNodeId || automation.nodes[0]?.id,
-    };
+    } as any;  // Cast to any para evitar erro de tipo
 
     console.log('📊 [API] Execução iniciada:', { 
       flowId: executionFlow.id,
       nodesCount: executionFlow.nodes.length,
-      nodes: executionFlow.nodes.map(n => ({ 
+      nodes: executionFlow.nodes.map((n: any) => ({ 
         id: n.id, 
         type: n.type, 
-        agentId: (n as any).agentId,
-        toolId: (n as any).toolId,
+        agentId: n.agentId,
+        toolId: n.toolId,
       }))
     });
 

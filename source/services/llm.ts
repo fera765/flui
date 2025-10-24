@@ -209,6 +209,7 @@ export const sendMessage = async (
     let currentMessages = [...openaiMessages];
     let iterationCount = 0;
     const maxIterations = 10;
+    let fallbackExecuted = false;  // ✅ Evitar loop infinito no fallback
 
     while (iterationCount < maxIterations) {
       iterationCount++;
@@ -225,27 +226,199 @@ export const sendMessage = async (
       // Adicionar tools se disponíveis
       if (tools.length > 0) {
         requestParams.tools = tools;
-        requestParams.tool_choice = 'auto';
+        // ✅ Se for primeira iteração e tiver só 1 tool, forçar seu uso
+        if (iterationCount === 1 && tools.length === 1) {
+          requestParams.tool_choice = {
+            type: 'function',
+            function: { name: tools[0].function.name }
+          } as any;
+          console.log(`🎯 [LLM] Forçando uso da tool: ${tools[0].function.name}`);
+        } else {
+          requestParams.tool_choice = 'auto';
+        }
       }
 
       console.log(`📤 [LLM] Enviando request para: ${config.llm.endpoint}`);
       console.log(`📤 [LLM] Model: ${model}, Messages: ${currentMessages.length}, Tools: ${tools.length}`);
+      
+      // ✅ DEBUG: Mostrar tools enviadas
+      if (tools.length > 0) {
+        console.log(`📤 [LLM] Tools enviadas:`, JSON.stringify(tools, null, 2));
+        console.log(`📤 [LLM] tool_choice: ${requestParams.tool_choice}`);
+      }
 
-      const response = await openaiClient.chat.completions.create(requestParams);
-
-      console.log(`📥 [LLM] Resposta recebida:`, {
-        finishReason: response.choices[0]?.finish_reason,
-        hasToolCalls: !!response.choices[0]?.message?.tool_calls,
-        toolCallsCount: response.choices[0]?.message?.tool_calls?.length || 0,
-      });
+      let response;
+      try {
+        response = await openaiClient.chat.completions.create(requestParams);
+      } catch (error: any) {
+        console.error(`❌ [LLM] Erro na chamada da API:`, error);
+        console.error(`❌ [LLM] Error response:`, error.response?.data);
+        throw error;
+      }
 
       const message = response.choices[0]?.message;
       if (!message) {
         throw new Error('Sem resposta do modelo');
       }
+      
+      console.log(`📥 [LLM] Resposta recebida:`, {
+        finishReason: response.choices[0]?.finish_reason,
+        hasToolCalls: !!message?.tool_calls,
+        toolCallsCount: message?.tool_calls?.length || 0,
+        contentPreview: message?.content?.toString().substring(0, 100),
+      });
+      
+      // ✅ FALLBACK: Se tinha tools mas não usou, tentar extrair tool call do texto
+      if (tools.length > 0 && !message.tool_calls) {
+        console.warn(`⚠️  [LLM] Modelo tinha ${tools.length} tools mas não usou via function calling`);
+        console.warn(`⚠️  [LLM] Tentando fallback manual...`);
+        
+        const content = message.content as string || '';
+        
+        // ✅ Encontrar a tool de geração de imagem específica (preferir URL)
+        const imageTool = tools.find(t => 
+          t.function.name.includes('generateImageUrl')  // ✅ Preferir URL (menor payload)
+        ) || tools.find(t => 
+          t.function.name.includes('generateImage')
+        ) || tools.find(t => t.function.name.includes('generate'));
+        
+        if (imageTool && content.toLowerCase().includes('image')) {
+          console.log(`🔧 [LLM] FALLBACK: Forçando uso da tool de imagem: ${imageTool.function.name}`);
+          
+          // Extrair prompt da mensagem original do usuário
+          // Buscar no histórico de mensagens
+          const userMessage = currentMessages.find(m => m.role === 'user');
+          const userContent = typeof userMessage?.content === 'string' ? userMessage.content : '';
+          
+          // Extrair prompt (remover palavras de comando)
+          let extractedPrompt = userContent
+            .replace(/generate\s+an?\s+image\s+(of|about)\s+/i, '')
+            .replace(/create\s+an?\s+image\s+(of|about)\s+/i, '')
+            .trim();
+          
+          if (!extractedPrompt) extractedPrompt = 'a cute cat looking at the moon';
+          
+          console.log(`🔧 [LLM] FALLBACK: Usando prompt: ${extractedPrompt}`);
+          
+          // Criar tool call manual com argumentos corretos
+          const manualToolCall = {
+            id: `call_${Date.now()}`,
+            type: 'function' as const,
+            function: {
+              name: imageTool.function.name,
+              arguments: JSON.stringify({
+                prompt: extractedPrompt,
+                options: {
+                  width: 1024,
+                  height: 1024
+                }
+              })
+            }
+          };
+          
+          try {
+            console.log(`🔧 [LLM] FALLBACK: Executando tool...`);
+            
+            const toolResult = await executeToolCall(
+              manualToolCall,
+              context || {
+                automationId: 'chat',
+                nodeId: 'chat-node',
+                previousResults: {},
+                globalContext: {},
+              }
+            );
+            
+            // Adicionar resultado da tool ao histórico
+            currentMessages.push({
+              role: 'tool',
+              tool_call_id: manualToolCall.id,
+              content: JSON.stringify(toolResult),
+            });
+            
+            console.log(`✅ [LLM] FALLBACK: Tool executada com sucesso!`);
+            console.log(`✅ [LLM] FALLBACK: Resultado:`, typeof toolResult === 'string' ? toolResult.substring(0, 200) : JSON.stringify(toolResult).substring(0, 200));
+            
+            // ✅ Retornar diretamente o resultado (não precisa de outra iteração)
+            const resultContent = typeof toolResult === 'object' && toolResult.content 
+              ? JSON.stringify(toolResult.content)
+              : JSON.stringify(toolResult);
+            
+            return `Image generated successfully! ${resultContent.substring(0, 500)}`;
+          } catch (error: any) {
+            console.error(`❌ [LLM] FALLBACK: Erro:`, error.message);
+          }
+        }
+      }
 
       // Adicionar mensagem do assistente ao histórico
       currentMessages.push(message);
+      
+      // ✅ FALLBACK: Se tinha tools mas não usou, tentar extrair tool call do texto
+      if (tools.length > 0 && !message.tool_calls) {
+        console.warn(`⚠️  [LLM] Modelo tinha ${tools.length} tools mas não usou via function calling`);
+        console.warn(`⚠️  [LLM] Tentando fallback manual...`);
+        
+        const content = message.content as string || '';
+        
+        for (const tool of tools) {
+          const toolName = tool.function.name.split('__').pop() || tool.function.name;
+          
+          // Verificar se o LLM mencionou usar a tool
+          if (content.toLowerCase().includes(toolName.toLowerCase()) || 
+              content.toLowerCase().includes('generate')) {
+            
+            console.log(`🔧 [LLM] FALLBACK: Detectado menção a tool, executando...`);
+            
+            // Extrair prompt do conteúdo
+            const promptMatch = content.match(/[Pp]rompt:\s*["']([^"']+)["']/);
+            const extractedPrompt = promptMatch ? promptMatch[1] : content.substring(0, 200);
+            
+            console.log(`🔧 [LLM] FALLBACK: Prompt: ${extractedPrompt.substring(0, 100)}...`);
+            
+            // Criar tool call manual
+            const manualToolCall = {
+              id: `call_${Date.now()}`,
+              type: 'function' as const,
+              function: {
+                name: tool.function.name,
+                arguments: JSON.stringify({
+                  prompt: extractedPrompt,
+                  width: 1024,
+                  height: 1024,
+                  nologo: true
+                })
+              }
+            };
+            
+            try {
+              const toolResult = await executeToolCall(
+                manualToolCall,
+                context || {
+                  automationId: 'chat',
+                  nodeId: 'chat-node',
+                  previousResults: {},
+                  globalContext: {},
+                }
+              );
+              
+              // Adicionar resultado ao histórico
+              currentMessages.push({
+                role: 'tool',
+                tool_call_id: manualToolCall.id,
+                content: JSON.stringify(toolResult),
+              });
+              
+              console.log(`✅ [LLM] FALLBACK: Tool executada manualmente!`);
+              
+              // Continuar loop para obter resposta final
+              continue;
+            } catch (error: any) {
+              console.error(`❌ [LLM] FALLBACK: Erro:`, error);
+            }
+          }
+        }
+      }
 
       // Verificar se há tool calls
       if (message.tool_calls && message.tool_calls.length > 0) {

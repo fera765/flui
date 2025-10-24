@@ -10,6 +10,7 @@ import { z } from 'zod';
 
 export const FlowNodeTypeSchema = z.enum([
   'tool',            // Executa uma ferramenta do registry
+  'agent',           // ✅ Executa um agente com LLM
   'condition',       // Condicional (if/else)
   'loop',            // Loop sobre array
   'parallel',        // Execução paralela

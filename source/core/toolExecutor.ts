@@ -78,7 +78,8 @@ export class ToolExecutor {
       
       console.log(`🤖 [AgentExecutor] Executando agente: ${agent.name}`);
       console.log(`📋 [AgentExecutor] Model: ${agent.model || 'padrão'}`);
-      console.log(`🔧 [AgentExecutor] Tools: ${agent.tools?.length || 0}`);
+      console.log(`🔧 [AgentExecutor] FLUI Tools: ${agent.tools?.length || 0}`);
+      console.log(`🔧 [AgentExecutor] MCPs: ${agent.mcpIds?.length || 0}`);
       
       // Preparar input do usuário
       const userInput = args.input || args.prompt || args.message || '';
