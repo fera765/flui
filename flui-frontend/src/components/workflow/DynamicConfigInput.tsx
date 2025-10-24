@@ -24,6 +24,14 @@ export function DynamicConfigInput({ param, value, onChange, onLinkerClick }: Dy
     return typeof val === 'string' && val.startsWith('{{') && val.endsWith('}}')
   }
 
+  // Função para exibir valor linkado de forma mais clara
+  const getDisplayValue = (val: any) => {
+    if (isLinked(val)) {
+      return val
+    }
+    return val || ''
+  }
+
   // String/Number - Input or Textarea
   if (param.type === 'string' || param.type === 'number') {
     const isLongText = param.description?.includes('long') || param.key.includes('prompt')
@@ -35,7 +43,7 @@ export function DynamicConfigInput({ param, value, onChange, onLinkerClick }: Dy
           <div className="flex-1">
             {isLongText ? (
               <textarea
-                value={value || ''}
+                value={getDisplayValue(value)}
                 onChange={(e) => onChange(e.target.value)}
                 className={`w-full px-3 py-2 border rounded-lg text-sm resize-none ${
                   isValueLinked 
@@ -45,15 +53,19 @@ export function DynamicConfigInput({ param, value, onChange, onLinkerClick }: Dy
                 rows={4}
                 placeholder={param.description || `Enter ${param.name}`}
                 data-testid={`input-${param.key}`}
+        readOnly={isValueLinked}
+                readOnly={isValueLinked}
               />
             ) : (
               <Input
                 type={param.type === 'number' ? 'number' : 'text'}
-                value={value || ''}
+                value={getDisplayValue(value)}
                 onChange={(e) => onChange(param.type === 'number' ? Number(e.target.value) : e.target.value)}
                 placeholder={param.description || `Enter ${param.name}`}
                 className={isValueLinked ? 'border-green-500 bg-green-50 dark:bg-green-950/20' : ''}
                 data-testid={`input-${param.key}`}
+        readOnly={isValueLinked}
+                readOnly={isValueLinked}
               />
             )}
           </div>
@@ -265,11 +277,12 @@ export function DynamicConfigInput({ param, value, onChange, onLinkerClick }: Dy
   return (
     <div className="flex items-center gap-2">
       <Input
-        value={value || ''}
+        value={getDisplayValue(value)}
         onChange={(e) => onChange(e.target.value)}
         placeholder={param.description || param.name}
         className={isValueLinked ? 'border-green-500 bg-green-50 dark:bg-green-950/20' : ''}
         data-testid={`input-${param.key}`}
+        readOnly={isValueLinked}
       />
       <Button
         size="sm"
