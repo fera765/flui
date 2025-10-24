@@ -186,6 +186,9 @@ export class FlowEngineV2 {
       
       if (node.type === 'tool') {
         output = await this.executeToolNode(node, inputData);
+      } else if (node.type === 'agent') {
+        // ✅ FIX: Adicionar suporte para nodes de Agent
+        output = await this.executeAgentNode(node, inputData);
       } else if (node.type === 'condition') {
         output = await this.executeConditionNode(node, inputData);
       } else if (node.type === 'loop') {
@@ -292,6 +295,75 @@ export class FlowEngineV2 {
     
     if (!result.success) {
       throw new Error(result.error || 'Tool execution failed');
+    }
+    
+    // Converter resultado para formato padronizado
+    return [createNodeDataItem(result.result || {}, node.id, node.name, this.execution.id)];
+  }
+
+  /**
+   * Executa um node do tipo "agent"
+   */
+  private async executeAgentNode(node: FlowNode, inputData: Record<string, any>): Promise<NodeOutput> {
+    const agentId = (node as any).agentId;
+    if (!agentId) {
+      throw new Error('agentId não especificado no node');
+    }
+    
+    console.log(`🤖 [FlowEngineV2] Executando agent node: ${node.name} (${agentId})`);
+    
+    // 🆕 RESOLVER REFERÊNCIAS no config antes de executar
+    let resolvedConfig = { ...node.config };
+    
+    if (hasReferences(node.config)) {
+      const validation = validateReferences(node.config, {
+        nodeOutputs: this.nodeOutputs,
+      });
+      
+      if (!validation.valid) {
+        console.warn('⚠️  Referências inválidas encontradas:', validation.errors);
+      }
+      
+      resolvedConfig = resolveReferences(node.config, {
+        nodeOutputs: this.nodeOutputs,
+      });
+      
+      this.log(
+        node.id,
+        node.name,
+        'running',
+        'Referências resolvidas',
+        { original: node.config, resolved: resolvedConfig }
+      );
+    }
+    
+    // Preparar input para o agente
+    const message = resolvedConfig.message || resolvedConfig.input || resolvedConfig.prompt || inputData.message || '';
+    
+    if (!message) {
+      throw new Error('Mensagem/input é obrigatório para o agente');
+    }
+    
+    this.log(node.id, node.name, 'running', 'Executando agente...', { message });
+    
+    // Criar contexto de execução
+    const context: ExecutionContext = {
+      automationId: this.flow.id,
+      nodeId: node.id,
+      globalContext: {},
+      previousResults: Object.fromEntries(this.nodeOutputs),
+      sandboxPath: node.config.sandboxPath || resolvedConfig.sandboxPath,
+    };
+    
+    // Executar agente via ToolExecutor (que já tem suporte)
+    const result = await ToolExecutor.execute(
+      `agent-${agentId}`,
+      { message, ...resolvedConfig },
+      context
+    );
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Agent execution failed');
     }
     
     // Converter resultado para formato padronizado

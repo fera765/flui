@@ -255,20 +255,35 @@ app.post('/api/automations/:id/execute', async (req: Request, res: Response) => 
       name: automation.name,
       description: automation.description || '',
       version: automation.version || '1.0',
-      nodes: automation.nodes.map(node => ({
-        id: node.id,
-        type: node.config?.toolId || node.type || 'tool',
-        name: node.name,
-        config: node.config || {},
-        position: node.position,
-      })),
+      nodes: automation.nodes.map(node => {
+        // ✅ FIX: Usar toolId do node, não do config
+        // E preservar agentId, mcpId para execução correta
+        return {
+          id: node.id,
+          type: node.toolId || node.type || 'tool',
+          name: node.name,
+          config: node.config || {},
+          position: node.position,
+          // ✅ FIX: Passar IDs necessários para execução
+          ...(node.agentId && { agentId: node.agentId }),
+          ...(node.toolId && { toolId: node.toolId }),
+          ...(node.mcpId && { mcpId: node.mcpId }),
+          ...(node.mcpToolId && { mcpToolId: node.mcpToolId }),
+        };
+      }),
       edges: automation.edges || [],
       startNodeId: automation.startNodeId || automation.nodes[0]?.id,
     };
 
     console.log('📊 [API] Execução iniciada:', { 
       flowId: executionFlow.id,
-      nodesCount: executionFlow.nodes.length
+      nodesCount: executionFlow.nodes.length,
+      nodes: executionFlow.nodes.map(n => ({ 
+        id: n.id, 
+        type: n.type, 
+        agentId: (n as any).agentId,
+        toolId: (n as any).toolId,
+      }))
     });
 
     // Coletar logs e atualizações de nodes em tempo real
@@ -293,6 +308,8 @@ app.post('/api/automations/:id/execute', async (req: Request, res: Response) => 
     console.log('✅ [API] Execução concluída:', {
       status: result.status,
       logsCount: result.logs.length,
+      hasError: result.error ? true : false,
+      errorMessage: result.error,
     });
 
     // Atualizar runCount e metadata

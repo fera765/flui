@@ -120,39 +120,47 @@ export function ExecutionModalV2({ isOpen, onClose, context }: ExecutionModalPro
     if (context.logs.length > 0) {
       const latestLog = context.logs[context.logs.length - 1]
       
-      if (latestLog.level === 'success') {
-        const newMessage: any = {
-          role: 'system',
-          content: `✅ **${latestLog.nodeName}** executado com sucesso`
-        }
-        
-        // Check for files in output
-        if (latestLog.output?.files) {
-          newMessage.files = latestLog.output.files
-          newMessage.content += `\n📁 ${latestLog.output.files.length} arquivo(s) gerado(s)`
-        }
-        
-        // Check for links in output
-        if (latestLog.output?.links || latestLog.output?.url) {
-          const links = latestLog.output.links || [latestLog.output.url]
-          newMessage.content += `\n🔗 ${links.length} link(s) gerado(s)`
-        }
-        
-        setChatMessages(prev => {
-          // Avoid duplicates
-          if (prev[prev.length - 1]?.content === newMessage.content) return prev
-          return [...prev, newMessage]
-        })
-      } else if (latestLog.level === 'error') {
-        setChatMessages(prev => {
-          const errorMsg = {
-            role: 'system' as const,
-            content: `❌ **${latestLog.nodeName}** falhou\n${latestLog.message}`
+      // Processar todos os logs não processados
+      const currentMessageCount = chatMessages.filter(m => m.role === 'system' && !m.content.includes('Iniciando')).length
+      const newLogs = context.logs.slice(currentMessageCount)
+      
+      newLogs.forEach(log => {
+        if (log.level === 'success') {
+          const newMessage: any = {
+            role: 'system',
+            content: `✅ **${log.nodeName}** executado com sucesso`
           }
-          if (prev[prev.length - 1]?.content === errorMsg.content) return prev
-          return [...prev, errorMsg]
-        })
-      }
+          
+          // Check for files in output
+          if (log.output?.files) {
+            newMessage.files = log.output.files
+            newMessage.content += `\n📁 ${log.output.files.length} arquivo(s) gerado(s)`
+          }
+          
+          // Check for links in output
+          if (log.output?.links || log.output?.url) {
+            const links = log.output.links || [log.output.url]
+            newMessage.content += `\n🔗 ${links.length} link(s) gerado(s)`
+          }
+          
+          setChatMessages(prev => [...prev, newMessage])
+        } else if (log.level === 'error') {
+          setChatMessages(prev => [...prev, {
+            role: 'system' as const,
+            content: `❌ **${log.nodeName}** falhou\n\n${log.message || 'Erro desconhecido'}`
+          }])
+        } else if (log.level === 'warn') {
+          setChatMessages(prev => [...prev, {
+            role: 'system' as const,
+            content: `⚠️ **${log.nodeName}**: ${log.message}`
+          }])
+        } else if (log.message && (log.message.includes('Executando') || log.message.includes('Iniciando'))) {
+          setChatMessages(prev => [...prev, {
+            role: 'system' as const,
+            content: `⚡ **${log.nodeName}**: ${log.message}`
+          }])
+        }
+      })
     }
   }, [context.logs])
   
@@ -174,16 +182,21 @@ export function ExecutionModalV2({ isOpen, onClose, context }: ExecutionModalPro
         return [...prev, message]
       })
     } else if (context.status === 'failed') {
+      // Coletar todos os erros dos logs
+      const errorLogs = context.logs.filter(log => log.level === 'error')
+      const errorMessages = errorLogs.map(log => `• **${log.nodeName}**: ${log.message}`).join('\n')
+      
+      const failMsg = {
+        role: 'system' as const,
+        content: `💥 **Automação falhou**\n\n${errorMessages || context.error || 'Erro desconhecido'}\n\n🔍 Verifique a aba de Logs para mais detalhes.`
+      }
+      
       setChatMessages(prev => {
-        const failMsg = {
-          role: 'system' as const,
-          content: `💥 **Automação falhou**\n\n${context.error || 'Erro desconhecido'}`
-        }
         if (prev[prev.length - 1]?.content.includes('Automação falhou')) return prev
         return [...prev, failMsg]
       })
     }
-  }, [context.status])
+  }, [context.status, context.error, context.logs])
   
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isSending) return
@@ -194,7 +207,7 @@ export function ExecutionModalV2({ isOpen, onClose, context }: ExecutionModalPro
     setIsSending(true)
     
     try {
-      const response = await api.post(`/api/automations/${context.automationId}/chat`, {
+      const response: any = await api.post(`/api/automations/${context.automationId}/chat`, {
         message: userMessage,
         executionContext: {
           status: context.status,
@@ -373,8 +386,22 @@ export function ExecutionModalV2({ isOpen, onClose, context }: ExecutionModalPro
                         
                         {/* Error message */}
                         {node.error && (
-                          <div className="mt-2 text-xs text-red-500 bg-red-500/10 p-2 rounded">
-                            {node.error}
+                          <div className="mt-2 text-xs text-red-600 bg-red-500/10 border border-red-500/20 p-2 rounded font-medium">
+                            💥 {node.error}
+                          </div>
+                        )}
+                        
+                        {/* Output preview for success */}
+                        {node.status === 'success' && node.output && (
+                          <div className="mt-2">
+                            <details className="text-xs">
+                              <summary className="cursor-pointer text-green-600 hover:text-green-700 font-medium">
+                                ✓ Ver output
+                              </summary>
+                              <pre className="mt-1 p-2 bg-background/50 rounded text-[10px] overflow-auto max-h-24">
+                                {JSON.stringify(node.output, null, 2)}
+                              </pre>
+                            </details>
                           </div>
                         )}
                       </div>
@@ -506,7 +533,6 @@ export function ExecutionModalV2({ isOpen, onClose, context }: ExecutionModalPro
               <Button
                 onClick={handleSendMessage}
                 disabled={!inputMessage.trim() || isSending || context.status === 'running'}
-                size="default"
                 className="px-4"
               >
                 <Send className="w-4 h-4" />

@@ -411,82 +411,100 @@ export function WorkflowEditor() {
         nodes: executionNodes,
       })
       
-      // Iniciar execução
+      // Iniciar execução real no backend
+      console.log('[WorkflowEditor] 🚀 Starting execution...')
       const execution = await executeAutomation({ id: automationIdToRun })
       
-      // Simular progresso com nodes (em produção, viria via WebSocket)
-      // Atualizar status de cada node sequencialmente
-      for (let i = 0; i < executionNodes.length; i++) {
-        await new Promise(resolve => setTimeout(resolve, 800))
+      console.log('[WorkflowEditor] 📊 Execution result:', execution)
+      
+      // Processar logs do backend
+      const backendLogs = execution.logs || []
+      const processedLogs = backendLogs.map((log: any) => ({
+        timestamp: log.timestamp || new Date().toISOString(),
+        level: log.level || 'info',
+        nodeId: log.nodeId || '',
+        nodeName: log.nodeName || log.message || '',
+        message: log.message || '',
+        input: log.input,
+        output: log.output,
+      }))
+      
+      // Atualizar nodes baseado nos logs
+      const updatedNodes = executionNodes.map(node => {
+        const nodeLogs = processedLogs.filter((log: any) => log.nodeId === node.id)
         
-        setExecutionContext((prev: any) => {
-          if (!prev) return null
-          const updatedNodes = [...prev.nodes]
-          updatedNodes[i] = {
-            ...updatedNodes[i],
-            status: 'running',
-            startTime: Date.now(),
-          }
-          
-          return {
-            ...prev,
-            nodes: updatedNodes,
-            logs: [...prev.logs, {
-              timestamp: new Date().toISOString(),
-              level: 'info',
-              nodeId: updatedNodes[i].id,
-              nodeName: updatedNodes[i].name,
-              message: `Executando ${updatedNodes[i].name}...`,
-            }]
-          }
-        })
+        if (nodeLogs.length === 0) {
+          return { ...node, status: 'pending' as const }
+        }
         
-        // Simular conclusão do node
-        await new Promise(resolve => setTimeout(resolve, 600))
+        const lastLog = nodeLogs[nodeLogs.length - 1]
+        const hasError = nodeLogs.some((log: any) => log.level === 'error')
+        const hasSuccess = nodeLogs.some((log: any) => log.level === 'success')
         
-        setExecutionContext((prev: any) => {
-          if (!prev) return null
-          const updatedNodes = [...prev.nodes]
-          const duration = Date.now() - (updatedNodes[i].startTime || 0)
-          updatedNodes[i] = {
-            ...updatedNodes[i],
-            status: 'success',
-            endTime: Date.now(),
-            duration,
-          }
-          
-          return {
-            ...prev,
-            nodesExecuted: i + 1,
-            nodes: updatedNodes,
-            logs: [...prev.logs, {
-              timestamp: new Date().toISOString(),
-              level: 'success',
-              nodeId: updatedNodes[i].id,
-              nodeName: updatedNodes[i].name,
-              message: `Concluído em ${duration}ms`,
-              output: { result: 'success', data: {} },
-            }]
-          }
+        return {
+          ...node,
+          status: hasError ? 'error' as const : hasSuccess ? 'success' as const : 'pending' as const,
+          output: lastLog.output,
+          error: hasError ? lastLog.message : undefined,
+        }
+      })
+      
+      // Detectar arquivos nos outputs
+      const allFiles: any[] = []
+      backendLogs.forEach((log: any) => {
+        if (log.output?.files) {
+          allFiles.push(...log.output.files)
+        }
+      })
+      
+      // Atualizar contexto com resultado real
+      setExecutionContext((prev: any) => ({
+        ...prev,
+        status: execution.status === 'completed' ? 'completed' : 'failed',
+        nodesExecuted: updatedNodes.filter(n => n.status === 'success').length,
+        nodes: updatedNodes,
+        logs: processedLogs,
+        files: allFiles,
+        duration: execution.completedAt 
+          ? new Date(execution.completedAt).getTime() - new Date(execution.startedAt).getTime()
+          : 0,
+        error: execution.error,
+      }))
+      
+      // Mostrar resultado
+      if (execution.status === 'completed') {
+        toast.success('Automação executada com sucesso!')
+      } else {
+        toast.error('Automação falhou', {
+          description: execution.error || 'Verifique os logs para mais detalhes'
         })
       }
       
-      // Finalizar execução
-      setExecutionContext((prev: any) => ({
-        ...prev,
-        status: 'completed',
-        duration: executionNodes.length * 1400,
-      }))
-      
     } catch (error: any) {
+      console.error('[WorkflowEditor] ❌ Execution error:', error)
       toast.error('Erro ao executar automação', {
         description: error.message
       })
-      setExecutionContext((prev: any) => prev ? {
-        ...prev,
-        status: 'failed',
-        error: error.message,
-      } : null)
+      
+      setExecutionContext((prev: any) => {
+        if (!prev) return null
+        
+        return {
+          ...prev,
+          status: 'failed',
+          error: error.message,
+          logs: [
+            ...prev.logs,
+            {
+              timestamp: new Date().toISOString(),
+              level: 'error',
+              nodeId: '',
+              nodeName: 'System',
+              message: `Erro: ${error.message}`,
+            }
+          ]
+        }
+      })
     } finally {
       setIsExecuting(false)
     }
