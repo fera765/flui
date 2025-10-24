@@ -1,12 +1,21 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { useModels, useTools, useMCPs } from '@/hooks/useAgents'
+import { useTools, useMCPs } from '@/hooks/useAgents'
+import { api } from '@/services/api'
 import type { Agent } from '@/types/api'
+
+interface ModelInfo {
+  id: string
+  object: string
+  created: number
+  owned_by: string
+  modalities?: { input: string[] }
+}
 
 const agentSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -32,26 +41,32 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isLoading }: Agen
   const [activeTab, setActiveTab] = useState<'general' | 'tools'>('general')
   const [selectedTools, setSelectedTools] = useState<string[]>(agent?.tools || [])
   const [selectedMCPTools, setSelectedMCPTools] = useState<string[]>(agent?.mcpToolIds || [])
+  const [availableModels, setAvailableModels] = useState<ModelInfo[]>([])
+  const [isLoadingModels, setIsLoadingModels] = useState(false)
 
-  const { data: models = [] } = useModels()
   const { data: tools = [] } = useTools()
   const { data: mcps = [] } = useMCPs()
   
-  // ✅ Extract MCP tools into individual selectable items
-  const mcpToolsList = mcps.flatMap((mcp: any) => 
-    (mcp.tools || []).map((tool: any) => ({
+  // ✅ Group MCP tools by MCP for better organization
+  const mcpGroups = mcps.map((mcp: any) => ({
+    mcpId: mcp.id,
+    mcpName: mcp.name,
+    tools: (mcp.tools || []).map((tool: any) => ({
       ...tool,
       mcpName: mcp.name,
       mcpId: mcp.id,
       id: tool.id || `${mcp.id}-${tool.name}`,
-      displayName: `${tool.name} (${mcp.name})`,
+      displayName: tool.name,
     }))
-  )
+  })).filter(group => group.tools.length > 0)
+  
+  const totalMcpTools = mcpGroups.reduce((acc, group) => acc + group.tools.length, 0)
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
   } = useForm<AgentFormData>({
     resolver: zodResolver(agentSchema),
     defaultValues: {
@@ -64,6 +79,56 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isLoading }: Agen
       enabled: agent?.enabled ?? true,
     },
   })
+
+  // 🚀 Carregar modelos disponíveis do endpoint configurado
+  useEffect(() => {
+    const loadAvailableModels = async () => {
+      if (!isOpen) return
+      
+      setIsLoadingModels(true)
+      try {
+        // Buscar configuração da LLM
+        const config = await api.get<any>('/api/llm/config')
+        if (!config?.llm?.endpoint) {
+          console.warn('No LLM endpoint configured')
+          setAvailableModels([])
+          return
+        }
+
+        const endpoint = config.llm.endpoint
+        const modelsUrl = endpoint.endsWith('/') ? `${endpoint}models` : `${endpoint}/models`
+        
+        const response = await fetch(modelsUrl, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          // Suportar formato OpenAI (data.data) ou formato direto (array)
+          const models = Array.isArray(data) ? data : data.data || []
+          setAvailableModels(models)
+          console.log(`✅ Loaded ${models.length} models from ${endpoint}`)
+          
+          // Se estiver criando novo agente e tiver modelos, selecionar o primeiro
+          if (!agent && models.length > 0) {
+            setValue('model', models[0].id)
+          }
+        } else {
+          console.warn('Failed to load models:', response.statusText)
+          setAvailableModels([])
+        }
+      } catch (error) {
+        console.error('Error loading models:', error)
+        setAvailableModels([])
+      } finally {
+        setIsLoadingModels(false)
+      }
+    }
+
+    loadAvailableModels()
+  }, [isOpen, agent, setValue])
 
   const handleFormSubmit = async (data: AgentFormData) => {
     await onSubmit({
@@ -157,17 +222,42 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isLoading }: Agen
               <label className="block text-sm font-medium text-foreground mb-2">
                 Model *
               </label>
-              <select
-                {...register('model')}
-                className="w-full h-10 px-3 border border-input bg-background rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <option value="">Select a model</option>
-                {((models as any)?.data || models || []).map((model: any) => (
-                  <option key={model.id} value={model.id}>
-                    {model.id}
-                  </option>
-                ))}
-              </select>
+              
+              {availableModels.length > 0 ? (
+                <div>
+                  <select
+                    {...register('model')}
+                    className="w-full h-10 px-3 border border-input bg-background rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    disabled={isLoadingModels}
+                  >
+                    <option value="">Select a model</option>
+                    {availableModels.map((model) => (
+                      <option key={model.id} value={model.id}>
+                        {model.id} {model.owned_by ? `(${model.owned_by})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {availableModels.length} models available from configured LLM endpoint
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <Input
+                    {...register('model')}
+                    placeholder="deepseek-v3.1"
+                    error={errors.model?.message}
+                    disabled={isLoadingModels}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {isLoadingModels 
+                      ? 'Loading models from LLM endpoint...' 
+                      : 'Enter model name manually or configure LLM endpoint in Settings'
+                    }
+                  </p>
+                </div>
+              )}
+              
               {errors.model && (
                 <p className="mt-1 text-sm text-destructive">{errors.model.message}</p>
               )}
@@ -238,31 +328,51 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isLoading }: Agen
               </div>
             </div>
 
-            {/* MCP Tools Section */}
+            {/* MCP Tools Section - Grouped by MCP */}
             <div>
               <h3 className="text-sm font-medium text-foreground mb-3">
-                MCP Tools ({mcpToolsList.length})
+                MCP Tools ({totalMcpTools})
               </h3>
-              <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto scrollbar-thin">
-                {mcpToolsList.map((tool: any) => (
-                  <button
-                    key={tool.id}
-                    type="button"
-                    onClick={() => toggleMCPTool(tool.id)}
-                    className={`p-3 text-left border rounded-lg transition-colors ${
-                      selectedMCPTools.includes(tool.id)
-                        ? 'border-primary bg-primary/10'
-                        : 'border-border hover:border-primary/50'
-                    }`}
-                  >
-                    <div className="font-medium text-sm">{tool.displayName || tool.name}</div>
-                    <div className="text-xs text-muted-foreground line-clamp-1">
-                      {tool.description}
+              <div className="max-h-80 overflow-y-auto space-y-4 scrollbar-thin">
+                {mcpGroups.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground text-sm">
+                    No MCP tools available. Import MCPs from the MCPs page.
+                  </div>
+                )}
+                
+                {mcpGroups.map((group: any) => (
+                  <div key={group.mcpId} className="space-y-2">
+                    {/* MCP Header */}
+                    <div className="flex items-center gap-2 px-2 py-1 bg-purple-500/10 rounded">
+                      <div className="font-semibold text-sm text-purple-500">
+                        {group.mcpName}
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        ({group.tools.length} {group.tools.length === 1 ? 'tool' : 'tools'})
+                      </span>
                     </div>
-                    <div className="text-xs text-purple-500 mt-1">
-                      MCP: {tool.mcpName}
+                    
+                    {/* MCP Tools */}
+                    <div className="grid grid-cols-2 gap-2 ml-2">
+                      {group.tools.map((tool: any) => (
+                        <button
+                          key={tool.id}
+                          type="button"
+                          onClick={() => toggleMCPTool(tool.id)}
+                          className={`p-3 text-left border rounded-lg transition-colors ${
+                            selectedMCPTools.includes(tool.id)
+                              ? 'border-primary bg-primary/10'
+                              : 'border-border hover:border-primary/50'
+                          }`}
+                        >
+                          <div className="font-medium text-sm">{tool.displayName || tool.name}</div>
+                          <div className="text-xs text-muted-foreground line-clamp-1">
+                            {tool.description || 'No description'}
+                          </div>
+                        </button>
+                      ))}
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>

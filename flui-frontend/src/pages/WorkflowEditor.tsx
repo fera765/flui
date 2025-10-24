@@ -72,6 +72,15 @@ export function WorkflowEditor() {
     console.log('[WorkflowEditor] Deleting edges:', edgesToDelete.length)
     toast.info(`${edgesToDelete.length} edge(s) removed`, { duration: 2000 })
   }, [])
+  
+  // 🗑️ Handle node deletion (Delete key or manual delete)
+  const onNodesDelete = useCallback((nodesToDelete: any[]) => {
+    console.log('[WorkflowEditor] Deleting nodes:', nodesToDelete.length)
+    nodesToDelete.forEach(node => {
+      workflowStore.deleteNode(node.id)
+    })
+    toast.info(`${nodesToDelete.length} node(s) removed`, { duration: 2000 })
+  }, [])
 
   const workflowStore = useWorkflowStore()
   const { createAutomation, updateAutomation, executeAutomation } = useAutomations()
@@ -383,6 +392,7 @@ export function WorkflowEditor() {
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onNodesDelete={onNodesDelete}
         onEdgesDelete={onEdgesDelete}
         onConnect={onConnect}
         onReconnect={onReconnect}
