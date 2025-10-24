@@ -33,6 +33,112 @@
 				"updatedAt": "2025-10-24T03:42:15.287Z",
 				"lastRunAt": "2025-10-24T03:42:15.287Z"
 			}
+		},
+		{
+			"id": "3bf432694c8b74d1",
+			"name": "Automation New",
+			"description": "Workflow automation",
+			"nodes": [
+				{
+					"id": "node-1761281148913",
+					"type": "tool",
+					"name": "Manual Trigger",
+					"description": "Dispara automações manualmente sob demanda. Ideal para testes, debugging e execuções únicas.",
+					"config": {},
+					"position": {
+						"x": 252.42556305410386,
+						"y": 443.38186258816694
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-1761281157293",
+					"type": "tool",
+					"name": "Cron Trigger",
+					"description": "Agenda execuções automáticas baseadas em intervalos ou horários específicos usando cron expressions.",
+					"config": {},
+					"position": {
+						"x": 380.5159587014069,
+						"y": 241.30335788578145
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [],
+			"startNodeId": "node-1761281148913",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-24T04:46:00.473Z",
+			"updatedAt": "2025-10-24T04:46:00.474Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-24T04:46:00.473Z",
+				"updatedAt": "2025-10-24T04:46:00.473Z"
+			}
+		},
+		{
+			"id": "8b195fbfcbf97113",
+			"name": "Automation New",
+			"description": "Workflow automation",
+			"nodes": [
+				{
+					"id": "node-1761281292888",
+					"type": "tool",
+					"name": "Cron Trigger",
+					"description": "Agenda execuções automáticas baseadas em intervalos ou horários específicos usando cron expressions.",
+					"config": {},
+					"position": {
+						"x": 188.72910852481965,
+						"y": 374.48053856096715
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [],
+			"startNodeId": "node-1761281292888",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-24T04:48:18.231Z",
+			"updatedAt": "2025-10-24T04:48:18.232Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-24T04:48:18.231Z",
+				"updatedAt": "2025-10-24T04:48:18.231Z"
+			}
+		},
+		{
+			"id": "a4158d9707fdf9fc",
+			"name": "Automation New",
+			"description": "Workflow automation",
+			"nodes": [
+				{
+					"id": "node-1761281476930",
+					"type": "tool",
+					"name": "Cron Trigger",
+					"description": "Agenda execuções automáticas baseadas em intervalos ou horários específicos usando cron expressions.",
+					"config": {},
+					"position": {
+						"x": 499.14544577812035,
+						"y": 340.22800568357184
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [],
+			"startNodeId": "node-1761281476930",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-24T04:51:22.277Z",
+			"updatedAt": "2025-10-24T04:52:37.489Z",
+			"runCount": 1,
+			"metadata": {
+				"createdAt": "2025-10-24T04:51:22.276Z",
+				"updatedAt": "2025-10-24T04:52:37.489Z",
+				"lastRunAt": "2025-10-24T04:52:37.489Z"
+			}
 		}
 	],
 	"executions": [],

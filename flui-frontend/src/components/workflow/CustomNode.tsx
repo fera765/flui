@@ -37,9 +37,8 @@ export const CustomNode = memo(({ data, id }: NodeProps) => {
   }
 
   const handleDelete = () => {
-    if (confirm('Delete this node?')) {
-      deleteNode(id)
-    }
+    console.log('[CustomNode] Deleting node:', id)
+    deleteNode(id)
   }
 
   return (
@@ -96,6 +95,7 @@ export const CustomNode = memo(({ data, id }: NodeProps) => {
         <button
           onClick={handleConfig}
           className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-sm font-medium transition-colors"
+          title="Configure node"
         >
           <Settings className="w-4 h-4" />
           Config
@@ -103,8 +103,10 @@ export const CustomNode = memo(({ data, id }: NodeProps) => {
         <button
           onClick={handleDelete}
           className="p-2 bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-lg transition-colors"
+          title="Delete node"
         >
           <Trash2 className="w-4 h-4" />
+          Delete
         </button>
       </div>
     </div>

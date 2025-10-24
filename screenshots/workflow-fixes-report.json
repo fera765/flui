@@ -1,0 +1,21 @@
+{
+  "timestamp": "2025-10-24T04:51:33.882Z",
+  "automationId": "a4158d9707fdf9fc",
+  "results": {
+    "workflowStartsEmpty": true,
+    "canAddNode": true,
+    "canDeleteNode": true,
+    "canSaveAutomation": true,
+    "automationPersists": true,
+    "canExecuteAutomation": true,
+    "configPersists": false
+  },
+  "passed": 6,
+  "total": 7,
+  "errors": [],
+  "importantLogs": [
+    "[log] [WorkflowStore] Node updated: node-1761281468514 {name: Test Node Config, description: Testing config persistence, config: Object}",
+    "[log] [CustomNode] Deleting node: node-1761281468514",
+    "[error] Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ]
+}

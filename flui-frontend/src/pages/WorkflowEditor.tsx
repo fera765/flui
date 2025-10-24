@@ -18,6 +18,7 @@ import { TypedLinkerModal } from '@/components/workflow/TypedLinkerModal'
 import { AddNodeModal } from '@/components/workflow/AddNodeModal'
 import { useWorkflowStore } from '@/store/workflowStore'
 import { useAutomations } from '@/hooks/useAutomations'
+import { api } from '@/services/api'
 import { toast } from 'sonner'
 
 const nodeTypes = {
@@ -35,7 +36,7 @@ export function WorkflowEditor() {
   const workflowStore = useWorkflowStore()
   const { createAutomation, updateAutomation, executeAutomation } = useAutomations()
 
-  // Sync with store
+  // Sync with store - Bidirectional sync
   useEffect(() => {
     workflowStore.setNodes(nodes)
   }, [nodes])
@@ -44,33 +45,23 @@ export function WorkflowEditor() {
     workflowStore.setEdges(edges)
   }, [edges])
 
+  // Subscribe to store updates and sync to React Flow
+  useEffect(() => {
+    const unsubscribe = useWorkflowStore.subscribe((state) => {
+      // When store nodes change, update React Flow
+      setNodes(state.nodes)
+    })
+    return unsubscribe
+  }, [setNodes])
+
   // Load automation if editing
   useEffect(() => {
     if (id && id !== 'new') {
-      // Load automation from API
-      // For now, just create empty
-      if (nodes.length === 0) {
-        addInitialNode()
-      }
-    } else if (nodes.length === 0) {
-      addInitialNode()
+      // TODO: Load automation from API
+      // For now, start empty
     }
+    // Start with empty canvas (no initial node)
   }, [id])
-
-  const addInitialNode = () => {
-    const initialNode = {
-      id: 'start-1',
-      type: 'custom',
-      position: { x: 250, y: 100 },
-      data: {
-        type: 'manual-trigger',
-        name: 'Manual Trigger',
-        description: 'Start automation manually',
-        config: {},
-      },
-    }
-    setNodes([initialNode])
-  }
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),

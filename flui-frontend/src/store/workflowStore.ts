@@ -41,11 +41,15 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     nodes: [...state.nodes, node],
   })),
 
-  updateNode: (id, data) => set((state) => ({
-    nodes: state.nodes.map((node) =>
-      node.id === id ? { ...node, data: { ...node.data, ...data } } : node
-    ),
-  })),
+  updateNode: (id, data) => {
+    set((state) => {
+      const updatedNodes = state.nodes.map((node) =>
+        node.id === id ? { ...node, data: { ...node.data, ...data } } : node
+      )
+      console.log('[WorkflowStore] Node updated:', id, data)
+      return { nodes: updatedNodes }
+    })
+  },
 
   deleteNode: (id) => set((state) => ({
     nodes: state.nodes.filter((node) => node.id !== id),
