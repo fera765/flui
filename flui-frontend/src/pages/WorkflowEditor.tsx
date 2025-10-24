@@ -56,13 +56,15 @@ export function WorkflowEditor() {
   const { createAutomation, updateAutomation, executeAutomation } = useAutomations()
 
   // Sync React Flow state to Zustand store (one-way)
+  // ✅ FIX: Remove workflowStore from dependencies to prevent infinite loop
+  // Zustand stores are stable and don't change between renders
   useEffect(() => {
     workflowStore.setNodes(nodes)
-  }, [nodes, workflowStore])
+  }, [nodes])
 
   useEffect(() => {
     workflowStore.setEdges(edges)
-  }, [edges, workflowStore])
+  }, [edges])
 
   // Load automation if editing
   useEffect(() => {
