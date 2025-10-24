@@ -1,0 +1,137 @@
+/**
+ * React Flow Custom Styles
+ * Fix for drag issues and custom edge styles
+ */
+
+/* Fix for dragging nodes - prevent background from covering elements */
+.react-flow__renderer {
+  z-index: 1;
+}
+
+.react-flow__nodes {
+  z-index: 2;
+}
+
+.react-flow__edges {
+  z-index: 1;
+}
+
+.react-flow__controls {
+  z-index: 3;
+}
+
+.react-flow__panel {
+  z-index: 4;
+}
+
+/* Ensure node drag handles work properly */
+.react-flow__node {
+  cursor: grab;
+}
+
+.react-flow__node.dragging {
+  cursor: grabbing;
+}
+
+/* Custom edge styles for better visibility */
+.react-flow__edge-path {
+  stroke: hsl(var(--primary));
+  stroke-width: 2;
+  transition: stroke-width 0.2s;
+}
+
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke-width: 3;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: hsl(var(--primary));
+  stroke-width: 3;
+}
+
+/* Edge reconnection handles */
+.react-flow__edge.updating .react-flow__edge-path {
+  stroke: hsl(var(--accent));
+  stroke-width: 3;
+  stroke-dasharray: 5, 5;
+  animation: dash 0.5s linear infinite;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -10;
+  }
+}
+
+/* Edge delete button */
+.react-flow__edge-textwrapper {
+  pointer-events: all;
+}
+
+.react-flow__edge-text {
+  pointer-events: all;
+}
+
+/* Handle styles */
+.react-flow__handle {
+  width: 12px;
+  height: 12px;
+  border: 2px solid hsl(var(--primary));
+  background: hsl(var(--card));
+  transition: all 0.2s;
+}
+
+.react-flow__handle:hover {
+  width: 16px;
+  height: 16px;
+  border-width: 3px;
+}
+
+.react-flow__handle-connecting {
+  background: hsl(var(--primary));
+}
+
+.react-flow__handle-valid {
+  background: hsl(var(--accent));
+}
+
+/* Fix for z-index issues during drag */
+.react-flow__node.selected {
+  z-index: 10 !important;
+}
+
+.react-flow__node.dragging {
+  z-index: 11 !important;
+  opacity: 0.8;
+}
+
+/* Prevent text selection during drag */
+.react-flow__pane {
+  cursor: default;
+  user-select: none;
+}
+
+/* Selection box */
+.react-flow__selection {
+  background: hsla(var(--primary), 0.1);
+  border: 2px solid hsl(var(--primary));
+}
+
+/* Background patterns */
+.react-flow__background {
+  background-color: hsl(var(--background));
+}
+
+/* Fix for dragging performance */
+.react-flow__attribution {
+  display: none;
+}
+
+/* Ensure proper stacking during updates */
+.react-flow__pane {
+  z-index: 0;
+}
+
+.react-flow__viewport {
+  z-index: 1;
+}

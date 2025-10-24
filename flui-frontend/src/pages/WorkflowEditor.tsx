@@ -33,6 +33,24 @@ export function WorkflowEditor() {
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const [isAddNodeModalOpen, setIsAddNodeModalOpen] = useState(false)
 
+  // Enable edge reconnection
+  const onReconnect = useCallback((oldEdge: any, newConnection: any) => {
+    console.log('[WorkflowEditor] Reconnecting edge:', oldEdge.id)
+    setEdges((els) => {
+      const filtered = els.filter((e) => e.id !== oldEdge.id)
+      return addEdge(newConnection, filtered)
+    })
+  }, [setEdges])
+
+  // Enable edge updates (for dragging connections)
+  const onEdgeUpdate = useCallback((oldEdge: any, newConnection: any) => {
+    console.log('[WorkflowEditor] Updating edge:', oldEdge.id)
+    setEdges((els) => {
+      const filtered = els.filter((e) => e.id !== oldEdge.id)
+      return addEdge(newConnection, filtered)
+    })
+  }, [setEdges])
+
   const workflowStore = useWorkflowStore()
   const { createAutomation, updateAutomation, executeAutomation } = useAutomations()
 
@@ -150,12 +168,23 @@ export function WorkflowEditor() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onReconnect={onReconnect}
+        onEdgeUpdate={onEdgeUpdate}
         nodeTypes={nodeTypes}
         fitView
+        deleteKeyCode="Delete"
+        multiSelectionKeyCode="Shift"
+        panOnDrag={true}
+        panOnScroll={false}
+        zoomOnScroll={true}
+        zoomOnDoubleClick={false}
+        selectNodesOnDrag={false}
         defaultEdgeOptions={{
           animated: true,
           style: { stroke: 'hsl(var(--primary))' },
         }}
+        edgesReconnectable={true}
+        reconnectRadius={20}
       >
         <Background />
         <Controls showInteractive={false} />
