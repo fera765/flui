@@ -1,0 +1,1007 @@
+{
+	"automations": [
+		{
+			"id": "70bc4d2ea0125eaa",
+			"name": "Test Automation Fixed",
+			"description": "Automação de teste com manual-trigger corrigido",
+			"nodes": [
+				{
+					"id": "trigger-1",
+					"type": "manual-trigger",
+					"name": "Trigger Manual",
+					"description": "Nó de trigger manual",
+					"config": {
+						"triggerMessage": "Iniciando automação de teste"
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [],
+			"startNodeId": "trigger-1",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-24T03:37:34.240Z",
+			"updatedAt": "2025-10-24T03:42:15.287Z",
+			"runCount": 1,
+			"metadata": {
+				"createdAt": "2025-10-24T03:37:34.239Z",
+				"updatedAt": "2025-10-24T03:42:15.287Z",
+				"lastRunAt": "2025-10-24T03:42:15.287Z"
+			}
+		},
+		{
+			"id": "3bf432694c8b74d1",
+			"name": "Automation New",
+			"description": "Workflow automation",
+			"nodes": [
+				{
+					"id": "node-1761281148913",
+					"type": "tool",
+					"name": "Manual Trigger",
+					"description": "Dispara automações manualmente sob demanda. Ideal para testes, debugging e execuções únicas.",
+					"config": {},
+					"position": {
+						"x": 252.42556305410386,
+						"y": 443.38186258816694
+					},
+					"nextNodes": []
+				},
+				{
+					"id": "node-1761281157293",
+					"type": "tool",
+					"name": "Cron Trigger",
+					"description": "Agenda execuções automáticas baseadas em intervalos ou horários específicos usando cron expressions.",
+					"config": {},
+					"position": {
+						"x": 380.5159587014069,
+						"y": 241.30335788578145
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [],
+			"startNodeId": "node-1761281148913",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-24T04:46:00.473Z",
+			"updatedAt": "2025-10-24T04:46:00.474Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-24T04:46:00.473Z",
+				"updatedAt": "2025-10-24T04:46:00.473Z"
+			}
+		},
+		{
+			"id": "8b195fbfcbf97113",
+			"name": "Automation New",
+			"description": "Workflow automation",
+			"nodes": [
+				{
+					"id": "node-1761281292888",
+					"type": "tool",
+					"name": "Cron Trigger",
+					"description": "Agenda execuções automáticas baseadas em intervalos ou horários específicos usando cron expressions.",
+					"config": {},
+					"position": {
+						"x": 188.72910852481965,
+						"y": 374.48053856096715
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [],
+			"startNodeId": "node-1761281292888",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-24T04:48:18.231Z",
+			"updatedAt": "2025-10-24T04:48:18.232Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-24T04:48:18.231Z",
+				"updatedAt": "2025-10-24T04:48:18.231Z"
+			}
+		},
+		{
+			"id": "a4158d9707fdf9fc",
+			"name": "Automation New",
+			"description": "Workflow automation",
+			"nodes": [
+				{
+					"id": "node-1761281476930",
+					"type": "tool",
+					"name": "Cron Trigger",
+					"description": "Agenda execuções automáticas baseadas em intervalos ou horários específicos usando cron expressions.",
+					"config": {},
+					"position": {
+						"x": 499.14544577812035,
+						"y": 340.22800568357184
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [],
+			"startNodeId": "node-1761281476930",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-24T04:51:22.277Z",
+			"updatedAt": "2025-10-24T04:52:37.489Z",
+			"runCount": 1,
+			"metadata": {
+				"createdAt": "2025-10-24T04:51:22.276Z",
+				"updatedAt": "2025-10-24T04:52:37.489Z",
+				"lastRunAt": "2025-10-24T04:52:37.489Z"
+			}
+		}
+	],
+	"executions": [],
+	"agents": [
+		{
+			"name": "Test Agent E2E",
+			"description": "Agent criado via teste automatizado",
+			"systemPrompt": "Você é um assistente de testes",
+			"model": "gpt-3.5-turbo",
+			"temperature": 0.7,
+			"maxTokens": 4000,
+			"enabled": true,
+			"tools": [],
+			"mcpIds": [],
+			"id": "1761267446171",
+			"metadata": {
+				"createdAt": "2025-10-24T00:57:26.171Z",
+				"updatedAt": "2025-10-24T00:57:26.171Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-24T00:57:26.171Z",
+			"updatedAt": "2025-10-24T00:57:26.171Z"
+		},
+		{
+			"name": "Test Agent E2E",
+			"description": "Agent criado via teste automatizado",
+			"systemPrompt": "Você é um assistente de testes",
+			"model": "gpt-3.5-turbo",
+			"temperature": 0.7,
+			"maxTokens": 4000,
+			"enabled": true,
+			"tools": [],
+			"mcpIds": [],
+			"id": "1761267521117",
+			"metadata": {
+				"createdAt": "2025-10-24T00:58:41.117Z",
+				"updatedAt": "2025-10-24T00:58:41.117Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-24T00:58:41.117Z",
+			"updatedAt": "2025-10-24T00:58:41.117Z"
+		}
+	],
+	"mcps": [
+		{
+			"id": "688f80a464de5bd8",
+			"name": "@pollinations/model-context-protocol",
+			"description": "MCP from npm: @pollinations/model-context-protocol",
+			"version": "latest",
+			"server": "@pollinations/model-context-protocol",
+			"installType": "npm",
+			"tools": [
+				{
+					"id": "2a13a628c367e1fe",
+					"name": "@pollinations/model-context-protocol",
+					"description": "Model Context Protocol (MCP) server for Pollinations AI services using stdio transport",
+					"parameters": {},
+					"handler": "main"
+				}
+			],
+			"enabled": true,
+			"metadata": {
+				"createdAt": "2025-10-24T00:43:35.076Z",
+				"updatedAt": "2025-10-24T00:43:35.076Z",
+				"importedFrom": "npm",
+				"installDir": "/tmp/flui-mcp-cache/2b1aadc84c553395"
+			}
+		},
+		{
+			"id": "67a20d863bed966d",
+			"name": "chalk",
+			"description": "MCP from npm: chalk",
+			"version": "4.1.2",
+			"server": "chalk",
+			"installType": "npm",
+			"tools": [
+				{
+					"id": "71c0510769878f68",
+					"name": "chalk",
+					"description": "Terminal string styling done right",
+					"parameters": {},
+					"handler": "main"
+				}
+			],
+			"enabled": true,
+			"metadata": {
+				"createdAt": "2025-10-24T00:44:34.938Z",
+				"updatedAt": "2025-10-24T00:44:34.938Z",
+				"importedFrom": "npm",
+				"installDir": "/tmp/flui-mcp-cache/2f0545c377683118"
+			}
+		},
+		{
+			"id": "2aae4b0f3567963f",
+			"name": "chalk",
+			"description": "MCP from npm: chalk",
+			"version": "4.1.2",
+			"server": "chalk",
+			"installType": "npm",
+			"tools": [
+				{
+					"id": "4fedf4b52e66fee8",
+					"name": "chalk",
+					"description": "Terminal string styling done right",
+					"parameters": {},
+					"handler": "main"
+				}
+			],
+			"enabled": true,
+			"metadata": {
+				"createdAt": "2025-10-24T00:57:36.808Z",
+				"updatedAt": "2025-10-24T00:57:36.808Z",
+				"importedFrom": "npm",
+				"installDir": "/tmp/flui-mcp-cache/4e501534e5a41558"
+			}
+		},
+		{
+			"id": "e1343095b1933fb9",
+			"name": "chalk",
+			"description": "MCP from npm: chalk",
+			"version": "4.1.2",
+			"server": "chalk",
+			"installType": "npm",
+			"tools": [
+				{
+					"id": "d1323758bc2d43ec",
+					"name": "chalk",
+					"description": "Terminal string styling done right",
+					"parameters": {},
+					"handler": "main"
+				}
+			],
+			"enabled": true,
+			"metadata": {
+				"createdAt": "2025-10-24T00:58:50.935Z",
+				"updatedAt": "2025-10-24T00:58:50.935Z",
+				"importedFrom": "npm",
+				"installDir": "/tmp/flui-mcp-cache/667d03f13351e596"
+			}
+		},
+		{
+			"id": "adfdce34c08325ad",
+			"name": "pollinations-mcp",
+			"description": "# 🚀 Pollinations MCP Server\n\n## 💫 Available Capabilities\nThis MCP server provides tools for **images**, **text**, **audio** and **Pollinations login** management through simple commands. ✨\n\n## 🎨 Creative Tools\n- Generate **stunning images** from text descriptions\n- Create **audio responses** and **text-to-speech** with various voices\n- Generate **text content** using powerful AI models\n- Manage **Pollinations login** and domain allowlists\n\n## 💡 Pro Tips\n- Combine tools for amazing results! Generate an image → convert to speech about it\n- Use specific models for better results (check available models first)\n- Adjust parameters like width/height for images to match specific needs\n- Try different voices for unique audio vibes\n\n## ✌️ Communication Style\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! 🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. Keep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. No cap, this makes the whole experience way more engaging and aesthetic! #vibes\n\n## 🤔 Usage Help\nThese tools enable creative content generation with Pollinations APIs. The assistant can help with using these tools effectively.",
+			"version": "1.0.10",
+			"server": "@pollinations/model-context-protocol",
+			"installType": "npx",
+			"tools": [
+				{
+					"id": "generateImageUrl",
+					"name": "generateImageUrl",
+					"description": "Generate an image URL from a text prompt",
+					"parameters": {
+						"prompt": {
+							"type": "string",
+							"description": "The text description of the image to generate",
+							"required": true
+						},
+						"options": {
+							"type": "object",
+							"description": "Additional options for image generation",
+							"required": false
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:generateImageUrl"
+				},
+				{
+					"id": "generateImage",
+					"name": "generateImage",
+					"description": "Generate an image and return the base64-encoded data",
+					"parameters": {
+						"prompt": {
+							"type": "string",
+							"description": "The text description of the image to generate",
+							"required": true
+						},
+						"options": {
+							"type": "object",
+							"description": "Additional options for image generation",
+							"required": false
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:generateImage"
+				},
+				{
+					"id": "listImageModels",
+					"name": "listImageModels",
+					"description": "List available image models",
+					"parameters": {},
+					"handler": "npx:@pollinations/model-context-protocol:listImageModels"
+				},
+				{
+					"id": "generateText",
+					"name": "generateText",
+					"description": "Generate text from a prompt using the Pollinations Text API",
+					"parameters": {
+						"prompt": {
+							"type": "string",
+							"description": "The text prompt to generate a response for",
+							"required": true
+						},
+						"model": {
+							"type": "string",
+							"description": "Model to use for text generation (default: \"openai\")",
+							"required": false
+						},
+						"options": {
+							"type": "object",
+							"description": "Additional options for text generation",
+							"required": false
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:generateText"
+				},
+				{
+					"id": "listTextModels",
+					"name": "listTextModels",
+					"description": "List available text models",
+					"parameters": {},
+					"handler": "npx:@pollinations/model-context-protocol:listTextModels"
+				},
+				{
+					"id": "respondAudio",
+					"name": "respondAudio",
+					"description": "Generate an audio response to a text prompt",
+					"parameters": {
+						"prompt": {
+							"type": "string",
+							"description": "The text prompt to respond to with audio",
+							"required": true
+						},
+						"voice": {
+							"type": "string",
+							"description": "Voice to use for audio generation (default: \"alloy\")",
+							"required": false
+						},
+						"format": {
+							"type": "string",
+							"description": "Format of the audio (mp3, wav, etc.)",
+							"required": false
+						},
+						"voiceInstructions": {
+							"type": "string",
+							"description": "Additional instructions for voice character/style (e.g., \"Speak with enthusiasm\" or \"Use a calm tone\")",
+							"required": false
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:respondAudio"
+				},
+				{
+					"id": "sayText",
+					"name": "sayText",
+					"description": "Generate speech that says the provided text verbatim",
+					"parameters": {
+						"text": {
+							"type": "string",
+							"description": "The text to speak verbatim",
+							"required": true
+						},
+						"voice": {
+							"type": "string",
+							"description": "Voice to use for audio generation (default: \"alloy\")",
+							"required": false
+						},
+						"format": {
+							"type": "string",
+							"description": "Format of the audio (mp3, wav, etc.)",
+							"required": false
+						},
+						"voiceInstructions": {
+							"type": "string",
+							"description": "Additional instructions for voice character/style (e.g., \"Speak with enthusiasm\" or \"Use a calm tone\")",
+							"required": false
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:sayText"
+				},
+				{
+					"id": "listAudioVoices",
+					"name": "listAudioVoices",
+					"description": "List available audio voices",
+					"parameters": {},
+					"handler": "npx:@pollinations/model-context-protocol:listAudioVoices"
+				},
+				{
+					"id": "startAuth",
+					"name": "startAuth",
+					"description": "Start GitHub OAuth authentication flow to log in to Pollinations. Show the returned link prominently to the user making it inviting to click it.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {},
+					"handler": "npx:@pollinations/model-context-protocol:startAuth"
+				},
+				{
+					"id": "checkAuthStatus",
+					"name": "checkAuthStatus",
+					"description": "Check the status of an authentication session.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {
+						"sessionId": {
+							"type": "string",
+							"description": "The session ID to check",
+							"required": true
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:checkAuthStatus"
+				},
+				{
+					"id": "getDomains",
+					"name": "getDomains",
+					"description": "Get domains allowlisted for a user.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {
+						"userId": {
+							"type": "string",
+							"description": "The GitHub user ID",
+							"required": true
+						},
+						"sessionId": {
+							"type": "string",
+							"description": "The session ID for authentication",
+							"required": true
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:getDomains"
+				},
+				{
+					"id": "updateDomains",
+					"name": "updateDomains",
+					"description": "Update domains allowlisted for a user",
+					"parameters": {
+						"userId": {
+							"type": "string",
+							"description": "The GitHub user ID",
+							"required": true
+						},
+						"domains": {
+							"type": "array",
+							"description": "The domains to allowlist",
+							"required": true
+						},
+						"sessionId": {
+							"type": "string",
+							"description": "The session ID for authentication",
+							"required": true
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:updateDomains"
+				}
+			],
+			"enabled": true,
+			"metadata": {
+				"createdAt": "2025-10-24T05:46:10.019Z",
+				"updatedAt": "2025-10-24T05:46:10.019Z",
+				"importedFrom": "npx"
+			}
+		},
+		{
+			"id": "8fea1e0dd619ae92",
+			"name": "@modelcontextprotocol/server-filesystem",
+			"description": "MCP from npm: @modelcontextprotocol/server-filesystem",
+			"version": "latest",
+			"server": "@modelcontextprotocol/server-filesystem",
+			"installType": "npm",
+			"tools": [
+				{
+					"id": "b41afb2c1f3b1a86",
+					"name": "@modelcontextprotocol/server-filesystem",
+					"description": "MCP server for filesystem access",
+					"parameters": {},
+					"handler": "main"
+				}
+			],
+			"enabled": true,
+			"metadata": {
+				"createdAt": "2025-10-24T05:46:53.234Z",
+				"updatedAt": "2025-10-24T05:46:53.234Z",
+				"importedFrom": "npm",
+				"installDir": "/tmp/flui-mcp-cache/4366f3615f645b8a"
+			}
+		},
+		{
+			"id": "fa968a1efcf64209",
+			"name": "pollinations-mcp",
+			"description": "# 🚀 Pollinations MCP Server\n\n## 💫 Available Capabilities\nThis MCP server provides tools for **images**, **text**, **audio** and **Pollinations login** management through simple commands. ✨\n\n## 🎨 Creative Tools\n- Generate **stunning images** from text descriptions\n- Create **audio responses** and **text-to-speech** with various voices\n- Generate **text content** using powerful AI models\n- Manage **Pollinations login** and domain allowlists\n\n## 💡 Pro Tips\n- Combine tools for amazing results! Generate an image → convert to speech about it\n- Use specific models for better results (check available models first)\n- Adjust parameters like width/height for images to match specific needs\n- Try different voices for unique audio vibes\n\n## ✌️ Communication Style\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! 🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. Keep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. No cap, this makes the whole experience way more engaging and aesthetic! #vibes\n\n## 🤔 Usage Help\nThese tools enable creative content generation with Pollinations APIs. The assistant can help with using these tools effectively.",
+			"version": "1.0.10",
+			"server": "@pollinations/model-context-protocol",
+			"installType": "npx",
+			"tools": [
+				{
+					"id": "generateImageUrl",
+					"name": "generateImageUrl",
+					"description": "Generate an image URL from a text prompt",
+					"parameters": {
+						"prompt": {
+							"type": "string",
+							"description": "The text description of the image to generate",
+							"required": true
+						},
+						"options": {
+							"type": "object",
+							"description": "Additional options for image generation",
+							"required": false
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:generateImageUrl"
+				},
+				{
+					"id": "generateImage",
+					"name": "generateImage",
+					"description": "Generate an image and return the base64-encoded data",
+					"parameters": {
+						"prompt": {
+							"type": "string",
+							"description": "The text description of the image to generate",
+							"required": true
+						},
+						"options": {
+							"type": "object",
+							"description": "Additional options for image generation",
+							"required": false
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:generateImage"
+				},
+				{
+					"id": "listImageModels",
+					"name": "listImageModels",
+					"description": "List available image models",
+					"parameters": {},
+					"handler": "npx:@pollinations/model-context-protocol:listImageModels"
+				},
+				{
+					"id": "generateText",
+					"name": "generateText",
+					"description": "Generate text from a prompt using the Pollinations Text API",
+					"parameters": {
+						"prompt": {
+							"type": "string",
+							"description": "The text prompt to generate a response for",
+							"required": true
+						},
+						"model": {
+							"type": "string",
+							"description": "Model to use for text generation (default: \"openai\")",
+							"required": false
+						},
+						"options": {
+							"type": "object",
+							"description": "Additional options for text generation",
+							"required": false
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:generateText"
+				},
+				{
+					"id": "listTextModels",
+					"name": "listTextModels",
+					"description": "List available text models",
+					"parameters": {},
+					"handler": "npx:@pollinations/model-context-protocol:listTextModels"
+				},
+				{
+					"id": "respondAudio",
+					"name": "respondAudio",
+					"description": "Generate an audio response to a text prompt",
+					"parameters": {
+						"prompt": {
+							"type": "string",
+							"description": "The text prompt to respond to with audio",
+							"required": true
+						},
+						"voice": {
+							"type": "string",
+							"description": "Voice to use for audio generation (default: \"alloy\")",
+							"required": false
+						},
+						"format": {
+							"type": "string",
+							"description": "Format of the audio (mp3, wav, etc.)",
+							"required": false
+						},
+						"voiceInstructions": {
+							"type": "string",
+							"description": "Additional instructions for voice character/style (e.g., \"Speak with enthusiasm\" or \"Use a calm tone\")",
+							"required": false
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:respondAudio"
+				},
+				{
+					"id": "sayText",
+					"name": "sayText",
+					"description": "Generate speech that says the provided text verbatim",
+					"parameters": {
+						"text": {
+							"type": "string",
+							"description": "The text to speak verbatim",
+							"required": true
+						},
+						"voice": {
+							"type": "string",
+							"description": "Voice to use for audio generation (default: \"alloy\")",
+							"required": false
+						},
+						"format": {
+							"type": "string",
+							"description": "Format of the audio (mp3, wav, etc.)",
+							"required": false
+						},
+						"voiceInstructions": {
+							"type": "string",
+							"description": "Additional instructions for voice character/style (e.g., \"Speak with enthusiasm\" or \"Use a calm tone\")",
+							"required": false
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:sayText"
+				},
+				{
+					"id": "listAudioVoices",
+					"name": "listAudioVoices",
+					"description": "List available audio voices",
+					"parameters": {},
+					"handler": "npx:@pollinations/model-context-protocol:listAudioVoices"
+				},
+				{
+					"id": "startAuth",
+					"name": "startAuth",
+					"description": "Start GitHub OAuth authentication flow to log in to Pollinations. Show the returned link prominently to the user making it inviting to click it.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {},
+					"handler": "npx:@pollinations/model-context-protocol:startAuth"
+				},
+				{
+					"id": "checkAuthStatus",
+					"name": "checkAuthStatus",
+					"description": "Check the status of an authentication session.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {
+						"sessionId": {
+							"type": "string",
+							"description": "The session ID to check",
+							"required": true
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:checkAuthStatus"
+				},
+				{
+					"id": "getDomains",
+					"name": "getDomains",
+					"description": "Get domains allowlisted for a user.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {
+						"userId": {
+							"type": "string",
+							"description": "The GitHub user ID",
+							"required": true
+						},
+						"sessionId": {
+							"type": "string",
+							"description": "The session ID for authentication",
+							"required": true
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:getDomains"
+				},
+				{
+					"id": "updateDomains",
+					"name": "updateDomains",
+					"description": "Update domains allowlisted for a user",
+					"parameters": {
+						"userId": {
+							"type": "string",
+							"description": "The GitHub user ID",
+							"required": true
+						},
+						"domains": {
+							"type": "array",
+							"description": "The domains to allowlist",
+							"required": true
+						},
+						"sessionId": {
+							"type": "string",
+							"description": "The session ID for authentication",
+							"required": true
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:updateDomains"
+				}
+			],
+			"enabled": true,
+			"metadata": {
+				"createdAt": "2025-10-24T06:06:38.888Z",
+				"updatedAt": "2025-10-24T06:06:38.888Z",
+				"importedFrom": "npx"
+			}
+		},
+		{
+			"id": "2ea3588064af38b5",
+			"name": "pollinations-mcp",
+			"description": "# 🚀 Pollinations MCP Server\n\n## 💫 Available Capabilities\nThis MCP server provides tools for **images**, **text**, **audio** and **Pollinations login** management through simple commands. ✨\n\n## 🎨 Creative Tools\n- Generate **stunning images** from text descriptions\n- Create **audio responses** and **text-to-speech** with various voices\n- Generate **text content** using powerful AI models\n- Manage **Pollinations login** and domain allowlists\n\n## 💡 Pro Tips\n- Combine tools for amazing results! Generate an image → convert to speech about it\n- Use specific models for better results (check available models first)\n- Adjust parameters like width/height for images to match specific needs\n- Try different voices for unique audio vibes\n\n## ✌️ Communication Style\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! 🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. Keep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. No cap, this makes the whole experience way more engaging and aesthetic! #vibes\n\n## 🤔 Usage Help\nThese tools enable creative content generation with Pollinations APIs. The assistant can help with using these tools effectively.",
+			"version": "1.0.10",
+			"server": "@pollinations/model-context-protocol",
+			"installType": "npx",
+			"tools": [
+				{
+					"id": "generateImageUrl",
+					"name": "generateImageUrl",
+					"description": "Generate an image URL from a text prompt",
+					"parameters": {
+						"prompt": {
+							"type": "string",
+							"description": "The text description of the image to generate",
+							"required": true
+						},
+						"options": {
+							"type": "object",
+							"description": "Additional options for image generation",
+							"required": false
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:generateImageUrl"
+				},
+				{
+					"id": "generateImage",
+					"name": "generateImage",
+					"description": "Generate an image and return the base64-encoded data",
+					"parameters": {
+						"prompt": {
+							"type": "string",
+							"description": "The text description of the image to generate",
+							"required": true
+						},
+						"options": {
+							"type": "object",
+							"description": "Additional options for image generation",
+							"required": false
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:generateImage"
+				},
+				{
+					"id": "listImageModels",
+					"name": "listImageModels",
+					"description": "List available image models",
+					"parameters": {},
+					"handler": "npx:@pollinations/model-context-protocol:listImageModels"
+				},
+				{
+					"id": "generateText",
+					"name": "generateText",
+					"description": "Generate text from a prompt using the Pollinations Text API",
+					"parameters": {
+						"prompt": {
+							"type": "string",
+							"description": "The text prompt to generate a response for",
+							"required": true
+						},
+						"model": {
+							"type": "string",
+							"description": "Model to use for text generation (default: \"openai\")",
+							"required": false
+						},
+						"options": {
+							"type": "object",
+							"description": "Additional options for text generation",
+							"required": false
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:generateText"
+				},
+				{
+					"id": "listTextModels",
+					"name": "listTextModels",
+					"description": "List available text models",
+					"parameters": {},
+					"handler": "npx:@pollinations/model-context-protocol:listTextModels"
+				},
+				{
+					"id": "respondAudio",
+					"name": "respondAudio",
+					"description": "Generate an audio response to a text prompt",
+					"parameters": {
+						"prompt": {
+							"type": "string",
+							"description": "The text prompt to respond to with audio",
+							"required": true
+						},
+						"voice": {
+							"type": "string",
+							"description": "Voice to use for audio generation (default: \"alloy\")",
+							"required": false
+						},
+						"format": {
+							"type": "string",
+							"description": "Format of the audio (mp3, wav, etc.)",
+							"required": false
+						},
+						"voiceInstructions": {
+							"type": "string",
+							"description": "Additional instructions for voice character/style (e.g., \"Speak with enthusiasm\" or \"Use a calm tone\")",
+							"required": false
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:respondAudio"
+				},
+				{
+					"id": "sayText",
+					"name": "sayText",
+					"description": "Generate speech that says the provided text verbatim",
+					"parameters": {
+						"text": {
+							"type": "string",
+							"description": "The text to speak verbatim",
+							"required": true
+						},
+						"voice": {
+							"type": "string",
+							"description": "Voice to use for audio generation (default: \"alloy\")",
+							"required": false
+						},
+						"format": {
+							"type": "string",
+							"description": "Format of the audio (mp3, wav, etc.)",
+							"required": false
+						},
+						"voiceInstructions": {
+							"type": "string",
+							"description": "Additional instructions for voice character/style (e.g., \"Speak with enthusiasm\" or \"Use a calm tone\")",
+							"required": false
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:sayText"
+				},
+				{
+					"id": "listAudioVoices",
+					"name": "listAudioVoices",
+					"description": "List available audio voices",
+					"parameters": {},
+					"handler": "npx:@pollinations/model-context-protocol:listAudioVoices"
+				},
+				{
+					"id": "startAuth",
+					"name": "startAuth",
+					"description": "Start GitHub OAuth authentication flow to log in to Pollinations. Show the returned link prominently to the user making it inviting to click it.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {},
+					"handler": "npx:@pollinations/model-context-protocol:startAuth"
+				},
+				{
+					"id": "checkAuthStatus",
+					"name": "checkAuthStatus",
+					"description": "Check the status of an authentication session.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {
+						"sessionId": {
+							"type": "string",
+							"description": "The session ID to check",
+							"required": true
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:checkAuthStatus"
+				},
+				{
+					"id": "getDomains",
+					"name": "getDomains",
+					"description": "Get domains allowlisted for a user.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {
+						"userId": {
+							"type": "string",
+							"description": "The GitHub user ID",
+							"required": true
+						},
+						"sessionId": {
+							"type": "string",
+							"description": "The session ID for authentication",
+							"required": true
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:getDomains"
+				},
+				{
+					"id": "updateDomains",
+					"name": "updateDomains",
+					"description": "Update domains allowlisted for a user",
+					"parameters": {
+						"userId": {
+							"type": "string",
+							"description": "The GitHub user ID",
+							"required": true
+						},
+						"domains": {
+							"type": "array",
+							"description": "The domains to allowlist",
+							"required": true
+						},
+						"sessionId": {
+							"type": "string",
+							"description": "The session ID for authentication",
+							"required": true
+						}
+					},
+					"handler": "npx:@pollinations/model-context-protocol:updateDomains"
+				}
+			],
+			"enabled": true,
+			"metadata": {
+				"createdAt": "2025-10-24T06:09:35.899Z",
+				"updatedAt": "2025-10-24T06:09:35.899Z",
+				"importedFrom": "npx"
+			}
+		},
+		{
+			"id": "ad9ace4e519d34cb",
+			"name": "@modelcontextprotocol/server-everything",
+			"description": "MCP from npm: @modelcontextprotocol/server-everything",
+			"version": "latest",
+			"server": "@modelcontextprotocol/server-everything",
+			"installType": "npm",
+			"tools": [
+				{
+					"id": "5111cb54f1d06369",
+					"name": "@modelcontextprotocol/server-everything",
+					"description": "MCP server that exercises all the features of the MCP protocol",
+					"parameters": {},
+					"handler": "main"
+				}
+			],
+			"enabled": true,
+			"metadata": {
+				"createdAt": "2025-10-24T06:12:38.909Z",
+				"updatedAt": "2025-10-24T06:12:38.909Z",
+				"importedFrom": "npm",
+				"installDir": "/tmp/flui-mcp-cache/1292d7626251707b"
+			}
+		},
+		{
+			"id": "62338942607b43b7",
+			"name": "servers",
+			"description": "MCP from GitHub: modelcontextprotocol/servers",
+			"version": "main",
+			"server": "/tmp/flui-mcp-cache/2cc8b24750167617/src/filesystem",
+			"installType": "github",
+			"tools": [
+				{
+					"id": "7386be25b2919091",
+					"name": "@modelcontextprotocol/server-filesystem",
+					"description": "MCP server for filesystem access",
+					"parameters": {},
+					"handler": "main"
+				}
+			],
+			"enabled": true,
+			"metadata": {
+				"createdAt": "2025-10-24T06:12:49.204Z",
+				"updatedAt": "2025-10-24T06:12:49.204Z",
+				"importedFrom": "github",
+				"repo": "modelcontextprotocol/servers",
+				"ref": "main"
+			}
+		}
+	],
+	"sessions": [],
+	"config": {
+		"llm": {
+			"endpoint": "https://api.openai.com/v1",
+			"apiKey": "test-key",
+			"model": "gpt-4",
+			"temperature": 0.8,
+			"maxTokens": 2000
+		},
+		"theme": "default",
+		"locale": "pt-BR"
+	}
+}

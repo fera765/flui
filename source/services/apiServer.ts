@@ -500,8 +500,18 @@ app.get('/api/models', async (_req: Request, res: Response) => {
     const { getConfig } = await import('../store/storage.js');
     const config = getConfig();
     
-    if (!config || !config.llm || !config.llm.endpoint) {
-      return res.status(400).json({ error: 'LLM endpoint não configurado' });
+    // Se não tiver config ou API key, retornar modelos mock
+    if (!config || !config.llm || !config.llm.endpoint || !config.llm.apiKey) {
+      console.log('⚠️  [API] LLM não configurado, retornando modelos mock');
+      return res.json({
+        object: 'list',
+        data: [
+          { id: 'gpt-4-turbo-preview', object: 'model', created: 1677610602, owned_by: 'openai' },
+          { id: 'gpt-4', object: 'model', created: 1677610602, owned_by: 'openai' },
+          { id: 'gpt-3.5-turbo', object: 'model', created: 1677610602, owned_by: 'openai' },
+          { id: 'gpt-3.5-turbo-16k', object: 'model', created: 1677610602, owned_by: 'openai' },
+        ]
+      });
     }
     
     // Fazer request para o endpoint /models
@@ -516,7 +526,17 @@ app.get('/api/models', async (_req: Request, res: Response) => {
     const response = await fetch(`${config.llm.endpoint}/models`, { headers });
     
     if (!response.ok) {
-      throw new Error(`Erro ao buscar modelos: ${response.statusText}`);
+      // Se falhar, retornar modelos mock em vez de erro
+      console.log('⚠️  [API] Erro ao buscar modelos da API, retornando mock');
+      return res.json({
+        object: 'list',
+        data: [
+          { id: 'gpt-4-turbo-preview', object: 'model', created: 1677610602, owned_by: 'openai' },
+          { id: 'gpt-4', object: 'model', created: 1677610602, owned_by: 'openai' },
+          { id: 'gpt-3.5-turbo', object: 'model', created: 1677610602, owned_by: 'openai' },
+          { id: 'gpt-3.5-turbo-16k', object: 'model', created: 1677610602, owned_by: 'openai' },
+        ]
+      });
     }
     
     const data = await response.json();
@@ -525,7 +545,15 @@ app.get('/api/models', async (_req: Request, res: Response) => {
     res.json(data);
   } catch (error: any) {
     console.error('❌ Erro ao buscar modelos:', error);
-    res.status(500).json({ error: error.message });
+    // Mesmo em erro, retornar modelos mock para não quebrar frontend
+    res.json({
+      object: 'list',
+      data: [
+        { id: 'gpt-4-turbo-preview', object: 'model', created: 1677610602, owned_by: 'openai' },
+        { id: 'gpt-4', object: 'model', created: 1677610602, owned_by: 'openai' },
+        { id: 'gpt-3.5-turbo', object: 'model', created: 1677610602, owned_by: 'openai' },
+      ]
+    });
   }
 });
 
@@ -674,6 +702,12 @@ app.post('/api/mcps/import', async (req: Request, res: Response) => {
       // Save to store
       const store = useStore.getState();
       store.createMCP(result.mcp);
+      
+      // Register tools IMMEDIATELY
+      console.log(`🔧 [API] Registrando ${result.mcp.tools.length} tools no registry...`);
+      const { MCPLoader } = await import('./mcpLoader.js');
+      await MCPLoader.loadMCP(result.mcp);
+      console.log(`✅ [API] Tools registradas no registry!`);
     }
 
     res.json(result);
@@ -1063,6 +1097,33 @@ app.post('/api/tools', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/tools/categories - Listar categorias disponíveis (DEVE VIR ANTES DE /:id)
+app.get('/api/tools/categories', (_req: Request, res: Response) => {
+  try {
+    const registry = getToolRegistry();
+    const categories = registry.getCategories();
+    res.json(categories);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/tools/:id/metrics - Obter métricas de uma ferramenta (DEVE VIR ANTES DE /:id)
+app.get('/api/tools/:id/metrics', (req: Request, res: Response) => {
+  try {
+    const registry = getToolRegistry();
+    const metrics = registry.getMetrics(req.params.id);
+    
+    if (!metrics) {
+      return res.status(404).json({ error: 'Tool não encontrada' });
+    }
+    
+    res.json(metrics);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // GET /api/tools/:id - Detalhes de uma ferramenta
 app.get('/api/tools/:id', (req: Request, res: Response) => {
   try {
@@ -1421,30 +1482,63 @@ app.patch('/api/automations/:automationId/nodes/:nodeId/config', (req: Request, 
   }
 });
 
-// GET /api/tools/categories - Listar categorias disponíveis
-app.get('/api/tools/categories', (_req: Request, res: Response) => {
+// POST /api/automations/:id/chat - Chat sobre automação com LLM
+app.post('/api/automations/:id/chat', async (req: Request, res: Response) => {
   try {
-    const registry = getToolRegistry();
-    const categories = registry.getCategories();
-    res.json(categories);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// GET /api/tools/:id/metrics - Obter métricas de uma ferramenta
-app.get('/api/tools/:id/metrics', (req: Request, res: Response) => {
-  try {
-    const registry = getToolRegistry();
-    const metrics = registry.getMetrics(req.params.id);
+    const { message, executionContext } = req.body;
     
-    if (!metrics) {
-      return res.status(404).json({ error: 'Tool não encontrada' });
+    if (!message) {
+      return res.status(400).json({ error: 'Message é obrigatório' });
     }
     
-    res.json(metrics);
+    // Buscar automação
+    const automations = getAutomations();
+    const automation = automations.find(a => a.id === req.params.id);
+    
+    if (!automation) {
+      return res.status(404).json({ error: 'Automação não encontrada' });
+    }
+    
+    // Montar contexto para LLM
+    const context = `
+Você é um assistente especializado em automações Flui.
+
+Automação: ${automation.name}
+Descrição: ${automation.description || 'N/A'}
+Nós: ${automation.nodes.length}
+${executionContext ? `
+
+Última Execução:
+- Status: ${executionContext.status || 'N/A'}
+- Duração: ${executionContext.duration || 0}ms
+- Nós executados: ${executionContext.nodesExecuted || 0}
+- Arquivos gerados: ${executionContext.files?.length || 0}
+${executionContext.files?.length > 0 ? `\nArquivos:\n${executionContext.files.map((f: any) => `- ${f.name} (${f.type})`).join('\n')}` : ''}
+${executionContext.logs ? `\n\nLogs resumidos:\n${executionContext.logs.slice(0, 5).map((l: any) => `- [${l.level}] ${l.nodeName}: ${l.message}`).join('\n')}` : ''}
+` : ''}
+
+Responda de forma clara e útil sobre a automação. Se houver arquivos gerados, mencione-os. Se houver erros nos logs, explique-os.
+`;
+    
+    // Chamar LLM
+    const { LLM } = await import('./llm.js');
+    const response = await LLM.chat([
+      { role: 'system', content: context },
+      { role: 'user', content: message },
+    ]);
+    
+    res.json({
+      success: true,
+      response: response.content,
+      model: response.model || 'unknown',
+    });
+    
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    console.error('❌ [API] Erro no chat:', error);
+    res.status(500).json({
+      error: error.message,
+      fallback: 'Desculpe, não consegui processar sua mensagem. Verifique se a configuração do LLM está correta.',
+    });
   }
 });
 

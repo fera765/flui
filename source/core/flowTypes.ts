@@ -9,12 +9,15 @@ import { z } from 'zod';
 // ============= FLOW NODE TYPES =============
 
 export const FlowNodeTypeSchema = z.enum([
-  'tool',        // Executa uma ferramenta do registry
-  'condition',   // Condicional (if/else)
-  'loop',        // Loop sobre array
-  'parallel',    // Execução paralela
-  'delay',       // Pausa/delay
-  'merge',       // Merge de resultados
+  'tool',            // Executa uma ferramenta do registry
+  'condition',       // Condicional (if/else)
+  'loop',            // Loop sobre array
+  'parallel',        // Execução paralela
+  'delay',           // Pausa/delay
+  'merge',           // Merge de resultados
+  'manual-trigger',  // Trigger manual
+  'cron-trigger',    // Trigger agendado
+  'webhook-trigger', // Trigger via HTTP
 ]);
 
 export type FlowNodeType = z.infer<typeof FlowNodeTypeSchema>;

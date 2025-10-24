@@ -319,7 +319,7 @@ test('should reference deep node outputs', async () => {
 - Swagger documentation
 - Code-first automation
 
-## Roadmap to $1B Valuation
+## Growth Roadmap
 
 ### Phase 1: Foundation (DONE)
 - ✅ System tools
@@ -360,7 +360,7 @@ test('should reference deep node outputs', async () => {
 
 ### Market Differentiation
 - [ ] Unique MCP isolation
-- [ ] 10x faster than n8n
+- [ ] Performance benchmarks vs competitors
 - [ ] Enterprise features
 - [ ] Superior DX
 
@@ -368,7 +368,7 @@ test('should reference deep node outputs', async () => {
 - [ ] 10,000+ automations created
 - [ ] 1,000+ MCPs imported
 - [ ] 100+ enterprise customers
-- [ ] $1B valuation
+- [ ] Market success metrics
 
 ---
 

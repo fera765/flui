@@ -129,19 +129,65 @@ export class MCPImporter {
   }
 
   /**
-   * Import MCP via NPX
+   * Import MCP via NPX - REAL implementation with tool discovery
    */
   async importFromNPX(config: NPXImportConfig): Promise<ImportResult> {
     try {
+      console.log(`🔍 [MCPImporter] Importing via NPX: ${config.package}`);
+      
+      // Discover tools REAL usando MCPClient
+      const { MCPClient } = await import('./mcpClient.js');
+      const client = new MCPClient();
+      
+      const command = 'npx';
+      const args = ['-y', config.package, ...(config.args || [])];
+      
+      console.log(`🚀 [MCPImporter] Conectando: ${command} ${args.join(' ')}`);
+      
+      // Conectar e inicializar
+      const initResult = await client.connect(command, args);
+      console.log(`✅ [MCPImporter] MCP inicializado: ${initResult.serverInfo.name}`);
+      
+      // Listar tools REAL
+      const mcpTools = await client.listTools();
+      console.log(`📋 [MCPImporter] ${mcpTools.length} tools descobertas`);
+      
+      // Converter tools do formato MCP para nosso formato
+      const tools: MCPTool[] = mcpTools.map((tool: any) => {
+        const params: Record<string, any> = {};
+        
+        if (tool.inputSchema && tool.inputSchema.properties) {
+          for (const [key, schema] of Object.entries(tool.inputSchema.properties)) {
+            params[key] = {
+              type: (schema as any).type || 'string',
+              description: (schema as any).description || '',
+              required: tool.inputSchema.required?.includes(key) || false,
+              enum: (schema as any).enum,
+            };
+          }
+        }
+        
+        return {
+          id: tool.name,
+          name: tool.name,
+          description: tool.description || '',
+          parameters: params,
+          handler: `npx:${config.package}:${tool.name}`,
+        };
+      });
+      
+      // Desconectar
+      client.disconnect();
+      
       const mcp: MCP = {
         id: generateId(),
-        name: config.package,
-        description: `MCP via npx: ${config.package}`,
-        version: 'latest',
+        name: initResult.serverInfo.name || config.package,
+        description: initResult.serverInfo.instructions || `MCP via npx: ${config.package}`,
+        version: initResult.serverInfo.version || 'latest',
         server: config.package,
         installType: 'npx',
         envVars: config.env,
-        tools: [],
+        tools,
         enabled: true,
         metadata: {
           createdAt: new Date().toISOString(),
@@ -151,17 +197,14 @@ export class MCPImporter {
         },
       };
 
-      // Discover tools by executing npx
-      const discoveryResult = await this.discoverToolsFromNPX(config);
-      if (discoveryResult.success && discoveryResult.tools) {
-        mcp.tools = discoveryResult.tools;
-      }
+      console.log(`✅ [MCPImporter] MCP importado com ${tools.length} tools`);
 
       return {
         success: true,
         mcp,
       };
     } catch (error: any) {
+      console.error(`❌ [MCPImporter] Erro ao importar via NPX:`, error);
       return {
         success: false,
         error: `Failed to import from NPX: ${error.message}`,
