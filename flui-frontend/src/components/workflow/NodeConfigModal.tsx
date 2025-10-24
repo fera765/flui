@@ -28,6 +28,7 @@ export function NodeConfigModal() {
 
   useEffect(() => {
     if (selectedNode) {
+      console.log('[NodeConfigModal] Loading config for node:', selectedNode.id, selectedNode.data.config)
       setConfig(selectedNode.data.config || {})
     }
   }, [selectedNode])
@@ -87,15 +88,28 @@ export function NodeConfigModal() {
   }
 
   const handleSave = () => {
+    console.log('[NodeConfigModal] Saving config:', {
+      nodeId: selectedNode.id,
+      config,
+      currentConfig: selectedNode.data.config
+    })
+    
     // ✅ Salvar apenas config, nome/descrição são do agente/tool
     updateNode(selectedNode.id, {
       config,
     })
+    
+    console.log('[NodeConfigModal] Config saved successfully')
     closeConfigModal()
   }
 
   const handleConfigChange = (key: string, value: any) => {
-    setConfig((prev) => ({ ...prev, [key]: value }))
+    console.log('[NodeConfigModal] Config change:', key, value)
+    setConfig((prev) => {
+      const newConfig = { ...prev, [key]: value }
+      console.log('[NodeConfigModal] New config:', newConfig)
+      return newConfig
+    })
   }
 
   const handleLinkerClick = (fieldKey: string, fieldType: string) => {

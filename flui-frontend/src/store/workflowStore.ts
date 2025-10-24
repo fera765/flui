@@ -43,10 +43,15 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
 
   updateNode: (id, data) => {
     set((state) => {
-      const updatedNodes = state.nodes.map((node) =>
-        node.id === id ? { ...node, data: { ...node.data, ...data } } : node
-      )
-      console.log('[WorkflowStore] Node updated:', id, data)
+      const updatedNodes = state.nodes.map((node) => {
+        if (node.id === id) {
+          const updatedNode = { ...node, data: { ...node.data, ...data } }
+          console.log('[WorkflowStore] Node updated:', id, data)
+          console.log('[WorkflowStore] Updated node data:', updatedNode.data)
+          return updatedNode
+        }
+        return node
+      })
       return { nodes: updatedNodes }
     })
   },
@@ -91,8 +96,16 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
 
     const linkedValue = `{{${nodeId}.${outputPath}}}`
     
-    set((state) => ({
-      nodes: state.nodes.map((node) =>
+    console.log('[WorkflowStore] Linking output:', {
+      selectedNodeId: selectedNode.id,
+      targetField: linkerTargetField,
+      linkedValue,
+      nodeId,
+      outputPath
+    })
+    
+    set((state) => {
+      const updatedNodes = state.nodes.map((node) =>
         node.id === selectedNode.id
           ? {
               ...node,
@@ -105,9 +118,15 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
               },
             }
           : node
-      ),
-      isLinkerModalOpen: false,
-      linkerTargetField: null,
-    }))
+      )
+      
+      console.log('[WorkflowStore] Updated nodes after linking:', updatedNodes)
+      
+      return {
+        nodes: updatedNodes,
+        isLinkerModalOpen: false,
+        linkerTargetField: null,
+      }
+    })
   },
 }))

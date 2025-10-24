@@ -81,21 +81,19 @@ export function WorkflowEditor() {
   // Sync ReactFlow → Store
   useEffect(() => {
     if (!isSyncingFromStore.current) {
-      console.log('[WorkflowEditor] Syncing nodes to store:', nodes.length)
       workflowStore.setNodes(nodes)
       hasUnsavedChanges.current = true
       triggerAutosave()
     }
-  }, [nodes, triggerAutosave])
+  }, [nodes])
 
   useEffect(() => {
     if (!isSyncingFromStore.current) {
-      console.log('[WorkflowEditor] Syncing edges to store:', edges.length)
       workflowStore.setEdges(edges)
       hasUnsavedChanges.current = true
       triggerAutosave()
     }
-  }, [edges, triggerAutosave])
+  }, [edges])
   
   // ✅ BIDIRECTIONAL SYNC: Store → ReactFlow
   // Subscribe to store changes (for delete operations and config updates)
@@ -210,8 +208,11 @@ export function WorkflowEditor() {
       console.log('[WorkflowEditor] Loading automation:', automation)
       
       if (automation && automation.nodes && automation.edges) {
-        const loadedNodes = automation.nodes.map((node: any) => {
-          const nodeData = {
+        const loadedNodes = automation.nodes.map((node: any) => ({
+          id: node.id,
+          type: 'custom',
+          position: node.position || { x: 0, y: 0 },
+          data: {
             type: node.type,
             name: node.name,
             description: node.description,
@@ -221,17 +222,8 @@ export function WorkflowEditor() {
             toolId: node.toolId,
             mcpId: node.mcpId,
             mcpToolId: node.mcpToolId,
-          }
-          
-          console.log('[WorkflowEditor] Loading node data:', node.id, nodeData)
-          
-          return {
-            id: node.id,
-            type: 'custom',
-            position: node.position || { x: 0, y: 0 },
-            data: nodeData,
-          }
-        })
+          },
+        }))
         
         const loadedEdges = automation.edges.map((edge: any) => ({
           id: edge.id,
@@ -252,8 +244,6 @@ export function WorkflowEditor() {
         workflowStore.setNodes(loadedNodes)
         workflowStore.setEdges(loadedEdges)
         hasUnsavedChanges.current = false
-        
-        console.log('[WorkflowEditor] Automation loaded successfully')
         
         requestAnimationFrame(() => {
           isSyncingFromStore.current = false
