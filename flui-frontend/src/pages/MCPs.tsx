@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Search, Download } from 'lucide-react'
+import { Search, Download } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { MCPCard } from '@/components/mcps/MCPCard'
@@ -29,7 +29,13 @@ export function MCPs() {
   )
 
   const handleImport = async (data: any) => {
-    await importMCP(data)
+    try {
+      await importMCP(data)
+      setIsImportModalOpen(false) // Fechar modal após sucesso
+    } catch (error) {
+      // Toast de erro já é mostrado pelo hook
+      // Modal permanece aberto para correção
+    }
   }
 
   const handleSync = async (id: string) => {

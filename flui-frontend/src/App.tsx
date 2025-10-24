@@ -10,6 +10,7 @@ import { MCPs } from './pages/MCPs'
 import { Automations } from './pages/Automations'
 import { WorkflowEditor } from './pages/WorkflowEditor'
 import { Tools } from './pages/Tools'
+import { Settings } from './pages/Settings'
 import './styles/globals.css'
 import './styles/themes.css'
 

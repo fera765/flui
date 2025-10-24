@@ -123,6 +123,23 @@ class ApiClient {
       method: 'DELETE',
     });
   }
+  
+  // Generic GET method
+  async get<T>(endpoint: string): Promise<T> {
+    return this.fetch<T>(endpoint);
+  }
+  
+  // Generic POST method
+  async post<T>(endpoint: string, data?: any): Promise<T> {
+    return this.fetch<T>(endpoint, {
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+  
+  async getAutomation(id: string) {
+    return this.fetch<any>(`/api/automations/${id}`);
+  }
 }
 
 export const api = new ApiClient();

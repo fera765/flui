@@ -1482,6 +1482,66 @@ app.patch('/api/automations/:automationId/nodes/:nodeId/config', (req: Request, 
   }
 });
 
+// POST /api/automations/:id/chat - Chat sobre automação com LLM
+app.post('/api/automations/:id/chat', async (req: Request, res: Response) => {
+  try {
+    const { message, executionContext } = req.body;
+    
+    if (!message) {
+      return res.status(400).json({ error: 'Message é obrigatório' });
+    }
+    
+    // Buscar automação
+    const automations = getAutomations();
+    const automation = automations.find(a => a.id === req.params.id);
+    
+    if (!automation) {
+      return res.status(404).json({ error: 'Automação não encontrada' });
+    }
+    
+    // Montar contexto para LLM
+    const context = `
+Você é um assistente especializado em automações Flui.
+
+Automação: ${automation.name}
+Descrição: ${automation.description || 'N/A'}
+Nós: ${automation.nodes.length}
+${executionContext ? `
+
+Última Execução:
+- Status: ${executionContext.status || 'N/A'}
+- Duração: ${executionContext.duration || 0}ms
+- Nós executados: ${executionContext.nodesExecuted || 0}
+- Arquivos gerados: ${executionContext.files?.length || 0}
+${executionContext.files?.length > 0 ? `\nArquivos:\n${executionContext.files.map((f: any) => `- ${f.name} (${f.type})`).join('\n')}` : ''}
+${executionContext.logs ? `\n\nLogs resumidos:\n${executionContext.logs.slice(0, 5).map((l: any) => `- [${l.level}] ${l.nodeName}: ${l.message}`).join('\n')}` : ''}
+` : ''}
+
+Responda de forma clara e útil sobre a automação. Se houver arquivos gerados, mencione-os. Se houver erros nos logs, explique-os.
+`;
+    
+    // Chamar LLM
+    const { LLM } = await import('./llm.js');
+    const response = await LLM.chat([
+      { role: 'system', content: context },
+      { role: 'user', content: message },
+    ]);
+    
+    res.json({
+      success: true,
+      response: response.content,
+      model: response.model || 'unknown',
+    });
+    
+  } catch (error: any) {
+    console.error('❌ [API] Erro no chat:', error);
+    res.status(500).json({
+      error: error.message,
+      fallback: 'Desculpe, não consegui processar sua mensagem. Verifique se a configuração do LLM está correta.',
+    });
+  }
+});
+
 // ============= FLOWS ENDPOINTS =============
 
 // POST /api/flows/execute - Executar um flow com logs em tempo real
