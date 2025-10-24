@@ -18,6 +18,7 @@ import { CustomNode } from '@/components/workflow/CustomNode'
 import { NodeConfigModal } from '@/components/workflow/NodeConfigModal'
 import { TypedLinkerModal } from '@/components/workflow/TypedLinkerModal'
 import { AddNodeModal } from '@/components/workflow/AddNodeModal'
+import { DeleteEdgeButton } from '@/components/workflow/DeleteEdgeButton'
 import { ExecutionModal } from '@/components/automations/ExecutionModal'
 import { useWorkflowStore } from '@/store/workflowStore'
 import { useAutomations } from '@/hooks/useAutomations'
@@ -26,6 +27,10 @@ import { toast } from 'sonner'
 
 const nodeTypes = {
   custom: CustomNode,
+}
+
+const edgeTypes = {
+  default: DeleteEdgeButton,
 }
 
 export function WorkflowEditor() {
@@ -193,9 +198,21 @@ export function WorkflowEditor() {
   }
 
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
+    (params: Connection) => {
+      const newEdge = {
+        ...params,
+        data: { onDelete: handleDeleteEdge },
+      };
+      setEdges((eds) => addEdge(newEdge, eds));
+    },
     [setEdges]
   )
+  
+  // Handle edge deletion via button
+  const handleDeleteEdge = useCallback((edgeId: string) => {
+    setEdges((eds) => eds.filter((e) => e.id !== edgeId));
+    toast.info('Conexão removida', { duration: 2000 });
+  }, [setEdges]);
 
   const handleAddNodeFromModal = (type: string, data: any) => {
     const id = `node-${Date.now()}`
@@ -334,6 +351,7 @@ export function WorkflowEditor() {
         onReconnect={onReconnect}
         onEdgeUpdate={onEdgeUpdate}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         fitView
         deleteKeyCode="Delete"
         multiSelectionKeyCode="Shift"
@@ -348,8 +366,7 @@ export function WorkflowEditor() {
         defaultEdgeOptions={{
           animated: true,
           style: { stroke: 'hsl(var(--primary))' },
-          // Make edges easier to click and drag
-          type: 'smoothstep',
+          data: { onDelete: handleDeleteEdge },
         }}
       >
         <Background />

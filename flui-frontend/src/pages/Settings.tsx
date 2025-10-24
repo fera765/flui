@@ -321,12 +321,7 @@ export function Settings() {
                 isLoading={isTesting}
                 disabled={isSaving || isTesting}
               >
-                {isTesting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Testando...
-                  </>
-                ) : testStatus === 'success' ? (
+                {testStatus === 'success' ? (
                   <>
                     <CheckCircle2 className="w-4 h-4 mr-2 text-green-500" />
                     Testado
