@@ -265,89 +265,113 @@ export function ExecutionModalV2({ isOpen, onClose, context }: ExecutionModalPro
   }
   
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={context.automationName} size="xl">
-      <div className="flex h-[700px] gap-4">
-        {/* LEFT SIDE: Timeline */}
-        <div className="w-80 flex flex-col border-r border-border pr-4">
-          <div className="flex gap-2 mb-4">
-            <button
-              onClick={() => setActiveTab('timeline')}
-              className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
-                activeTab === 'timeline'
-                  ? 'bg-primary text-primary-foreground shadow-lg'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
-              }`}
-            >
-              ⚡ Timeline
-            </button>
-            <button
-              onClick={() => setActiveTab('logs')}
-              className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
-                activeTab === 'logs'
-                  ? 'bg-primary text-primary-foreground shadow-lg'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
-              }`}
-            >
-              📋 Logs
-            </button>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto">
-            {activeTab === 'timeline' ? (
-              <div className="space-y-2">
-                {/* Status Header */}
-                <div className={`p-3 rounded-lg border-2 ${
-                  context.status === 'running' 
-                    ? 'border-blue-500 bg-blue-500/10' 
-                    : context.status === 'completed' 
-                    ? 'border-green-500 bg-green-500/10' 
-                    : 'border-red-500 bg-red-500/10'
-                }`}>
-                  <div className="flex items-center gap-2 mb-1">
-                    {context.status === 'running' && <Loader2 className="w-4 h-4 animate-spin text-blue-500" />}
-                    {context.status === 'completed' && <CheckCircle2 className="w-4 h-4 text-green-500" />}
-                    {context.status === 'failed' && <XCircle className="w-4 h-4 text-red-500" />}
-                    <span className="font-bold">
-                      {context.status === 'running' ? 'Executando...' : context.status === 'completed' ? 'Concluído' : 'Falhou'}
-                    </span>
-                  </div>
-                  <div className="text-xs text-muted-foreground space-y-0.5">
-                    <div>⚡ {executionNodes.filter(n => n.status === 'success').length} / {executionNodes.length} nós</div>
-                    {context.duration && <div>⏱️ {(context.duration / 1000).toFixed(2)}s</div>}
-                  </div>
+    <Modal isOpen={isOpen} onClose={onClose} title={context.automationName} size="lg">
+      <div className="flex flex-col h-[85vh] max-h-[700px]">
+        {/* Header com Status */}
+        <div className={`mb-4 p-4 rounded-xl border-2 transition-all ${
+          context.status === 'running' 
+            ? 'border-blue-500 bg-gradient-to-r from-blue-500/10 to-blue-600/10' 
+            : context.status === 'completed' 
+            ? 'border-green-500 bg-gradient-to-r from-green-500/10 to-green-600/10' 
+            : 'border-red-500 bg-gradient-to-r from-red-500/10 to-red-600/10'
+        }`}>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-3">
+              {context.status === 'running' && <Loader2 className="w-5 h-5 animate-spin text-blue-500" />}
+              {context.status === 'completed' && <CheckCircle2 className="w-5 h-5 text-green-500" />}
+              {context.status === 'failed' && <XCircle className="w-5 h-5 text-red-500" />}
+              <div>
+                <div className="font-bold text-sm">
+                  {context.status === 'running' ? 'Executando...' : context.status === 'completed' ? '✓ Concluído' : '✗ Falhou'}
                 </div>
+                <div className="text-xs text-muted-foreground">
+                  {executionNodes.filter(n => n.status === 'success').length} / {executionNodes.length} nós
+                  {context.duration && ` • ${(context.duration / 1000).toFixed(2)}s`}
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex gap-2">
+              <button
+                onClick={() => setActiveTab('timeline')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  activeTab === 'timeline'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                }`}
+              >
+                💬 Chat
+              </button>
+              <button
+                onClick={() => setActiveTab('logs')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  activeTab === 'logs'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                }`}
+              >
+                📋 Logs
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto mb-4">
+          {activeTab === 'timeline' ? (
+            <div className="space-y-3">
+              {/* Timeline Cards integrados no chat */}
+              {executionNodes.map((node, idx) => {
+                const isFirst = idx === 0
+                const isLast = idx === executionNodes.length - 1
+                const isPending = node.status === 'pending'
                 
-                {/* Nodes Timeline */}
-                <div className="relative space-y-3 pt-2">
-                  {/* Vertical line */}
-                  <div className="absolute left-[18px] top-0 bottom-0 w-0.5 bg-gradient-to-b from-gray-300 via-gray-200 to-transparent" />
-                  
-                  {executionNodes.map((node, idx) => (
-                    <div key={node.id} className="relative pl-10">
-                      {/* Node indicator */}
-                      <div className={`absolute left-0 w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${getStatusColor(node.status)}`}>
+                return (
+                  <div key={node.id} className={`relative ${isPending ? 'opacity-60' : ''}`}>
+                    {/* Connection line */}
+                    {!isFirst && (
+                      <div className="absolute left-4 -top-3 w-0.5 h-3 bg-gradient-to-b from-gray-300 to-transparent" />
+                    )}
+                    
+                    <div className="flex gap-3">
+                      {/* Node Icon */}
+                      <div className={`flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${getStatusColor(node.status)}`}>
                         {getStatusIcon(node.status)}
                       </div>
                       
-                      {/* Node card */}
-                      <div className={`p-3 rounded-lg border transition-all duration-300 ${
+                      {/* Node Card */}
+                      <div className={`flex-1 p-3 rounded-xl border transition-all duration-300 ${
                         node.status === 'running' 
-                          ? 'border-blue-500 shadow-lg shadow-blue-500/20 scale-105' 
+                          ? 'border-blue-500 bg-blue-500/10 shadow-lg shadow-blue-500/20 scale-[1.02]' 
                           : node.status === 'success'
                           ? 'border-green-500/30 bg-green-500/5'
                           : node.status === 'error'
                           ? 'border-red-500/30 bg-red-500/5'
                           : 'border-border bg-muted/30'
                       }`}>
-                        <div className="font-medium text-sm mb-1">{node.name}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {node.status === 'success' && node.duration && `✓ ${node.duration}ms`}
-                          {node.status === 'error' && '✗ Erro'}
-                          {node.status === 'running' && '⚡ Executando...'}
-                          {node.status === 'pending' && '⏳ Aguardando...'}
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <div className="font-semibold text-sm">{node.name}</div>
+                          {node.duration && (
+                            <div className="text-xs text-muted-foreground font-mono">
+                              {node.duration}ms
+                            </div>
+                          )}
                         </div>
                         
-                        {/* Show error message */}
+                        <div className="text-xs text-muted-foreground">
+                          {node.status === 'success' && '✓ Concluído'}
+                          {node.status === 'error' && '✗ Falhou'}
+                          {node.status === 'running' && (
+                            <span className="flex items-center gap-1">
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                              Executando...
+                            </span>
+                          )}
+                          {node.status === 'pending' && '⏳ Aguardando...'}
+                          {node.status === 'skipped' && '⊘ Pulado'}
+                        </div>
+                        
+                        {/* Error message */}
                         {node.error && (
                           <div className="mt-2 text-xs text-red-500 bg-red-500/10 p-2 rounded">
                             {node.error}
@@ -355,119 +379,115 @@ export function ExecutionModalV2({ isOpen, onClose, context }: ExecutionModalPro
                         )}
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {context.logs.map((log, idx) => (
+                  </div>
+                )
+              })}
+              
+              {/* Chat Messages */}
+              {chatMessages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
                   <div
-                    key={idx}
-                    className={`p-3 rounded-lg border text-xs ${
-                      log.level === 'error'
-                        ? 'bg-red-500/10 border-red-500/20'
-                        : log.level === 'success'
-                        ? 'bg-green-500/10 border-green-500/20'
-                        : 'bg-muted border-border'
+                    className={`max-w-[90%] sm:max-w-[85%] p-3 sm:p-4 rounded-2xl ${
+                      msg.role === 'user'
+                        ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-lg'
+                        : msg.role === 'system'
+                        ? 'bg-gradient-to-br from-gray-800 to-gray-900 text-gray-100 text-sm'
+                        : 'bg-gradient-to-br from-purple-600 to-purple-700 text-white shadow-lg'
                     }`}
                   >
-                    <div className="flex items-start gap-2 mb-1">
-                      {log.level === 'error' && <XCircle className="w-3 h-3 text-red-500 flex-shrink-0 mt-0.5" />}
-                      {log.level === 'success' && <CheckCircle2 className="w-3 h-3 text-green-500 flex-shrink-0 mt-0.5" />}
-                      <span className="font-medium">{log.nodeName}</span>
-                    </div>
-                    <p className="text-muted-foreground mb-2">{log.message}</p>
+                    <div className="whitespace-pre-wrap text-sm sm:text-base">{msg.content}</div>
                     
-                    {(log.input || log.output) && (
-                      <div className="space-y-1">
-                        {log.input && (
-                          <details className="cursor-pointer">
-                            <summary className="text-muted-foreground hover:text-foreground">📥 Input</summary>
-                            <pre className="mt-1 p-2 bg-background rounded text-[10px] overflow-auto max-h-24">
-                              {JSON.stringify(log.input, null, 2)}
-                            </pre>
-                          </details>
-                        )}
-                        {log.output && (
-                          <details className="cursor-pointer">
-                            <summary className="text-muted-foreground hover:text-foreground">📤 Output</summary>
-                            <pre className="mt-1 p-2 bg-background rounded text-[10px] overflow-auto max-h-24">
-                              {JSON.stringify(log.output, null, 2)}
-                            </pre>
-                          </details>
-                        )}
+                    {/* Files */}
+                    {msg.files && msg.files.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {msg.files.map((file, fileIdx) => (
+                          <div
+                            key={fileIdx}
+                            className="flex items-center gap-2 p-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20"
+                          >
+                            {getFileIcon(file.type)}
+                            <span className="flex-1 text-xs sm:text-sm truncate">{file.name}</span>
+                            {file.size && (
+                              <span className="text-xs opacity-75 hidden sm:inline">
+                                {(file.size / 1024).toFixed(1)}KB
+                              </span>
+                            )}
+                            <button
+                              className="p-1.5 hover:bg-white/20 rounded transition-colors"
+                              onClick={() => downloadFile(file)}
+                            >
+                              <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                            </button>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-        
-        {/* RIGHT SIDE: Chat */}
-        <div className="flex-1 flex flex-col">
-          <div className="flex-1 overflow-y-auto space-y-3 mb-4">
-            {chatMessages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
+                </div>
+              ))}
+              
+              {isSending && (
+                <div className="flex justify-start">
+                  <div className="bg-gradient-to-br from-purple-600 to-purple-700 text-white p-3 sm:p-4 rounded-2xl flex items-center gap-2 shadow-lg">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="text-sm">Pensando...</span>
+                  </div>
+                </div>
+              )}
+              
+              <div ref={chatEndRef} />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {context.logs.map((log, idx) => (
                 <div
-                  className={`max-w-[85%] p-4 rounded-2xl ${
-                    msg.role === 'user'
-                      ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-lg'
-                      : msg.role === 'system'
-                      ? 'bg-gradient-to-br from-gray-800 to-gray-900 text-gray-100 text-sm'
-                      : 'bg-gradient-to-br from-purple-600 to-purple-700 text-white shadow-lg'
+                  key={idx}
+                  className={`p-3 rounded-lg border text-xs ${
+                    log.level === 'error'
+                      ? 'bg-red-500/10 border-red-500/20'
+                      : log.level === 'success'
+                      ? 'bg-green-500/10 border-green-500/20'
+                      : 'bg-muted border-border'
                   }`}
                 >
-                  <div className="whitespace-pre-wrap">{msg.content}</div>
+                  <div className="flex items-start gap-2 mb-1">
+                    {log.level === 'error' && <XCircle className="w-3 h-3 text-red-500 flex-shrink-0 mt-0.5" />}
+                    {log.level === 'success' && <CheckCircle2 className="w-3 h-3 text-green-500 flex-shrink-0 mt-0.5" />}
+                    <span className="font-medium">{log.nodeName}</span>
+                  </div>
+                  <p className="text-muted-foreground mb-2">{log.message}</p>
                   
-                  {/* Files */}
-                  {msg.files && msg.files.length > 0 && (
-                    <div className="mt-3 space-y-2">
-                      {msg.files.map((file, fileIdx) => (
-                        <div
-                          key={fileIdx}
-                          className="flex items-center gap-2 p-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20"
-                        >
-                          {getFileIcon(file.type)}
-                          <span className="flex-1 text-sm truncate">{file.name}</span>
-                          {file.size && (
-                            <span className="text-xs opacity-75">
-                              {(file.size / 1024).toFixed(1)}KB
-                            </span>
-                          )}
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-7 px-2 hover:bg-white/20"
-                            onClick={() => downloadFile(file)}
-                          >
-                            <Download className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      ))}
+                  {(log.input || log.output) && (
+                    <div className="space-y-1">
+                      {log.input && (
+                        <details className="cursor-pointer">
+                          <summary className="text-muted-foreground hover:text-foreground">📥 Input</summary>
+                          <pre className="mt-1 p-2 bg-background rounded text-[10px] overflow-auto max-h-24">
+                            {JSON.stringify(log.input, null, 2)}
+                          </pre>
+                        </details>
+                      )}
+                      {log.output && (
+                        <details className="cursor-pointer">
+                          <summary className="text-muted-foreground hover:text-foreground">📤 Output</summary>
+                          <pre className="mt-1 p-2 bg-background rounded text-[10px] overflow-auto max-h-24">
+                            {JSON.stringify(log.output, null, 2)}
+                          </pre>
+                        </details>
+                      )}
                     </div>
                   )}
                 </div>
-              </div>
-            ))}
-            
-            {isSending && (
-              <div className="flex justify-start">
-                <div className="bg-gradient-to-br from-purple-600 to-purple-700 text-white p-4 rounded-2xl flex items-center gap-2 shadow-lg">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="text-sm">Pensando...</span>
-                </div>
-              </div>
-            )}
-            
-            <div ref={chatEndRef} />
-          </div>
-          
-          {/* Chat Input */}
+              ))}
+            </div>
+          )}
+        </div>
+        
+        {/* Chat Input */}
+        {activeTab === 'timeline' && (
           <div className="border-t border-border pt-3">
             <div className="flex gap-2">
               <Input
@@ -481,13 +501,13 @@ export function ExecutionModalV2({ isOpen, onClose, context }: ExecutionModalPro
                 }}
                 placeholder={context.status === 'running' ? 'Aguarde conclusão...' : 'Pergunte sobre a execução...'}
                 disabled={isSending || context.status === 'running'}
-                className="flex-1"
+                className="flex-1 text-sm"
               />
               <Button
                 onClick={handleSendMessage}
                 disabled={!inputMessage.trim() || isSending || context.status === 'running'}
-                size="lg"
-                className="px-6"
+                size="default"
+                className="px-4"
               >
                 <Send className="w-4 h-4" />
               </Button>
@@ -498,7 +518,7 @@ export function ExecutionModalV2({ isOpen, onClose, context }: ExecutionModalPro
                 : '💡 Pergunte sobre resultados, erros, arquivos gerados, etc.'}
             </p>
           </div>
-        </div>
+        )}
       </div>
     </Modal>
   )
