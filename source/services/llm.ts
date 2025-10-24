@@ -57,18 +57,35 @@ function convertToolToOpenAIFunction(tool: any): OpenAI.Chat.ChatCompletionTool 
 }
 
 /**
- * Executa uma tool chamada pela LLM
+ * Executa uma tool chamada pela LLM (FLUI Tool ou MCP Tool)
  */
 async function executeToolCall(
   toolCall: OpenAI.Chat.ChatCompletionMessageToolCall,
   context: ExecutionContext
 ): Promise<any> {
-  const toolId = toolCall.function.name;
+  const toolName = toolCall.function.name;
   const args = JSON.parse(toolCall.function.arguments);
 
-  console.log(`🔧 [LLM] Executando tool: ${toolId}`, args);
+  console.log(`🔧 [LLM] Executando tool: ${toolName}`, args);
 
-  const result = await ToolExecutor.execute(toolId, args, context);
+  // ✅ Verificar se é uma MCP Tool (formato: mcpId__toolName)
+  if (toolName.includes('__')) {
+    const [mcpId, mcpToolName] = toolName.split('__');
+    console.log(`📦 [LLM] Tool MCP detectada: ${mcpToolName} do MCP ${mcpId}`);
+    
+    // Executar tool MCP via MCPExecutor
+    const { MCPExecutor } = await import('./mcpExecutor.js');
+    const result = await MCPExecutor.executeMCPTool(mcpId, mcpToolName, args, context);
+    
+    if (!result.success) {
+      throw new Error(result.error || 'MCP Tool execution failed');
+    }
+    
+    return result.result;
+  }
+  
+  // ✅ Tool FLUI (do registry)
+  const result = await ToolExecutor.execute(toolName, args, context);
 
   if (!result.success) {
     throw new Error(result.error || 'Tool execution failed');
@@ -125,21 +142,61 @@ export const sendMessage = async (
     content: content,
   });
 
-  // 🔥 NOVO: Carregar tools do agente
+  // 🔥 NOVO: Carregar tools do agente (FLUI Tools + MCP Tools)
   const tools: OpenAI.Chat.ChatCompletionTool[] = [];
   const registry = getToolRegistry();
 
-  if (agent && agent.tools && agent.tools.length > 0) {
-    console.log(`🔧 [LLM] Carregando ${agent.tools.length} tools para o agente ${agent.name}`);
-    
-    for (const toolId of agent.tools) {
-      const tool = registry.get(toolId);
-      if (tool) {
-        tools.push(convertToolToOpenAIFunction(tool));
-        console.log(`  ✅ Tool carregada: ${tool.name} (${tool.id})`);
-      } else {
-        console.warn(`  ⚠️  Tool não encontrada: ${toolId}`);
+  if (agent) {
+    // ✅ 1. Carregar FLUI Tools (tools do registry)
+    if (agent.tools && agent.tools.length > 0) {
+      console.log(`🔧 [LLM] Carregando ${agent.tools.length} FLUI tools para o agente ${agent.name}`);
+      
+      for (const toolId of agent.tools) {
+        const tool = registry.get(toolId);
+        if (tool) {
+          tools.push(convertToolToOpenAIFunction(tool));
+          console.log(`  ✅ FLUI Tool carregada: ${tool.name} (${tool.id})`);
+        } else {
+          console.warn(`  ⚠️  FLUI Tool não encontrada: ${toolId}`);
+        }
       }
+    }
+    
+    // ✅ 2. Carregar MCP Tools (tools dos MCPs associados)
+    if (agent.mcpIds && agent.mcpIds.length > 0) {
+      console.log(`🔧 [LLM] Carregando tools de ${agent.mcpIds.length} MCPs para o agente ${agent.name}`);
+      
+      for (const mcpId of agent.mcpIds) {
+        const mcp = store.mcps.find(m => m.id === mcpId);
+        if (mcp && mcp.tools) {
+          console.log(`  📦 MCP: ${mcp.name} (${mcp.tools.length} tools)`);
+          
+          for (const mcpTool of mcp.tools) {
+            // Converter tool MCP para formato OpenAI
+            const openAITool: OpenAI.Chat.ChatCompletionTool = {
+              type: 'function',
+              function: {
+                name: `${mcpId}__${mcpTool.name}`,  // Prefixo com MCP ID para evitar conflitos
+                description: mcpTool.description || mcpTool.name,
+                parameters: mcpTool.parameters || {
+                  type: 'object',
+                  properties: {},
+                  required: []
+                }
+              }
+            };
+            
+            tools.push(openAITool);
+            console.log(`    ✅ MCP Tool carregada: ${mcpTool.name} (${mcp.name})`);
+          }
+        } else {
+          console.warn(`  ⚠️  MCP não encontrado: ${mcpId}`);
+        }
+      }
+    }
+    
+    if (tools.length > 0) {
+      console.log(`🎯 [LLM] Total de ${tools.length} tools disponíveis para o agente`);
     }
   }
 
