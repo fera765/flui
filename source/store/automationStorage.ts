@@ -27,6 +27,7 @@ console.log('✅ [AutomationStorage] Storage inicializado');
  */
 function validateAndNormalizeAutomation(automation: any): Automation {
   console.log('🔍 [Storage] Validando automação:', automation.id || 'nova');
+  console.log('🔍 [Storage] Edges recebidas:', automation.edges?.length || 0, automation.edges);
   
   // Garantir campos básicos
   const normalized: any = {
@@ -88,11 +89,17 @@ function validateAndNormalizeAutomation(automation: any): Automation {
   });
   
   // Garantir que cada edge tem id
-  normalized.edges = normalized.edges.map((edge: any, index: number) => ({
-    id: edge.id || `edge-${index}`,
-    source: edge.source || edge.from || '',
-    target: edge.target || edge.to || '',
-  }));
+  console.log('🔗 [Storage] Normalizando edges:', normalized.edges.length);
+  normalized.edges = normalized.edges.map((edge: any, index: number) => {
+    const normalizedEdge = {
+      id: edge.id || `edge-${index}`,
+      source: edge.source || edge.from || '',
+      target: edge.target || edge.to || '',
+    };
+    console.log(`  Edge ${index}:`, normalizedEdge);
+    return normalizedEdge;
+  });
+  console.log('✅ [Storage] Edges normalizadas:', normalized.edges.length);
   
   // Validar com Zod
   try {
@@ -170,10 +177,14 @@ export const getAutomation = (id: string): Automation | null => {
   const automation = automations.find((a) => a.id === id);
   if (!automation) return null;
   
-  console.log(`📖 [Storage] Loading automation ${id} with ${automation.nodes?.length || 0} nodes`);
+  console.log(`📖 [Storage] Loading automation ${id} with ${automation.nodes?.length || 0} nodes, ${automation.edges?.length || 0} edges`);
+  console.log('📖 [Storage] Raw edges from storage:', automation.edges);
   
   // Migrar ao carregar
   const migrated = migrateAutomation(automation);
+  
+  console.log(`📖 [Storage] After migration: ${migrated.edges?.length || 0} edges`);
+  console.log('📖 [Storage] Migrated edges:', migrated.edges);
   
   // Log dos nodes para debug
   migrated.nodes.forEach((node: any) => {
@@ -193,12 +204,15 @@ export const getAutomation = (id: string): Automation | null => {
 
 export const saveAutomation = (automation: any): Automation => {
   console.log('💾 [Storage] Salvando automação:', automation.id || 'nova');
+  console.log('💾 [Storage] Edges a salvar:', automation.edges?.length || 0, automation.edges);
   
   // Migrar PRIMEIRO (se necessário) para converter schemas antigos
   const migrated = automation.version !== '2.0.0' ? migrateAutomation(automation) : automation;
   
   // Depois validar e normalizar
   const validated = validateAndNormalizeAutomation(migrated);
+  
+  console.log('💾 [Storage] Edges validadas:', validated.edges?.length || 0, validated.edges);
   
   const automations = (config.get('automations') as any[]) || [];
   const index = automations.findIndex((a) => a.id === validated.id);

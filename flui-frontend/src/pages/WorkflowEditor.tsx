@@ -192,7 +192,8 @@ export function WorkflowEditor() {
     try {
       const automation = await api.getAutomation(automationId)
       if (automation && automation.nodes && automation.edges) {
-        console.log('[WorkflowEditor] Loading automation:', automationId, 'with', automation.nodes.length, 'nodes')
+        console.log('[WorkflowEditor] Loading automation:', automationId, 'with', automation.nodes.length, 'nodes', automation.edges.length, 'edges')
+        console.log('[WorkflowEditor] Raw edges from API:', JSON.stringify(automation.edges, null, 2))
         
         const loadedNodes = automation.nodes.map((node: any) => {
           console.log('[WorkflowEditor] Loading node:', node.id, 'config:', node.config)
@@ -214,13 +215,18 @@ export function WorkflowEditor() {
           }
         })
         
-        const loadedEdges = automation.edges.map((edge: any) => ({
-          id: edge.id,
-          source: edge.source,
-          target: edge.target,
-          animated: true,
-          style: { stroke: 'hsl(var(--primary))' },
-        }))
+        const loadedEdges = automation.edges.map((edge: any) => {
+          console.log('[WorkflowEditor] Processing edge:', edge)
+          return {
+            id: edge.id,
+            source: edge.source,
+            target: edge.target,
+            animated: true,
+            style: { stroke: 'hsl(var(--primary))' },
+          }
+        })
+        
+        console.log('[WorkflowEditor] Loaded edges for ReactFlow:', loadedEdges)
         
         setNodes(loadedNodes)
         setEdges(loadedEdges)
@@ -280,7 +286,8 @@ export function WorkflowEditor() {
       const latestNodes = storeState.nodes
       const latestEdges = storeState.edges
       
-      console.log('[WorkflowEditor] Saving with store nodes:', latestNodes.length)
+      console.log('[WorkflowEditor] Saving with store nodes:', latestNodes.length, 'edges:', latestEdges.length)
+      console.log('[WorkflowEditor] Edges to save:', latestEdges.map(e => ({ id: e.id, source: e.source, target: e.target })))
       
       const automationData = {
         name: `Automation ${currentAutomationId || 'New'}`,
