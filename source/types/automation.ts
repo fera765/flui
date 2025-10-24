@@ -1,19 +1,30 @@
 import { z } from 'zod';
 
 // ============= AUTOMATION NODE =============
+// ✅ ALIGNED WITH FlowNodeTypeSchema from core/flowTypes.ts
 export const AutomationNodeTypeSchema = z.enum([
-  'trigger',
-  'agent',
-  'mcp_tool',
-  'condition',
-  'loop',
-  'delay',
-  'http_request',
-  'file_operation',
-  'data_transform',
-  'webhook',
-  'tool',      // ✅ FIX: Suporte para nodes de ferramenta genéricos
-  'system',    // ✅ FIX: Suporte para nodes de sistema/trigger manual
+  // Core node types
+  'tool',              // Executa uma ferramenta do registry
+  'agent',             // Executa um agente LLM
+  'condition',         // Condicional (if/else)
+  'loop',              // Loop sobre array
+  'parallel',          // Execução paralela
+  'delay',             // Pausa/delay
+  'merge',             // Merge de resultados
+  
+  // Trigger types
+  'manual-trigger',    // Trigger manual
+  'cron-trigger',      // Trigger agendado (cron)
+  'webhook-trigger',   // Trigger via HTTP webhook
+  
+  // Legacy types (mantidos para compatibilidade)
+  'trigger',           // Trigger genérico (legacy)
+  'mcp_tool',          // Tool de MCP (legacy)
+  'http_request',      // HTTP request (legacy)
+  'file_operation',    // File operation (legacy)
+  'data_transform',    // Data transform (legacy)
+  'webhook',           // Webhook genérico (legacy)
+  'system',            // System node (legacy)
 ]);
 
 export type AutomationNodeType = z.infer<typeof AutomationNodeTypeSchema>;

@@ -52,21 +52,16 @@ function validateAndNormalizeAutomation(automation: any): Automation {
   
   // Garantir que cada node tem campos necessários
   normalized.nodes = normalized.nodes.map((node: any) => {
-    // ✅ FIX: Mapear tipos antigos/inválidos para tipos válidos
-    let nodeType = node.type || 'trigger';
+    // ✅ Node type já vem correto do frontend (manual-trigger, cron-trigger, etc)
+    // Apenas garantir que existe um tipo válido
+    let nodeType = node.type || 'tool';
     
-    // Migração automática de tipos legados
-    if (nodeType === 'system') {
-      nodeType = 'trigger'; // system nodes são geralmente triggers
-      console.log(`🔄 [Storage] Migrando tipo "system" → "trigger" para node ${node.id}`);
-    } else if (nodeType === 'tool' && node.config?.category === 'system') {
-      nodeType = 'trigger'; // tools de sistema são triggers
-      console.log(`🔄 [Storage] Migrando tipo "tool" (system) → "trigger" para node ${node.id}`);
-    }
+    // ✅ REMOVIDO: Migração automática de tipos (causava problemas)
+    // Os tipos agora são aceitos conforme definidos no AutomationNodeTypeSchema
     
     return {
       id: node.id || generateId(),
-      type: nodeType,
+      type: nodeType,  // Aceitar tipo conforme enviado
       name: node.name || 'Node',
       description: node.description || '',
       config: node.config || {},
@@ -139,8 +134,16 @@ function migrateAutomation(automation: any): Automation {
 // ============= AUTOMATIONS =============
 export const getAutomations = (): Automation[] => {
   const automations = (config.get('automations') as any[]) || [];
-  // Migrar cada automação ao carregar
-  return automations.map(a => migrateAutomation(a));
+  // Migrar cada automação ao carregar (com tratamento de erro)
+  return automations.map(a => {
+    try {
+      return migrateAutomation(a);
+    } catch (error: any) {
+      console.error(`❌ [Storage] Erro ao migrar automação ${a.id}:`, error.message);
+      // Retornar automação sem migração em caso de erro
+      return a as Automation;
+    }
+  }).filter(Boolean); // Remover nulls/undefineds
 };
 
 export const getAutomation = (id: string): Automation | null => {

@@ -1,5 +1,40 @@
 {
-	"automations": [],
+	"automations": [
+		{
+			"id": "70bc4d2ea0125eaa",
+			"name": "Test Automation Fixed",
+			"description": "Automação de teste com manual-trigger corrigido",
+			"nodes": [
+				{
+					"id": "trigger-1",
+					"type": "manual-trigger",
+					"name": "Trigger Manual",
+					"description": "Nó de trigger manual",
+					"config": {
+						"triggerMessage": "Iniciando automação de teste"
+					},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [],
+			"startNodeId": "trigger-1",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-24T03:37:34.240Z",
+			"updatedAt": "2025-10-24T03:42:15.287Z",
+			"runCount": 1,
+			"metadata": {
+				"createdAt": "2025-10-24T03:37:34.239Z",
+				"updatedAt": "2025-10-24T03:42:15.287Z",
+				"lastRunAt": "2025-10-24T03:42:15.287Z"
+			}
+		}
+	],
 	"executions": [],
 	"agents": [
 		{
