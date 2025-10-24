@@ -8,7 +8,6 @@ import {
 } from 'lucide-react'
 import { api } from '@/services/api'
 import { toast } from 'sonner'
-import { useWebSocket, WebSocketMessage } from '@/hooks/useWebSocket'
 
 interface ExecutionLog {
   timestamp: string
@@ -66,7 +65,6 @@ export function ExecutionModalV2({ isOpen, onClose, context }: ExecutionModalPro
   const [isSending, setIsSending] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
   const [executionNodes, setExecutionNodes] = useState<ExecutionNode[]>([])
-  const [executionContext, setExecutionContext] = useState<string>('')
   
   // ✅ WebSocket para atualizações em tempo real
   useWebSocket({
@@ -251,19 +249,17 @@ export function ExecutionModalV2({ isOpen, onClose, context }: ExecutionModalPro
     setIsSending(true)
     
     try {
-      const contextToSend = executionContext || JSON.stringify({
-        status: context.status,
-        duration: context.duration,
-        nodesExecuted: context.nodesExecuted,
-        files: context.files,
-        logs: context.logs,
-        nodes: executionNodes,
-      })
-      
       const response: any = await api.post(`/api/automations/${context.automationId}/chat`, {
         message: userMessage,
         // ✅ Enviar contexto COMPLETO com todos inputs/outputs
-        executionContext: contextToSend,
+        executionContext: executionContext || JSON.stringify({
+          status: context.status,
+          duration: context.duration,
+          nodesExecuted: context.nodesExecuted,
+          files: context.files,
+          logs: context.logs,
+          nodes: executionNodes,
+        }),
       })
       
       setChatMessages(prev => [...prev, {
