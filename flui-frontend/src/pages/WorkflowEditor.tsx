@@ -419,15 +419,32 @@ export function WorkflowEditor() {
       
       // Processar logs do backend
       const backendLogs = execution.logs || []
-      const processedLogs = backendLogs.map((log: any) => ({
-        timestamp: log.timestamp || new Date().toISOString(),
-        level: log.level || 'info',
-        nodeId: log.nodeId || '',
-        nodeName: log.nodeName || log.message || '',
-        message: log.message || '',
-        input: log.input,
-        output: log.output,
-      }))
+      
+      console.log('[WorkflowEditor] 📋 Backend logs:', backendLogs)
+      
+      const processedLogs = backendLogs.map((log: any) => {
+        // ✅ FIX: Mapear status do backend para level do frontend
+        let level = 'info'
+        if (log.status === 'completed') {
+          level = 'success'
+        } else if (log.status === 'failed') {
+          level = 'error'
+        } else if (log.status === 'running') {
+          level = 'info'
+        }
+        
+        return {
+          timestamp: log.timestamp || new Date().toISOString(),
+          level: log.level || level,  // Usar level se existir, senão usar mapeado
+          nodeId: log.nodeId || '',
+          nodeName: log.nodeName || log.message || '',
+          message: log.message || '',
+          input: log.data?.input || log.input,
+          output: log.data?.output || log.output || log.data,
+        }
+      })
+      
+      console.log('[WorkflowEditor] 📋 Processed logs:', processedLogs)
       
       // Atualizar nodes baseado nos logs
       const updatedNodes = executionNodes.map(node => {

@@ -491,17 +491,17 @@ export function ExecutionModalV2({ isOpen, onClose, context }: ExecutionModalPro
                     <div className="space-y-1">
                       {log.input && (
                         <details className="cursor-pointer">
-                          <summary className="text-muted-foreground hover:text-foreground">📥 Input</summary>
-                          <pre className="mt-1 p-2 bg-background rounded text-[10px] overflow-auto max-h-24">
-                            {JSON.stringify(log.input, null, 2)}
+                          <summary className="font-medium text-blue-600 hover:text-blue-700 text-xs">📥 Input</summary>
+                          <pre className="mt-2 p-2 bg-background/50 border border-border/50 rounded text-[10px] overflow-auto max-h-32">
+                            {typeof log.input === 'string' ? log.input : JSON.stringify(log.input, null, 2)}
                           </pre>
                         </details>
                       )}
                       {log.output && (
-                        <details className="cursor-pointer">
-                          <summary className="text-muted-foreground hover:text-foreground">📤 Output</summary>
-                          <pre className="mt-1 p-2 bg-background rounded text-[10px] overflow-auto max-h-24">
-                            {JSON.stringify(log.output, null, 2)}
+                        <details className="cursor-pointer" open>
+                          <summary className="font-medium text-green-600 hover:text-green-700 text-xs">📤 Output</summary>
+                          <pre className="mt-2 p-2 bg-background/50 border border-border/50 rounded text-[10px] overflow-auto max-h-32">
+                            {typeof log.output === 'string' ? log.output : JSON.stringify(log.output, null, 2)}
                           </pre>
                         </details>
                       )}
