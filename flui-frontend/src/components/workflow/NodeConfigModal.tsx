@@ -3,7 +3,9 @@ import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useWorkflowStore } from '@/store/workflowStore'
-import { useTools } from '@/hooks/useAgents'
+import { useTools, useMCPs } from '@/hooks/useAgents'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '@/services/api'
 import { DynamicConfigInput } from './DynamicConfigInput'
 
 export function NodeConfigModal() {
@@ -16,6 +18,11 @@ export function NodeConfigModal() {
   } = useWorkflowStore()
 
   const { data: tools = [] } = useTools()
+  const { data: mcps = [] } = useMCPs()
+  const { data: agents = [] } = useQuery({
+    queryKey: ['agents'],
+    queryFn: () => api.getAgents(),
+  })
 
   const [config, setConfig] = useState<Record<string, any>>({})
   const [nodeName, setNodeName] = useState('')
@@ -31,9 +38,56 @@ export function NodeConfigModal() {
 
   if (!selectedNode) return null
 
-  // Get tool parameters if this is a tool node
-  const tool = tools.find((t: any) => t.id === selectedNode.data.toolId)
-  const params = tool?.params || []
+  // Get parameters based on node type
+  let params: any[] = []
+  let itemData: any = null
+  
+  if (selectedNode.data.type === 'tool' && selectedNode.data.toolId) {
+    // Tool node
+    const tool = tools.find((t: any) => t.id === selectedNode.data.toolId)
+    params = tool?.params || []
+    itemData = tool
+  } else if (selectedNode.data.type === 'agent' && selectedNode.data.agentId) {
+    // Agent node - criar parâmetros baseado nas propriedades do agente
+    const agent = agents.find((a: any) => a.id === selectedNode.data.agentId)
+    itemData = agent
+    
+    if (agent) {
+      params = [
+        {
+          key: 'message',
+          name: 'Message',
+          description: 'Mensagem para o agente processar',
+          type: 'string',
+          required: true,
+        },
+        {
+          key: 'model',
+          name: 'Model Override',
+          description: `Modelo a usar (padrão: ${agent.model})`,
+          type: 'string',
+          required: false,
+        },
+        {
+          key: 'temperature',
+          name: 'Temperature Override',
+          description: `Temperature (padrão: ${agent.temperature})`,
+          type: 'number',
+          required: false,
+        },
+      ]
+    }
+  } else if (selectedNode.data.mcpId) {
+    // MCP node
+    const mcp = mcps.find((m: any) => m.id === selectedNode.data.mcpId)
+    itemData = mcp
+    
+    // MCPs have tools, get params from MCP tools
+    if (mcp && mcp.tools && mcp.tools.length > 0) {
+      const mcpTool = mcp.tools[0]
+      params = mcpTool.params || []
+    }
+  }
 
   const handleSave = () => {
     updateNode(selectedNode.id, {
@@ -113,8 +167,25 @@ export function NodeConfigModal() {
           </div>
         )}
 
+        {/* Item Info */}
+        {itemData && (
+          <div className="bg-muted p-3 rounded-lg mb-4">
+            <h4 className="text-sm font-medium text-foreground mb-1">
+              {selectedNode.data.type.charAt(0).toUpperCase() + selectedNode.data.type.slice(1)} Info
+            </h4>
+            <p className="text-xs text-muted-foreground">
+              {itemData.description || 'No description available'}
+            </p>
+            {selectedNode.data.type === 'agent' && itemData.systemPrompt && (
+              <p className="text-xs text-muted-foreground mt-2">
+                <strong>System Prompt:</strong> {itemData.systemPrompt.substring(0, 100)}...
+              </p>
+            )}
+          </div>
+        )}
+        
         {/* Generic Config for other node types */}
-        {params.length === 0 && (
+        {params.length === 0 && !itemData && (
           <div>
             <h3 className="text-sm font-medium text-foreground mb-3">Configuration</h3>
             <p className="text-sm text-muted-foreground mb-4">

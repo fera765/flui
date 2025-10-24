@@ -75,21 +75,63 @@ export function WorkflowEditor() {
 
   const workflowStore = useWorkflowStore()
   const { createAutomation, updateAutomation, executeAutomation } = useAutomations()
+  const isSyncingFromStore = useRef(false)
 
-  // Sync React Flow state to Zustand store (one-way)
-  // ✅ FIX: Remove workflowStore from dependencies to prevent infinite loop
-  // Zustand stores are stable and don't change between renders
+  // ✅ BIDIRECTIONAL SYNC: ReactFlow ↔ Zustand Store
+  // Sync ReactFlow → Store
   useEffect(() => {
-    workflowStore.setNodes(nodes)
-    hasUnsavedChanges.current = true
-    triggerAutosave()
+    if (!isSyncingFromStore.current) {
+      workflowStore.setNodes(nodes)
+      hasUnsavedChanges.current = true
+      triggerAutosave()
+    }
   }, [nodes])
 
   useEffect(() => {
-    workflowStore.setEdges(edges)
-    hasUnsavedChanges.current = true
-    triggerAutosave()
+    if (!isSyncingFromStore.current) {
+      workflowStore.setEdges(edges)
+      hasUnsavedChanges.current = true
+      triggerAutosave()
+    }
   }, [edges])
+  
+  // ✅ BIDIRECTIONAL SYNC: Store → ReactFlow
+  // Subscribe to store changes (for delete operations)
+  useEffect(() => {
+    const unsubscribe = useWorkflowStore.subscribe(
+      (state) => state.nodes,
+      (storeNodes) => {
+        // Only update if different from current ReactFlow state
+        if (JSON.stringify(storeNodes.map(n => n.id).sort()) !== JSON.stringify(nodes.map(n => n.id).sort())) {
+          console.log('[WorkflowEditor] Syncing nodes from store:', storeNodes.length)
+          isSyncingFromStore.current = true
+          setNodes(storeNodes)
+          setTimeout(() => {
+            isSyncingFromStore.current = false
+          }, 0)
+        }
+      }
+    )
+    
+    const unsubscribeEdges = useWorkflowStore.subscribe(
+      (state) => state.edges,
+      (storeEdges) => {
+        if (JSON.stringify(storeEdges.map(e => e.id).sort()) !== JSON.stringify(edges.map(e => e.id).sort())) {
+          console.log('[WorkflowEditor] Syncing edges from store:', storeEdges.length)
+          isSyncingFromStore.current = true
+          setEdges(storeEdges)
+          setTimeout(() => {
+            isSyncingFromStore.current = false
+          }, 0)
+        }
+      }
+    )
+    
+    return () => {
+      unsubscribe()
+      unsubscribeEdges()
+    }
+  }, [nodes, edges, setNodes, setEdges])
 
   // 🔄 AUTOSAVE: Salva automaticamente após 2 segundos de inatividade
   const triggerAutosave = useCallback(() => {
