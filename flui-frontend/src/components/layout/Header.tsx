@@ -1,9 +1,11 @@
-import { Menu, Sun, Moon, Palette } from 'lucide-react'
+import { Menu, Sun, Moon, X } from 'lucide-react'
 import { useThemeStore } from '@/store/themeStore'
+import { useUIStore } from '@/store/uiStore'
 import { cn } from '@/lib/utils'
 
 export function Header() {
   const { theme, isDarkMode, setTheme, toggleDarkMode } = useThemeStore()
+  const { isSidebarOpen, toggleSidebar } = useUIStore()
 
   const themes = [
     { id: 'dark', name: 'Dark', color: 'bg-purple-500' },
@@ -15,8 +17,11 @@ export function Header() {
     <header className="sticky top-0 z-40 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
       <div className="flex h-16 items-center px-4 sm:px-6">
         {/* Mobile menu button */}
-        <button className="lg:hidden p-2 text-muted-foreground hover:text-foreground">
-          <Menu className="w-5 h-5" />
+        <button 
+          onClick={toggleSidebar}
+          className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
 
         {/* Logo (mobile) */}

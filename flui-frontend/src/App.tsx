@@ -9,6 +9,7 @@ import { Agents } from './pages/Agents'
 import { MCPs } from './pages/MCPs'
 import { Automations } from './pages/Automations'
 import { WorkflowEditor } from './pages/WorkflowEditor'
+import { Tools } from './pages/Tools'
 import './styles/globals.css'
 import './styles/themes.css'
 
@@ -43,7 +44,7 @@ function App() {
             <Route path="automations" element={<Automations />} />
             <Route path="automations/new" element={<WorkflowEditor />} />
             <Route path="automations/:id/edit" element={<WorkflowEditor />} />
-            <Route path="tools" element={<div className="p-6">Tools (Coming soon)</div>} />
+            <Route path="tools" element={<Tools />} />
             <Route path="settings" element={<div className="p-6">Settings (Coming soon)</div>} />
           </Route>
         </Routes>

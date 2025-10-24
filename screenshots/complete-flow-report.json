@@ -1,0 +1,569 @@
+{
+  "timestamp": "2025-10-24T00:59:16.529Z",
+  "testsCompleted": true,
+  "results": {
+    "dashboardShowsCorrectTools": true,
+    "agentCreated": true,
+    "mcpImported": true,
+    "workflowEditorWorks": true,
+    "finalData": {
+      "agents": [
+        {
+          "name": "Test Agent E2E",
+          "description": "Agent criado via teste automatizado",
+          "systemPrompt": "Você é um assistente de testes",
+          "model": "gpt-3.5-turbo",
+          "temperature": 0.7,
+          "maxTokens": 4000,
+          "enabled": true,
+          "tools": [],
+          "mcpIds": [],
+          "id": "1761267446171",
+          "metadata": {
+            "createdAt": "2025-10-24T00:57:26.171Z",
+            "updatedAt": "2025-10-24T00:57:26.171Z",
+            "executionCount": 0
+          },
+          "createdAt": "2025-10-24T00:57:26.171Z",
+          "updatedAt": "2025-10-24T00:57:26.171Z"
+        },
+        {
+          "name": "Test Agent E2E",
+          "description": "Agent criado via teste automatizado",
+          "systemPrompt": "Você é um assistente de testes",
+          "model": "gpt-3.5-turbo",
+          "temperature": 0.7,
+          "maxTokens": 4000,
+          "enabled": true,
+          "tools": [],
+          "mcpIds": [],
+          "id": "1761267521117",
+          "metadata": {
+            "createdAt": "2025-10-24T00:58:41.117Z",
+            "updatedAt": "2025-10-24T00:58:41.117Z",
+            "executionCount": 0
+          },
+          "createdAt": "2025-10-24T00:58:41.117Z",
+          "updatedAt": "2025-10-24T00:58:41.117Z"
+        }
+      ],
+      "mcps": [
+        {
+          "id": "688f80a464de5bd8",
+          "name": "@pollinations/model-context-protocol",
+          "description": "MCP from npm: @pollinations/model-context-protocol",
+          "version": "latest",
+          "server": "@pollinations/model-context-protocol",
+          "installType": "npm",
+          "tools": [
+            {
+              "id": "2a13a628c367e1fe",
+              "name": "@pollinations/model-context-protocol",
+              "description": "Model Context Protocol (MCP) server for Pollinations AI services using stdio transport",
+              "parameters": {},
+              "handler": "main"
+            }
+          ],
+          "enabled": true,
+          "metadata": {
+            "createdAt": "2025-10-24T00:43:35.076Z",
+            "updatedAt": "2025-10-24T00:43:35.076Z",
+            "importedFrom": "npm",
+            "installDir": "/tmp/flui-mcp-cache/2b1aadc84c553395"
+          }
+        },
+        {
+          "id": "67a20d863bed966d",
+          "name": "chalk",
+          "description": "MCP from npm: chalk",
+          "version": "4.1.2",
+          "server": "chalk",
+          "installType": "npm",
+          "tools": [
+            {
+              "id": "71c0510769878f68",
+              "name": "chalk",
+              "description": "Terminal string styling done right",
+              "parameters": {},
+              "handler": "main"
+            }
+          ],
+          "enabled": true,
+          "metadata": {
+            "createdAt": "2025-10-24T00:44:34.938Z",
+            "updatedAt": "2025-10-24T00:44:34.938Z",
+            "importedFrom": "npm",
+            "installDir": "/tmp/flui-mcp-cache/2f0545c377683118"
+          }
+        },
+        {
+          "id": "2aae4b0f3567963f",
+          "name": "chalk",
+          "description": "MCP from npm: chalk",
+          "version": "4.1.2",
+          "server": "chalk",
+          "installType": "npm",
+          "tools": [
+            {
+              "id": "4fedf4b52e66fee8",
+              "name": "chalk",
+              "description": "Terminal string styling done right",
+              "parameters": {},
+              "handler": "main"
+            }
+          ],
+          "enabled": true,
+          "metadata": {
+            "createdAt": "2025-10-24T00:57:36.808Z",
+            "updatedAt": "2025-10-24T00:57:36.808Z",
+            "importedFrom": "npm",
+            "installDir": "/tmp/flui-mcp-cache/4e501534e5a41558"
+          }
+        },
+        {
+          "id": "e1343095b1933fb9",
+          "name": "chalk",
+          "description": "MCP from npm: chalk",
+          "version": "4.1.2",
+          "server": "chalk",
+          "installType": "npm",
+          "tools": [
+            {
+              "id": "d1323758bc2d43ec",
+              "name": "chalk",
+              "description": "Terminal string styling done right",
+              "parameters": {},
+              "handler": "main"
+            }
+          ],
+          "enabled": true,
+          "metadata": {
+            "createdAt": "2025-10-24T00:58:50.935Z",
+            "updatedAt": "2025-10-24T00:58:50.935Z",
+            "importedFrom": "npm",
+            "installDir": "/tmp/flui-mcp-cache/667d03f13351e596"
+          }
+        }
+      ],
+      "tools": [
+        {
+          "id": "manual-trigger",
+          "name": "Manual Trigger",
+          "description": "Dispara automações manualmente sob demanda. Ideal para testes, debugging e execuções únicas.",
+          "category": "system",
+          "version": "2.0.0",
+          "params": [
+            {
+              "name": "triggerMessage",
+              "key": "triggerMessage",
+              "type": "string",
+              "required": false,
+              "default": "Manual execution triggered",
+              "description": "Mensagem opcional de disparo",
+              "ui": {
+                "widgetType": "textInput",
+                "placeholder": "Ex: Iniciando processo manual...",
+                "helperText": "Mensagem que será registrada no log de execução"
+              }
+            },
+            {
+              "name": "initialData",
+              "key": "initialData",
+              "type": "json",
+              "required": false,
+              "default": {},
+              "description": "Dados iniciais a serem passados para o fluxo",
+              "ui": {
+                "widgetType": "jsonEditor",
+                "placeholder": "{\"key\": \"value\"}",
+                "helperText": "Objeto JSON com dados iniciais"
+              }
+            },
+            {
+              "name": "debugMode",
+              "key": "debugMode",
+              "type": "boolean",
+              "required": false,
+              "default": false,
+              "description": "Ativa modo de debug com logs detalhados",
+              "ui": {
+                "widgetType": "toggle",
+                "helperText": "Ativa logs detalhados de execução"
+              }
+            }
+          ],
+          "ui": {
+            "tags": [
+              "trigger",
+              "manual",
+              "test",
+              "debug"
+            ],
+            "examples": [],
+            "icon": "▶️",
+            "color": "#10b981"
+          },
+          "capabilities": {},
+          "config": {
+            "timeout": 30000,
+            "retries": 0,
+            "sandbox": false,
+            "concurrent": true
+          }
+        },
+        {
+          "id": "cron-trigger",
+          "name": "Cron Trigger",
+          "description": "Agenda execuções automáticas baseadas em intervalos ou horários específicos usando cron expressions.",
+          "category": "system",
+          "version": "2.0.0",
+          "params": [
+            {
+              "name": "cronExpression",
+              "key": "cronExpression",
+              "type": "string",
+              "required": true,
+              "description": "Expressão cron (ex: \"*/5 * * * *\" para cada 5 minutos)",
+              "ui": {
+                "widgetType": "textInput",
+                "placeholder": "*/5 * * * *",
+                "helperText": "Formato: minuto hora dia mês dia-da-semana"
+              }
+            },
+            {
+              "name": "timezone",
+              "key": "timezone",
+              "type": "string",
+              "required": false,
+              "default": "America/Sao_Paulo",
+              "description": "Timezone para execução (ex: America/Sao_Paulo)",
+              "ui": {
+                "widgetType": "textInput",
+                "placeholder": "America/Sao_Paulo"
+              }
+            },
+            {
+              "name": "enabled",
+              "key": "enabled",
+              "type": "boolean",
+              "required": false,
+              "default": true,
+              "description": "Ativa ou desativa o agendamento",
+              "ui": {
+                "widgetType": "toggle",
+                "helperText": "Ativa/desativa o agendamento"
+              }
+            },
+            {
+              "name": "triggerData",
+              "key": "triggerData",
+              "type": "json",
+              "required": false,
+              "default": {},
+              "description": "Dados a serem passados para o fluxo em cada execução",
+              "ui": {
+                "widgetType": "jsonEditor",
+                "placeholder": "{\"source\": \"cron\"}"
+              }
+            },
+            {
+              "name": "maxExecutions",
+              "key": "maxExecutions",
+              "type": "number",
+              "required": false,
+              "default": 0,
+              "description": "Número máximo de execuções (0 = ilimitado)",
+              "ui": {
+                "widgetType": "number",
+                "placeholder": "0",
+                "helperText": "0 = ilimitado"
+              }
+            }
+          ],
+          "ui": {
+            "tags": [
+              "trigger",
+              "schedule",
+              "cron",
+              "automation"
+            ],
+            "examples": [],
+            "icon": "⏰",
+            "color": "#3b82f6"
+          },
+          "capabilities": {},
+          "config": {
+            "timeout": 30000,
+            "retries": 0,
+            "sandbox": false,
+            "concurrent": true
+          }
+        },
+        {
+          "id": "webhook-trigger",
+          "name": "Webhook Trigger",
+          "description": "Recebe requisições HTTP de sistemas externos para disparar automações. Suporta autenticação, validação e rate limiting.",
+          "category": "system",
+          "version": "2.0.0",
+          "params": [
+            {
+              "name": "webhookPath",
+              "key": "webhookPath",
+              "type": "string",
+              "required": false,
+              "default": "",
+              "description": "Caminho customizado do webhook (ex: /my-webhook)",
+              "ui": {
+                "widgetType": "textInput",
+                "placeholder": "/my-webhook",
+                "helperText": "Deixe vazio para gerar automaticamente"
+              }
+            },
+            {
+              "name": "httpMethod",
+              "key": "httpMethod",
+              "type": "string",
+              "required": false,
+              "default": "POST",
+              "description": "Método HTTP aceito",
+              "ui": {
+                "widgetType": "select",
+                "options": [
+                  {
+                    "label": "GET",
+                    "value": "GET"
+                  },
+                  {
+                    "label": "POST",
+                    "value": "POST"
+                  },
+                  {
+                    "label": "PUT",
+                    "value": "PUT"
+                  },
+                  {
+                    "label": "PATCH",
+                    "value": "PATCH"
+                  },
+                  {
+                    "label": "DELETE",
+                    "value": "DELETE"
+                  },
+                  {
+                    "label": "Qualquer",
+                    "value": "ANY"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "requireAuth",
+              "key": "requireAuth",
+              "type": "boolean",
+              "required": false,
+              "default": true,
+              "description": "Requer autenticação via token secreto",
+              "ui": {
+                "widgetType": "toggle",
+                "helperText": "Ativa autenticação por token"
+              }
+            },
+            {
+              "name": "secretToken",
+              "key": "secretToken",
+              "type": "string",
+              "required": false,
+              "default": "",
+              "description": "Token secreto para autenticação (gerado automaticamente se vazio)",
+              "ui": {
+                "widgetType": "textInput",
+                "placeholder": "auto-gerado"
+              }
+            },
+            {
+              "name": "responseMode",
+              "key": "responseMode",
+              "type": "string",
+              "required": false,
+              "default": "immediate",
+              "description": "Modo de resposta do webhook",
+              "ui": {
+                "widgetType": "select",
+                "options": [
+                  {
+                    "label": "Imediata (200 OK)",
+                    "value": "immediate"
+                  },
+                  {
+                    "label": "Aguardar execução",
+                    "value": "wait"
+                  },
+                  {
+                    "label": "Customizada",
+                    "value": "custom"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "enabled",
+              "key": "enabled",
+              "type": "boolean",
+              "required": false,
+              "default": true,
+              "description": "Ativa ou desativa o webhook",
+              "ui": {
+                "widgetType": "toggle"
+              }
+            },
+            {
+              "name": "rateLimit",
+              "key": "rateLimit",
+              "type": "number",
+              "required": false,
+              "default": 60,
+              "description": "Limite de requisições por minuto (0 = ilimitado)",
+              "ui": {
+                "widgetType": "number",
+                "placeholder": "60",
+                "helperText": "0 = ilimitado"
+              }
+            }
+          ],
+          "ui": {
+            "tags": [
+              "trigger",
+              "webhook",
+              "http",
+              "api",
+              "integration"
+            ],
+            "examples": [],
+            "icon": "🔗",
+            "color": "#f59e0b"
+          },
+          "capabilities": {},
+          "config": {
+            "timeout": 30000,
+            "retries": 0,
+            "sandbox": false,
+            "concurrent": true
+          }
+        },
+        {
+          "id": "condition-flex",
+          "name": "Condition Flex",
+          "description": "Condição flexível com múltiplos caminhos de saída personalizáveis. Permite definir N caminhos e rotear o fluxo baseado em condições.",
+          "category": "system",
+          "version": "1.0.0",
+          "params": [
+            {
+              "name": "value",
+              "key": "value",
+              "type": "string",
+              "required": true,
+              "description": "Valor a ser avaliado (pode ser texto, número, ou resultado de node anterior)",
+              "ui": {
+                "placeholder": "Digite value...",
+                "helperText": "Valor a ser avaliado (pode ser texto, número, ou resultado de node anterior)",
+                "allowExpressions": true,
+                "widgetType": "textInput"
+              }
+            },
+            {
+              "name": "paths",
+              "key": "paths",
+              "type": "array",
+              "required": true,
+              "default": [
+                "caminho1",
+                "caminho2"
+              ],
+              "description": "Lista de caminhos possíveis (ex: [\"comprar\", \"vender\", \"ajuda\"])",
+              "ui": {
+                "placeholder": "Digite paths...",
+                "helperText": "Lista de caminhos possíveis (ex: [\"comprar\", \"vender\", \"ajuda\"])",
+                "allowExpressions": true,
+                "widgetType": "multiSelect"
+              }
+            },
+            {
+              "name": "matchType",
+              "key": "matchType",
+              "type": "string",
+              "required": false,
+              "default": "exact",
+              "description": "Tipo de comparação: exact (exato), contains (contém), regex (expressão regular)",
+              "ui": {
+                "widgetType": "select",
+                "options": [
+                  {
+                    "label": "Exato",
+                    "value": "exact"
+                  },
+                  {
+                    "label": "Contém",
+                    "value": "contains"
+                  },
+                  {
+                    "label": "Regex",
+                    "value": "regex"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "caseSensitive",
+              "key": "caseSensitive",
+              "type": "boolean",
+              "required": false,
+              "default": false,
+              "description": "Diferenciar maiúsculas de minúsculas",
+              "ui": {
+                "placeholder": "Digite caseSensitive...",
+                "helperText": "Diferenciar maiúsculas de minúsculas",
+                "allowExpressions": true,
+                "widgetType": "toggle"
+              }
+            },
+            {
+              "name": "defaultPath",
+              "key": "defaultPath",
+              "type": "string",
+              "required": false,
+              "description": "Caminho padrão caso nenhuma condição seja atendida",
+              "ui": {
+                "placeholder": "Digite defaultPath...",
+                "helperText": "Caminho padrão caso nenhuma condição seja atendida",
+                "allowExpressions": true,
+                "widgetType": "textInput"
+              }
+            }
+          ],
+          "ui": {
+            "tags": [
+              "condition",
+              "routing",
+              "decision",
+              "flex"
+            ],
+            "examples": [],
+            "icon": "GitBranch",
+            "color": "#06b6d4",
+            "category": "Logic",
+            "group": "Control Flow"
+          },
+          "capabilities": {},
+          "config": {
+            "timeout": 5000,
+            "retries": 0,
+            "sandbox": false,
+            "concurrent": true
+          }
+        }
+      ],
+      "automations": []
+    },
+    "errors": []
+  }
+}

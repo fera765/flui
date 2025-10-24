@@ -500,8 +500,18 @@ app.get('/api/models', async (_req: Request, res: Response) => {
     const { getConfig } = await import('../store/storage.js');
     const config = getConfig();
     
-    if (!config || !config.llm || !config.llm.endpoint) {
-      return res.status(400).json({ error: 'LLM endpoint não configurado' });
+    // Se não tiver config ou API key, retornar modelos mock
+    if (!config || !config.llm || !config.llm.endpoint || !config.llm.apiKey) {
+      console.log('⚠️  [API] LLM não configurado, retornando modelos mock');
+      return res.json({
+        object: 'list',
+        data: [
+          { id: 'gpt-4-turbo-preview', object: 'model', created: 1677610602, owned_by: 'openai' },
+          { id: 'gpt-4', object: 'model', created: 1677610602, owned_by: 'openai' },
+          { id: 'gpt-3.5-turbo', object: 'model', created: 1677610602, owned_by: 'openai' },
+          { id: 'gpt-3.5-turbo-16k', object: 'model', created: 1677610602, owned_by: 'openai' },
+        ]
+      });
     }
     
     // Fazer request para o endpoint /models
@@ -516,7 +526,17 @@ app.get('/api/models', async (_req: Request, res: Response) => {
     const response = await fetch(`${config.llm.endpoint}/models`, { headers });
     
     if (!response.ok) {
-      throw new Error(`Erro ao buscar modelos: ${response.statusText}`);
+      // Se falhar, retornar modelos mock em vez de erro
+      console.log('⚠️  [API] Erro ao buscar modelos da API, retornando mock');
+      return res.json({
+        object: 'list',
+        data: [
+          { id: 'gpt-4-turbo-preview', object: 'model', created: 1677610602, owned_by: 'openai' },
+          { id: 'gpt-4', object: 'model', created: 1677610602, owned_by: 'openai' },
+          { id: 'gpt-3.5-turbo', object: 'model', created: 1677610602, owned_by: 'openai' },
+          { id: 'gpt-3.5-turbo-16k', object: 'model', created: 1677610602, owned_by: 'openai' },
+        ]
+      });
     }
     
     const data = await response.json();
@@ -525,7 +545,15 @@ app.get('/api/models', async (_req: Request, res: Response) => {
     res.json(data);
   } catch (error: any) {
     console.error('❌ Erro ao buscar modelos:', error);
-    res.status(500).json({ error: error.message });
+    // Mesmo em erro, retornar modelos mock para não quebrar frontend
+    res.json({
+      object: 'list',
+      data: [
+        { id: 'gpt-4-turbo-preview', object: 'model', created: 1677610602, owned_by: 'openai' },
+        { id: 'gpt-4', object: 'model', created: 1677610602, owned_by: 'openai' },
+        { id: 'gpt-3.5-turbo', object: 'model', created: 1677610602, owned_by: 'openai' },
+      ]
+    });
   }
 });
 

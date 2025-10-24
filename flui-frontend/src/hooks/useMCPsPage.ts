@@ -25,10 +25,10 @@ export function useMCPsPage() {
   const importMutation = useMutation({
     mutationFn: (data: { type: string; package: string; version?: string }) => {
       const loadingToast = toast.loading('Importing MCP package...')
-      return api.importMCP(data).then((result) => {
+      return api.importMCP(data).then((result: any) => {
         toast.dismiss(loadingToast)
         return result
-      }).catch((error) => {
+      }).catch((error: any) => {
         toast.dismiss(loadingToast)
         throw error
       })
@@ -49,10 +49,10 @@ export function useMCPsPage() {
   const syncMutation = useMutation({
     mutationFn: (id: string) => {
       const loadingToast = toast.loading('Syncing MCP...')
-      return api.syncMCP(id).then((result) => {
+      return api.syncMCP(id).then((result: any) => {
         toast.dismiss(loadingToast)
         return result
-      }).catch((error) => {
+      }).catch((error: any) => {
         toast.dismiss(loadingToast)
         throw error
       })
@@ -72,7 +72,7 @@ export function useMCPsPage() {
 
   const testMutation = useMutation({
     mutationFn: (id: string) => api.testMCP(id),
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast.success('MCP connection successful!', {
         description: `Found ${data.toolsFound} tools`,
       })

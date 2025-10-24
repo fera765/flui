@@ -1,8 +1,144 @@
 {
 	"automations": [],
 	"executions": [],
-	"agents": [],
-	"mcps": [],
+	"agents": [
+		{
+			"name": "Test Agent E2E",
+			"description": "Agent criado via teste automatizado",
+			"systemPrompt": "Você é um assistente de testes",
+			"model": "gpt-3.5-turbo",
+			"temperature": 0.7,
+			"maxTokens": 4000,
+			"enabled": true,
+			"tools": [],
+			"mcpIds": [],
+			"id": "1761267446171",
+			"metadata": {
+				"createdAt": "2025-10-24T00:57:26.171Z",
+				"updatedAt": "2025-10-24T00:57:26.171Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-24T00:57:26.171Z",
+			"updatedAt": "2025-10-24T00:57:26.171Z"
+		},
+		{
+			"name": "Test Agent E2E",
+			"description": "Agent criado via teste automatizado",
+			"systemPrompt": "Você é um assistente de testes",
+			"model": "gpt-3.5-turbo",
+			"temperature": 0.7,
+			"maxTokens": 4000,
+			"enabled": true,
+			"tools": [],
+			"mcpIds": [],
+			"id": "1761267521117",
+			"metadata": {
+				"createdAt": "2025-10-24T00:58:41.117Z",
+				"updatedAt": "2025-10-24T00:58:41.117Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-24T00:58:41.117Z",
+			"updatedAt": "2025-10-24T00:58:41.117Z"
+		}
+	],
+	"mcps": [
+		{
+			"id": "688f80a464de5bd8",
+			"name": "@pollinations/model-context-protocol",
+			"description": "MCP from npm: @pollinations/model-context-protocol",
+			"version": "latest",
+			"server": "@pollinations/model-context-protocol",
+			"installType": "npm",
+			"tools": [
+				{
+					"id": "2a13a628c367e1fe",
+					"name": "@pollinations/model-context-protocol",
+					"description": "Model Context Protocol (MCP) server for Pollinations AI services using stdio transport",
+					"parameters": {},
+					"handler": "main"
+				}
+			],
+			"enabled": true,
+			"metadata": {
+				"createdAt": "2025-10-24T00:43:35.076Z",
+				"updatedAt": "2025-10-24T00:43:35.076Z",
+				"importedFrom": "npm",
+				"installDir": "/tmp/flui-mcp-cache/2b1aadc84c553395"
+			}
+		},
+		{
+			"id": "67a20d863bed966d",
+			"name": "chalk",
+			"description": "MCP from npm: chalk",
+			"version": "4.1.2",
+			"server": "chalk",
+			"installType": "npm",
+			"tools": [
+				{
+					"id": "71c0510769878f68",
+					"name": "chalk",
+					"description": "Terminal string styling done right",
+					"parameters": {},
+					"handler": "main"
+				}
+			],
+			"enabled": true,
+			"metadata": {
+				"createdAt": "2025-10-24T00:44:34.938Z",
+				"updatedAt": "2025-10-24T00:44:34.938Z",
+				"importedFrom": "npm",
+				"installDir": "/tmp/flui-mcp-cache/2f0545c377683118"
+			}
+		},
+		{
+			"id": "2aae4b0f3567963f",
+			"name": "chalk",
+			"description": "MCP from npm: chalk",
+			"version": "4.1.2",
+			"server": "chalk",
+			"installType": "npm",
+			"tools": [
+				{
+					"id": "4fedf4b52e66fee8",
+					"name": "chalk",
+					"description": "Terminal string styling done right",
+					"parameters": {},
+					"handler": "main"
+				}
+			],
+			"enabled": true,
+			"metadata": {
+				"createdAt": "2025-10-24T00:57:36.808Z",
+				"updatedAt": "2025-10-24T00:57:36.808Z",
+				"importedFrom": "npm",
+				"installDir": "/tmp/flui-mcp-cache/4e501534e5a41558"
+			}
+		},
+		{
+			"id": "e1343095b1933fb9",
+			"name": "chalk",
+			"description": "MCP from npm: chalk",
+			"version": "4.1.2",
+			"server": "chalk",
+			"installType": "npm",
+			"tools": [
+				{
+					"id": "d1323758bc2d43ec",
+					"name": "chalk",
+					"description": "Terminal string styling done right",
+					"parameters": {},
+					"handler": "main"
+				}
+			],
+			"enabled": true,
+			"metadata": {
+				"createdAt": "2025-10-24T00:58:50.935Z",
+				"updatedAt": "2025-10-24T00:58:50.935Z",
+				"importedFrom": "npm",
+				"installDir": "/tmp/flui-mcp-cache/667d03f13351e596"
+			}
+		}
+	],
 	"sessions": [],
 	"config": {
 		"llm": {

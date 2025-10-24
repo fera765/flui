@@ -151,7 +151,7 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isLoading }: Agen
                 className="w-full h-10 px-3 border border-input bg-background rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <option value="">Select a model</option>
-                {models.map((model: any) => (
+                {((models as any)?.data || models || []).map((model: any) => (
                   <option key={model.id} value={model.id}>
                     {model.id}
                   </option>

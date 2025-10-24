@@ -120,7 +120,7 @@ export function WorkflowEditor() {
         await updateAutomation({ id, data: automationData })
         toast.success('Automation saved!')
       } else {
-        const result = await createAutomation(automationData)
+        const result: any = await createAutomation(automationData)
         toast.success('Automation created!')
         navigate(`/automations/${result.id}/edit`)
       }

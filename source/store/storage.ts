@@ -35,13 +35,20 @@ const config = new Conf({
   },
 });
 
-// 🧹 LIMPAR TUDO NO STARTUP
-console.log('🧹 [Storage] Limpando dados antigos...');
-config.set('agents', []);
-config.set('mcps', []);
-config.set('automations', []);
-config.set('sessions', []);
-console.log('✅ [Storage] Dados limpos (agentes: 0, mcps: 0, automações: 0)');
+// 🔧 INICIALIZAR STORAGE SE NÃO EXISTIR
+if (!config.get('agents')) {
+  config.set('agents', []);
+}
+if (!config.get('mcps')) {
+  config.set('mcps', []);
+}
+if (!config.get('automations')) {
+  config.set('automations', []);
+}
+if (!config.get('sessions')) {
+  config.set('sessions', []);
+}
+console.log('✅ [Storage] Storage inicializado');
 
 // ============= CONFIG =============
 export const getConfig = (): Config | null => {

@@ -12,11 +12,14 @@ const config = new Conf({
   configName: 'config',
 });
 
-// 🧹 LIMPAR automações antigas no startup
-console.log('🧹 [AutomationStorage] Limpando automações antigas...');
-config.set('automations', []);
-config.set('executions', []);
-console.log('✅ [AutomationStorage] Automações limpas (count: 0)');
+// 🔧 INICIALIZAR STORAGE SE NÃO EXISTIR
+if (!config.get('automations')) {
+  config.set('automations', []);
+}
+if (!config.get('executions')) {
+  config.set('executions', []);
+}
+console.log('✅ [AutomationStorage] Storage inicializado');
 
 /**
  * Valida e normaliza uma automação antes de salvar
