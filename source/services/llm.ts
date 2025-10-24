@@ -280,3 +280,39 @@ export const listModels = async (): Promise<string[]> => {
     throw new Error(`Erro ao listar modelos: ${error.message}`);
   }
 };
+
+// Export LLM object for easy import
+export const LLM = {
+  initialize: initializeLLM,
+  getClient: getLLMClient,
+  chat: async (messages: Array<{ role: string; content: string }>) => {
+    const store = useStore.getState();
+    const config = store.config;
+    
+    if (!config || !config.llm) {
+      throw new Error('LLM não configurado');
+    }
+    
+    if (!openaiClient) {
+      initializeLLM(config.llm.endpoint, config.llm.apiKey || '');
+    }
+    
+    if (!openaiClient) {
+      throw new Error('Falha ao inicializar cliente LLM');
+    }
+    
+    const response = await openaiClient.chat.completions.create({
+      model: config.llm.model,
+      messages: messages as any,
+      temperature: config.llm.temperature,
+      max_tokens: config.llm.maxTokens,
+    });
+    
+    return {
+      content: response.choices[0]?.message?.content || '',
+      model: response.model,
+    };
+  },
+  sendMessage,
+  listModels,
+};

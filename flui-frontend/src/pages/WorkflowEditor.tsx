@@ -55,23 +55,14 @@ export function WorkflowEditor() {
   const workflowStore = useWorkflowStore()
   const { createAutomation, updateAutomation, executeAutomation } = useAutomations()
 
-  // Sync with store - Bidirectional sync
+  // Sync React Flow state to Zustand store (one-way)
   useEffect(() => {
     workflowStore.setNodes(nodes)
-  }, [nodes])
+  }, [nodes, workflowStore])
 
   useEffect(() => {
     workflowStore.setEdges(edges)
-  }, [edges])
-
-  // Subscribe to store updates and sync to React Flow
-  useEffect(() => {
-    const unsubscribe = useWorkflowStore.subscribe((state) => {
-      // When store nodes change, update React Flow
-      setNodes(state.nodes)
-    })
-    return unsubscribe
-  }, [setNodes])
+  }, [edges, workflowStore])
 
   // Load automation if editing
   useEffect(() => {
@@ -184,8 +175,6 @@ export function WorkflowEditor() {
           animated: true,
           style: { stroke: 'hsl(var(--primary))' },
         }}
-        edgesReconnectable={true}
-        reconnectRadius={20}
       >
         <Background />
         <Controls showInteractive={false} />
