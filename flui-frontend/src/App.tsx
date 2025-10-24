@@ -46,7 +46,7 @@ function App() {
             <Route path="automations/new" element={<WorkflowEditor />} />
             <Route path="automations/:id/edit" element={<WorkflowEditor />} />
             <Route path="tools" element={<Tools />} />
-            <Route path="settings" element={<div className="p-6">Settings (Coming soon)</div>} />
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>
       </BrowserRouter>
