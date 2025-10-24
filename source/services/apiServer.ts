@@ -702,6 +702,12 @@ app.post('/api/mcps/import', async (req: Request, res: Response) => {
       // Save to store
       const store = useStore.getState();
       store.createMCP(result.mcp);
+      
+      // Register tools IMMEDIATELY
+      console.log(`🔧 [API] Registrando ${result.mcp.tools.length} tools no registry...`);
+      const { MCPLoader } = await import('./mcpLoader.js');
+      await MCPLoader.loadMCP(result.mcp);
+      console.log(`✅ [API] Tools registradas no registry!`);
     }
 
     res.json(result);
