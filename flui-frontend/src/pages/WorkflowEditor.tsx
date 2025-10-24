@@ -19,7 +19,7 @@ import { NodeConfigModal } from '@/components/workflow/NodeConfigModal'
 import { TypedLinkerModal } from '@/components/workflow/TypedLinkerModal'
 import { AddNodeModal } from '@/components/workflow/AddNodeModal'
 import { DeleteEdgeButton } from '@/components/workflow/DeleteEdgeButton'
-import { ExecutionModal } from '@/components/automations/ExecutionModal'
+import { ExecutionModalV2 } from '@/components/automations/ExecutionModalV2'
 import { useWorkflowStore } from '@/store/workflowStore'
 import { useAutomations } from '@/hooks/useAutomations'
 import { api } from '@/services/api'
@@ -391,10 +391,16 @@ export function WorkflowEditor() {
     setIsExecuting(true)
     
     try {
-      // Iniciar execução
-      const execution = await executeAutomation({ id: automationIdToRun })
+      // Preparar nodes para timeline
+      const storeState = useWorkflowStore.getState()
+      const executionNodes = storeState.nodes.map(node => ({
+        id: node.id,
+        name: node.data.name || node.data.type,
+        type: node.data.type,
+        status: 'pending' as const,
+      }))
       
-      // Abrir modal de execução com contexto
+      // Abrir modal de execução com contexto inicial
       setExecutionContext({
         automationName: `Automation ${automationIdToRun}`,
         automationId: automationIdToRun,
@@ -402,23 +408,85 @@ export function WorkflowEditor() {
         nodesExecuted: 0,
         files: [],
         logs: [],
+        nodes: executionNodes,
       })
       
-      // Simular progresso (em produção, isso viria via WebSocket ou polling)
-      setTimeout(() => {
-        setExecutionContext((prev: any) => ({
-          ...prev,
-          status: 'completed',
-          nodesExecuted: nodes.length,
-          duration: 1234,
-        }))
-      }, 3000)
+      // Iniciar execução
+      const execution = await executeAutomation({ id: automationIdToRun })
+      
+      // Simular progresso com nodes (em produção, viria via WebSocket)
+      // Atualizar status de cada node sequencialmente
+      for (let i = 0; i < executionNodes.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, 800))
+        
+        setExecutionContext((prev: any) => {
+          if (!prev) return null
+          const updatedNodes = [...prev.nodes]
+          updatedNodes[i] = {
+            ...updatedNodes[i],
+            status: 'running',
+            startTime: Date.now(),
+          }
+          
+          return {
+            ...prev,
+            nodes: updatedNodes,
+            logs: [...prev.logs, {
+              timestamp: new Date().toISOString(),
+              level: 'info',
+              nodeId: updatedNodes[i].id,
+              nodeName: updatedNodes[i].name,
+              message: `Executando ${updatedNodes[i].name}...`,
+            }]
+          }
+        })
+        
+        // Simular conclusão do node
+        await new Promise(resolve => setTimeout(resolve, 600))
+        
+        setExecutionContext((prev: any) => {
+          if (!prev) return null
+          const updatedNodes = [...prev.nodes]
+          const duration = Date.now() - (updatedNodes[i].startTime || 0)
+          updatedNodes[i] = {
+            ...updatedNodes[i],
+            status: 'success',
+            endTime: Date.now(),
+            duration,
+          }
+          
+          return {
+            ...prev,
+            nodesExecuted: i + 1,
+            nodes: updatedNodes,
+            logs: [...prev.logs, {
+              timestamp: new Date().toISOString(),
+              level: 'success',
+              nodeId: updatedNodes[i].id,
+              nodeName: updatedNodes[i].name,
+              message: `Concluído em ${duration}ms`,
+              output: { result: 'success', data: {} },
+            }]
+          }
+        })
+      }
+      
+      // Finalizar execução
+      setExecutionContext((prev: any) => ({
+        ...prev,
+        status: 'completed',
+        duration: executionNodes.length * 1400,
+      }))
       
     } catch (error: any) {
       toast.error('Erro ao executar automação', {
         description: error.message
       })
-      setExecutionContext(null)
+      setExecutionContext((prev: any) => prev ? {
+        ...prev,
+        status: 'failed',
+        error: error.message,
+      } : null)
     } finally {
       setIsExecuting(false)
     }
@@ -530,7 +598,7 @@ export function WorkflowEditor() {
       
       {/* Execution Modal */}
       {executionContext && (
-        <ExecutionModal
+        <ExecutionModalV2
           isOpen={!!executionContext}
           onClose={() => setExecutionContext(null)}
           context={executionContext}
