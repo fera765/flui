@@ -87,10 +87,18 @@ export function WorkflowEditor() {
   }
 
   const handleSave = async () => {
+    // ✅ CRITICAL FIX: Read from store instead of local state
+    // This ensures we get the latest updates from NodeConfigModal
+    const storeState = useWorkflowStore.getState()
+    const latestNodes = storeState.nodes
+    const latestEdges = storeState.edges
+    
+    console.log('[WorkflowEditor] Saving with store nodes:', latestNodes.length)
+    
     const automationData = {
       name: `Automation ${id || 'New'}`,
       description: 'Workflow automation',
-      nodes: nodes.map((node) => ({
+      nodes: latestNodes.map((node) => ({
         id: node.id,
         type: node.data.type,
         name: node.data.name,
@@ -98,12 +106,12 @@ export function WorkflowEditor() {
         config: node.data.config,
         position: node.position,
       })),
-      edges: edges.map((edge) => ({
+      edges: latestEdges.map((edge) => ({
         id: edge.id,
         source: edge.source,
         target: edge.target,
       })),
-      startNodeId: nodes[0]?.id || '',
+      startNodeId: latestNodes[0]?.id || '',
     }
 
     try {
