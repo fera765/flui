@@ -67,13 +67,14 @@ export function NodeConfigModal() {
       
       if (mcpTool) {
         itemData = { ...mcpTool, mcpName: mcp.name }
-        params = mcpTool.inputSchema?.properties 
-          ? Object.entries(mcpTool.inputSchema.properties).map(([key, prop]: [string, any]) => ({
+        // ✅ Usar parameters em vez de inputSchema (padrão do backend)
+        params = mcpTool.parameters && Object.keys(mcpTool.parameters).length > 0
+          ? Object.entries(mcpTool.parameters).map(([key, prop]: [string, any]) => ({
               key,
               name: prop.title || key,
               description: prop.description,
               type: prop.type || 'string',
-              required: mcpTool.inputSchema?.required?.includes(key) || false,
+              required: prop.required || false,
             }))
           : []
       }

@@ -1087,7 +1087,15 @@
 			}
 		}
 	],
-	"sessions": [],
+	"sessions": [
+		{
+			"id": "8613298984342f50",
+			"name": "Nova Sessão",
+			"messages": [],
+			"createdAt": "2025-10-24T15:26:41.303Z",
+			"updatedAt": "2025-10-24T15:26:41.304Z"
+		}
+	],
 	"config": {
 		"llm": {
 			"endpoint": "https://api.llm7.io/v1",
@@ -1098,5 +1106,6 @@
 		},
 		"theme": "default",
 		"locale": "pt-BR"
-	}
+	},
+	"activeSessionId": "8613298984342f50"
 }
