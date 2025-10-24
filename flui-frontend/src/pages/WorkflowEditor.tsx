@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import ReactFlow, {
   Background,
@@ -7,7 +7,6 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   Connection,
-  Edge,
   Panel,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
@@ -15,7 +14,8 @@ import { Plus, Save, Play } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { CustomNode } from '@/components/workflow/CustomNode'
 import { NodeConfigModal } from '@/components/workflow/NodeConfigModal'
-import { LinkerModal } from '@/components/workflow/LinkerModal'
+import { TypedLinkerModal } from '@/components/workflow/TypedLinkerModal'
+import { AddNodeModal } from '@/components/workflow/AddNodeModal'
 import { useWorkflowStore } from '@/store/workflowStore'
 import { useAutomations } from '@/hooks/useAutomations'
 import { toast } from 'sonner'
@@ -30,6 +30,7 @@ export function WorkflowEditor() {
   
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
+  const [isAddNodeModalOpen, setIsAddNodeModalOpen] = useState(false)
 
   const workflowStore = useWorkflowStore()
   const { createAutomation, updateAutomation, executeAutomation } = useAutomations()
@@ -76,7 +77,7 @@ export function WorkflowEditor() {
     [setEdges]
   )
 
-  const addNode = (type: string) => {
+  const handleAddNodeFromModal = (type: string, data: any) => {
     const id = `node-${Date.now()}`
     const newNode = {
       id,
@@ -87,18 +88,17 @@ export function WorkflowEditor() {
       },
       data: {
         type,
-        name: `New ${type}`,
-        description: `${type} node`,
-        config: {},
+        ...data,
       },
     }
     setNodes((nds) => [...nds, newNode])
+    toast.success(`Added ${data.name}`)
   }
 
   const handleSave = async () => {
     const automationData = {
       name: `Automation ${id || 'New'}`,
-      description: 'Created from workflow editor',
+      description: 'Workflow automation',
       nodes: nodes.map((node) => ({
         id: node.id,
         type: node.data.type,
@@ -112,7 +112,7 @@ export function WorkflowEditor() {
         source: edge.source,
         target: edge.target,
       })),
-      enabled: true,
+      startNodeId: nodes[0]?.id || '',
     }
 
     try {
@@ -124,8 +124,8 @@ export function WorkflowEditor() {
         toast.success('Automation created!')
         navigate(`/automations/${result.id}/edit`)
       }
-    } catch (error) {
-      toast.error('Failed to save automation')
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to save automation')
     }
   }
 
@@ -134,69 +134,81 @@ export function WorkflowEditor() {
       toast.error('Please save the automation first')
       return
     }
-    
-    await executeAutomation({ id })
+
+    try {
+      await executeAutomation(id)
+      toast.success('Automation executed successfully!')
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to execute automation')
+    }
   }
 
   return (
-    <div className="h-screen flex flex-col">
-      {/* Toolbar */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card">
-        <div>
-          <h1 className="text-xl font-bold text-foreground">Workflow Editor</h1>
-          <p className="text-sm text-muted-foreground">{id === 'new' ? 'New Automation' : `Edit: ${id}`}</p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={handleSave} variant="outline">
-            <Save className="w-4 h-4" />
+    <div className="h-full w-full">
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        nodeTypes={nodeTypes}
+        fitView
+        defaultEdgeOptions={{
+          animated: true,
+          style: { stroke: 'hsl(var(--primary))' },
+        }}
+      >
+        <Background />
+        <Controls showInteractive={false} />
+        
+        {/* Add Node Button */}
+        <Panel position="top-right">
+          <Button 
+            size="lg" 
+            onClick={() => setIsAddNodeModalOpen(true)}
+            className="shadow-lg"
+            data-testid="add-node-button"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Add Node
+          </Button>
+        </Panel>
+
+        {/* Action Buttons */}
+        <Panel position="top-left" className="flex gap-2">
+          <Button onClick={handleSave} size="sm">
+            <Save className="w-4 h-4 mr-2" />
             Save
           </Button>
-          <Button onClick={handleRun} disabled={id === 'new'}>
-            <Play className="w-4 h-4" />
-            Run
-          </Button>
-        </div>
-      </div>
+          {id && id !== 'new' && (
+            <Button onClick={handleRun} size="sm" variant="secondary">
+              <Play className="w-4 h-4 mr-2" />
+              Run
+            </Button>
+          )}
+        </Panel>
+      </ReactFlow>
 
-      {/* React Flow Canvas */}
-      <div className="flex-1 bg-background">
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          nodeTypes={nodeTypes}
-          fitView
-          defaultEdgeOptions={{
-            animated: true,
-            style: { stroke: 'hsl(var(--primary))' },
-          }}
-        >
-          <Background />
-          <Controls showInteractive={false} />
-
-          {/* Add Node Panel */}
-          <Panel position="top-right" className="space-y-2">
-            <div className="bg-card border border-border rounded-lg p-3 shadow-lg space-y-2">
-              <div className="text-sm font-medium text-foreground mb-2">Add Node</div>
-              <Button onClick={() => addNode('tool')} variant="outline" size="sm" className="w-full justify-start">
-                Tool
-              </Button>
-              <Button onClick={() => addNode('agent')} variant="outline" size="sm" className="w-full justify-start">
-                Agent
-              </Button>
-              <Button onClick={() => addNode('condition')} variant="outline" size="sm" className="w-full justify-start">
-                Condition
-              </Button>
-            </div>
-          </Panel>
-        </ReactFlow>
-      </div>
-
-      {/* Modals */}
       <NodeConfigModal />
-      <LinkerModal />
+      <TypedLinkerModal
+        isOpen={workflowStore.isLinkerModalOpen}
+        onClose={workflowStore.closeLinkerModal}
+        targetField={workflowStore.linkerTargetField || ''}
+        targetType={workflowStore.linkerTargetType}
+        onSelect={(reference) => {
+          // Extract nodeId and outputPath from reference "{{nodeId.output}}"
+          const match = reference.match(/\{\{(.+?)\.(.+?)\}\}/)
+          if (match) {
+            workflowStore.linkOutput(match[1], match[2])
+          }
+          workflowStore.closeLinkerModal()
+        }}
+      />
+      <AddNodeModal
+        isOpen={isAddNodeModalOpen}
+        onClose={() => setIsAddNodeModalOpen(false)}
+        onAddNode={handleAddNodeFromModal}
+      />
     </div>
   )
 }

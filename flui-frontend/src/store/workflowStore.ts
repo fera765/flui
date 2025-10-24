@@ -5,9 +5,11 @@ interface WorkflowState {
   nodes: Node[]
   edges: Edge[]
   selectedNode: Node | null
+  selectedNodeId: string | null
   isConfigModalOpen: boolean
   isLinkerModalOpen: boolean
   linkerTargetField: string | null
+  linkerTargetType: string
   
   setNodes: (nodes: Node[]) => void
   setEdges: (edges: Edge[]) => void
@@ -17,7 +19,7 @@ interface WorkflowState {
   selectNode: (node: Node | null) => void
   openConfigModal: (node: Node) => void
   closeConfigModal: () => void
-  openLinkerModal: (field: string) => void
+  openLinkerModal: (field: string, type: string) => void
   closeLinkerModal: () => void
   linkOutput: (nodeId: string, outputPath: string) => void
 }
@@ -26,9 +28,11 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   nodes: [],
   edges: [],
   selectedNode: null,
+  selectedNodeId: null,
   isConfigModalOpen: false,
   isLinkerModalOpen: false,
   linkerTargetField: null,
+  linkerTargetType: 'string',
 
   setNodes: (nodes) => set({ nodes }),
   setEdges: (edges) => set({ edges }),
@@ -47,12 +51,17 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     nodes: state.nodes.filter((node) => node.id !== id),
     edges: state.edges.filter((edge) => edge.source !== id && edge.target !== id),
     selectedNode: state.selectedNode?.id === id ? null : state.selectedNode,
+    selectedNodeId: state.selectedNodeId === id ? null : state.selectedNodeId,
   })),
 
-  selectNode: (node) => set({ selectedNode: node }),
+  selectNode: (node) => set({ 
+    selectedNode: node,
+    selectedNodeId: node?.id || null,
+  }),
 
   openConfigModal: (node) => set({
     selectedNode: node,
+    selectedNodeId: node.id,
     isConfigModalOpen: true,
   }),
 
@@ -60,14 +69,16 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     isConfigModalOpen: false,
   }),
 
-  openLinkerModal: (field) => set({
+  openLinkerModal: (field, type = 'string') => set({
     isLinkerModalOpen: true,
     linkerTargetField: field,
+    linkerTargetType: type,
   }),
 
   closeLinkerModal: () => set({
     isLinkerModalOpen: false,
     linkerTargetField: null,
+    linkerTargetType: 'string',
   }),
 
   linkOutput: (nodeId, outputPath) => {
