@@ -3,7 +3,9 @@ import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useWorkflowStore } from '@/store/workflowStore'
-import { useTools } from '@/hooks/useAgents'
+import { useTools, useMCPs } from '@/hooks/useAgents'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '@/services/api'
 import { DynamicConfigInput } from './DynamicConfigInput'
 
 export function NodeConfigModal() {
@@ -16,29 +18,76 @@ export function NodeConfigModal() {
   } = useWorkflowStore()
 
   const { data: tools = [] } = useTools()
+  const { data: mcps = [] } = useMCPs()
+  const { data: agents = [] } = useQuery({
+    queryKey: ['agents'],
+    queryFn: () => api.getAgents(),
+  })
 
   const [config, setConfig] = useState<Record<string, any>>({})
-  const [nodeName, setNodeName] = useState('')
-  const [nodeDescription, setNodeDescription] = useState('')
 
   useEffect(() => {
     if (selectedNode) {
       setConfig(selectedNode.data.config || {})
-      setNodeName(selectedNode.data.name || '')
-      setNodeDescription(selectedNode.data.description || '')
     }
   }, [selectedNode])
 
   if (!selectedNode) return null
 
-  // Get tool parameters if this is a tool node
-  const tool = tools.find((t: any) => t.id === selectedNode.data.toolId)
-  const params = tool?.params || []
+  // Get parameters based on node type
+  let params: any[] = []
+  let itemData: any = null
+  
+  if (selectedNode.data.type === 'agent' && selectedNode.data.agentId) {
+    // ✅ Agent node - apenas o input (message)
+    const agent = agents.find((a: any) => a.id === selectedNode.data.agentId)
+    itemData = agent
+    
+    if (agent) {
+      params = [
+        {
+          key: 'message',
+          name: 'User Input',
+          description: 'Mensagem/input para o agente processar',
+          type: 'string',
+          required: true,
+        },
+      ]
+    }
+  } else if (selectedNode.data.mcpToolId || selectedNode.data.mcpId) {
+    // ✅ MCP Tool node - buscar tool específica
+    const mcpId = selectedNode.data.mcpId
+    const toolId = selectedNode.data.mcpToolId
+    
+    const mcp = mcps.find((m: any) => m.id === mcpId)
+    if (mcp && mcp.tools) {
+      const mcpTool = mcp.tools.find((t: any) => 
+        t.id === toolId || `${mcpId}-${t.name}` === toolId
+      )
+      
+      if (mcpTool) {
+        itemData = { ...mcpTool, mcpName: mcp.name }
+        params = mcpTool.inputSchema?.properties 
+          ? Object.entries(mcpTool.inputSchema.properties).map(([key, prop]: [string, any]) => ({
+              key,
+              name: prop.title || key,
+              description: prop.description,
+              type: prop.type || 'string',
+              required: mcpTool.inputSchema?.required?.includes(key) || false,
+            }))
+          : []
+      }
+    }
+  } else if (selectedNode.data.toolId) {
+    // ✅ System Tool
+    const tool = tools.find((t: any) => t.id === selectedNode.data.toolId)
+    params = tool?.params || []
+    itemData = tool
+  }
 
   const handleSave = () => {
+    // ✅ Salvar apenas config, nome/descrição são do agente/tool
     updateNode(selectedNode.id, {
-      name: nodeName,
-      description: nodeDescription,
       config,
     })
     closeConfigModal()
@@ -60,35 +109,27 @@ export function NodeConfigModal() {
       size="lg"
     >
       <div className="space-y-6">
-        {/* Name & Description */}
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
-            Node Name
-          </label>
-          <Input
-            value={nodeName}
-            onChange={(e) => setNodeName(e.target.value)}
-            placeholder="Enter node name"
-            data-testid="node-name-input"
-          />
+        {/* ✅ Node Info (read-only) */}
+        <div className="bg-muted p-3 rounded-lg">
+          <h4 className="text-sm font-medium text-foreground mb-1">
+            {selectedNode.data.name || selectedNode.data.type}
+          </h4>
+          <p className="text-xs text-muted-foreground">
+            {selectedNode.data.description || 'No description'}
+          </p>
+          {itemData?.mcpName && (
+            <p className="text-xs text-purple-500 mt-1">
+              MCP: {itemData.mcpName}
+            </p>
+          )}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
-            Description
-          </label>
-          <Input
-            value={nodeDescription}
-            onChange={(e) => setNodeDescription(e.target.value)}
-            placeholder="Enter description"
-            data-testid="node-description-input"
-          />
-        </div>
-
-        {/* Dynamic Parameters */}
+        {/* ✅ Input Parameters (only) */}
         {params.length > 0 && (
           <div>
-            <h3 className="text-sm font-medium text-foreground mb-3">Parameters</h3>
+            <h3 className="text-sm font-medium text-foreground mb-3">
+              {selectedNode.data.type === 'agent' ? 'Agent Input' : 'Tool Parameters'}
+            </h3>
             <div className="space-y-4">
               {params.map((param: any) => (
                 <div key={param.key}>

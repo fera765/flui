@@ -1,0 +1,148 @@
+{
+  "timestamp": "2025-10-24T11:19:05.360Z",
+  "summary": {
+    "totalTests": 9,
+    "passedTests": 8,
+    "failedTests": 1,
+    "successRate": 88.9
+  },
+  "tests": [
+    {
+      "name": "Settings: No placeholder",
+      "passed": true
+    },
+    {
+      "name": "Settings: Title Present",
+      "passed": true
+    },
+    {
+      "name": "Settings: LLM Config Section",
+      "passed": false
+    },
+    {
+      "name": "Settings: Input Fields",
+      "passed": true
+    },
+    {
+      "name": "Settings: Model Field",
+      "passed": true
+    },
+    {
+      "name": "Settings: Models Loaded",
+      "passed": true
+    },
+    {
+      "name": "Settings: LLM7 Models",
+      "passed": true
+    },
+    {
+      "name": "Settings: Save Button",
+      "passed": true
+    },
+    {
+      "name": "Settings: Test Button",
+      "passed": true
+    }
+  ],
+  "consoleLogs": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "timestamp": "2025-10-24T11:18:55.114Z"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "timestamp": "2025-10-24T11:18:55.129Z"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+      "timestamp": "2025-10-24T11:18:55.293Z"
+    },
+    {
+      "type": "warning",
+      "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+      "timestamp": "2025-10-24T11:18:55.392Z"
+    },
+    {
+      "type": "warning",
+      "text": "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+      "timestamp": "2025-10-24T11:18:55.392Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:18:55.425Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:18:55.426Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:18:55.426Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:18:55.427Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:18:56.435Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:18:56.437Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:18:56.437Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:18:56.437Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:18:58.071Z"
+    },
+    {
+      "type": "error",
+      "text": "Erro ao carregar config: Error: Unknown error\n    at ApiClient.fetch (http://localhost:5173/src/services/api.ts:13:13)\n    at async loadConfig (http://localhost:5173/src/pages/Settings.tsx:63:24)",
+      "timestamp": "2025-10-24T11:18:58.072Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:18:58.072Z"
+    },
+    {
+      "type": "error",
+      "text": "Erro ao carregar config: Error: Unknown error\n    at ApiClient.fetch (http://localhost:5173/src/services/api.ts:13:13)\n    at async loadConfig (http://localhost:5173/src/pages/Settings.tsx:63:24)",
+      "timestamp": "2025-10-24T11:18:58.072Z"
+    },
+    {
+      "type": "log",
+      "text": "✅ Loaded 15 models from https://api.llm7.io/v1",
+      "timestamp": "2025-10-24T11:18:58.615Z"
+    },
+    {
+      "type": "log",
+      "text": "✅ Loaded 15 models from https://api.llm7.io/v1",
+      "timestamp": "2025-10-24T11:18:58.784Z"
+    }
+  ],
+  "screenshots": [
+    "settings-page-loaded.png",
+    "settings-page-complete.png"
+  ]
+}

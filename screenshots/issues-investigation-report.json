@@ -1,0 +1,78 @@
+{
+  "timestamp": "2025-10-24T12:00:33.489Z",
+  "issues": [
+    {
+      "id": 1,
+      "name": "Maximum Update Depth Loop",
+      "detected": false,
+      "severity": "CRITICAL"
+    },
+    {
+      "id": 2,
+      "name": "404 Loading Automation",
+      "detected": false,
+      "severity": "HIGH"
+    },
+    {
+      "id": 3,
+      "name": "Double Spinner in Test Button",
+      "detected": true,
+      "severity": "LOW",
+      "count": 2
+    },
+    {
+      "id": 4,
+      "name": "Static Models in Agent Modal",
+      "detected": false,
+      "severity": "MEDIUM"
+    }
+  ],
+  "consoleLogs": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "timestamp": "2025-10-24T11:59:59.266Z"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "timestamp": "2025-10-24T11:59:59.293Z"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+      "timestamp": "2025-10-24T11:59:59.445Z"
+    },
+    {
+      "type": "warning",
+      "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+      "timestamp": "2025-10-24T11:59:59.538Z"
+    },
+    {
+      "type": "warning",
+      "text": "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+      "timestamp": "2025-10-24T11:59:59.538Z"
+    },
+    {
+      "type": "log",
+      "text": "✅ Loaded 15 models from https://api.llm7.io/v1",
+      "timestamp": "2025-10-24T12:00:09.987Z"
+    },
+    {
+      "type": "log",
+      "text": "✅ Loaded 15 models from https://api.llm7.io/v1",
+      "timestamp": "2025-10-24T12:00:10.317Z"
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "networkErrors": [],
+  "screenshots": [
+    "issue-01-workflow-editor.png",
+    "issue-03-settings-before-test.png",
+    "issue-03-loading-state.png",
+    "issue-03-after-test.png",
+    "issue-04-agent-modal.png",
+    "issue-04-model-field.png"
+  ]
+}

@@ -180,6 +180,101 @@
 			},
 			"createdAt": "2025-10-24T00:58:41.117Z",
 			"updatedAt": "2025-10-24T00:58:41.117Z"
+		},
+		{
+			"name": "Test Agent Playwright",
+			"description": "Agent for testing node config",
+			"systemPrompt": "You are a helpful assistant for testing.",
+			"model": "gpt-4-turbo-preview",
+			"temperature": 0.7,
+			"maxTokens": 4000,
+			"enabled": true,
+			"tools": [],
+			"mcpIds": [],
+			"id": "1761308352374",
+			"metadata": {
+				"createdAt": "2025-10-24T12:19:12.374Z",
+				"updatedAt": "2025-10-24T12:19:12.374Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-24T12:19:12.374Z",
+			"updatedAt": "2025-10-24T12:19:12.374Z"
+		},
+		{
+			"name": "Test Agent Playwright",
+			"description": "Agent for testing node config",
+			"systemPrompt": "You are a helpful assistant for testing.",
+			"model": "gpt-4-turbo-preview",
+			"temperature": 0.7,
+			"maxTokens": 4000,
+			"enabled": true,
+			"tools": [],
+			"mcpIds": [],
+			"id": "1761308434471",
+			"metadata": {
+				"createdAt": "2025-10-24T12:20:34.471Z",
+				"updatedAt": "2025-10-24T12:20:34.471Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-24T12:20:34.471Z",
+			"updatedAt": "2025-10-24T12:20:34.471Z"
+		},
+		{
+			"name": "Test Agent Playwright",
+			"description": "Agent for testing node config",
+			"systemPrompt": "You are a helpful assistant for testing.",
+			"model": "gpt-4-turbo-preview",
+			"temperature": 0.7,
+			"maxTokens": 4000,
+			"enabled": true,
+			"tools": [],
+			"mcpIds": [],
+			"id": "1761308464199",
+			"metadata": {
+				"createdAt": "2025-10-24T12:21:04.199Z",
+				"updatedAt": "2025-10-24T12:21:04.199Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-24T12:21:04.199Z",
+			"updatedAt": "2025-10-24T12:21:04.199Z"
+		},
+		{
+			"name": "Test Agent 1761308498945",
+			"description": "Agent for testing node config",
+			"systemPrompt": "You are a helpful assistant for testing.",
+			"model": "gpt-4-turbo-preview",
+			"temperature": 0.7,
+			"maxTokens": 4000,
+			"enabled": true,
+			"tools": [],
+			"mcpIds": [],
+			"id": "1761308499528",
+			"metadata": {
+				"createdAt": "2025-10-24T12:21:39.528Z",
+				"updatedAt": "2025-10-24T12:21:39.528Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-24T12:21:39.528Z",
+			"updatedAt": "2025-10-24T12:21:39.528Z"
+		},
+		{
+			"name": "Test Agent 1761308677139",
+			"description": "Agent for testing node config",
+			"systemPrompt": "You are a helpful assistant for testing.",
+			"model": "gpt-4-turbo-preview",
+			"temperature": 0.7,
+			"maxTokens": 4000,
+			"enabled": true,
+			"tools": [],
+			"mcpIds": [],
+			"id": "1761308677730",
+			"metadata": {
+				"createdAt": "2025-10-24T12:24:37.730Z",
+				"updatedAt": "2025-10-24T12:24:37.730Z",
+				"executionCount": 0
+			},
+			"createdAt": "2025-10-24T12:24:37.730Z",
+			"updatedAt": "2025-10-24T12:24:37.730Z"
 		}
 	],
 	"mcps": [
@@ -995,10 +1090,10 @@
 	"sessions": [],
 	"config": {
 		"llm": {
-			"endpoint": "https://api.openai.com/v1",
-			"apiKey": "test-key",
-			"model": "gpt-4",
-			"temperature": 0.8,
+			"endpoint": "https://api.llm7.io/v1",
+			"apiKey": "",
+			"model": "deepseek-v3.1",
+			"temperature": 0.7,
 			"maxTokens": 2000
 		},
 		"theme": "default",

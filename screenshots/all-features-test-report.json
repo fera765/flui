@@ -1,0 +1,224 @@
+{
+  "timestamp": "2025-10-24T11:06:35.178Z",
+  "summary": {
+    "totalTests": 8,
+    "passedTests": 5,
+    "failedTests": 3,
+    "successRate": 62.5
+  },
+  "tests": [
+    {
+      "name": "Settings: Endpoint Input",
+      "passed": false
+    },
+    {
+      "name": "Settings: Model Select",
+      "passed": false
+    },
+    {
+      "name": "WorkflowEditor: Canvas Loaded",
+      "passed": true
+    },
+    {
+      "name": "WorkflowEditor: Action Buttons",
+      "passed": true
+    },
+    {
+      "name": "WorkflowEditor: Autosave Triggered",
+      "passed": true
+    },
+    {
+      "name": "Edge Reconnect: Props Enabled",
+      "passed": true
+    },
+    {
+      "name": "Execution: Modal Opened",
+      "passed": false
+    },
+    {
+      "name": "Navigation: All Pages",
+      "passed": true
+    }
+  ],
+  "consoleLogs": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "timestamp": "2025-10-24T11:06:03.709Z"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "timestamp": "2025-10-24T11:06:03.739Z"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+      "timestamp": "2025-10-24T11:06:03.958Z"
+    },
+    {
+      "type": "warning",
+      "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+      "timestamp": "2025-10-24T11:06:04.050Z"
+    },
+    {
+      "type": "warning",
+      "text": "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+      "timestamp": "2025-10-24T11:06:04.051Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:04.087Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:04.088Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:04.088Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:04.088Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:05.102Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:05.110Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:05.110Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:05.110Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:12.155Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:13.161Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:14.282Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:14.282Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:15.293Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:15.297Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:17.565Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:18.573Z"
+    },
+    {
+      "type": "log",
+      "text": "[WorkflowEditor] Saving with store nodes: 0",
+      "timestamp": "2025-10-24T11:06:25.296Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:25.317Z"
+    },
+    {
+      "type": "log",
+      "text": "[WorkflowEditor] Saving with store nodes: 0",
+      "timestamp": "2025-10-24T11:06:28.579Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:28.605Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:30.719Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:30.719Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:30.719Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:30.719Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:31.735Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:31.736Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:31.746Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-24T11:06:31.746Z"
+    }
+  ],
+  "consoleErrors": [],
+  "screenshots": [
+    "test-01-settings-page.png",
+    "test-02-settings-models.png",
+    "test-03-workflow-editor.png",
+    "test-04-add-node-modal.png",
+    "test-05-node-added.png",
+    "test-06-edges-check.png",
+    "test-07-automation-saved.png",
+    "test-08-execution-modal.png",
+    "test-09-execution-logs.png",
+    "test-10-dashboard-return.png",
+    "test-11-settings-final.png"
+  ]
+}

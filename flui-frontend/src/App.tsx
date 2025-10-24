@@ -36,7 +36,12 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <BrowserRouter
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+        }}
+      >
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Dashboard />} />
@@ -46,7 +51,7 @@ function App() {
             <Route path="automations/new" element={<WorkflowEditor />} />
             <Route path="automations/:id/edit" element={<WorkflowEditor />} />
             <Route path="tools" element={<Tools />} />
-            <Route path="settings" element={<div className="p-6">Settings (Coming soon)</div>} />
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>
       </BrowserRouter>

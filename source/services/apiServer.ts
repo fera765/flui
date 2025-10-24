@@ -494,6 +494,65 @@ app.post('/api/llm/config', async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/llm/test - Testar conexão com LLM
+app.post('/api/llm/test', async (req: Request, res: Response) => {
+  try {
+    const { getConfig } = await import('../store/storage.js');
+    const { LLM } = await import('./llm.js');
+    
+    const config = getConfig();
+    
+    if (!config || !config.llm || !config.llm.endpoint) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'LLM não configurado. Configure o endpoint primeiro.' 
+      });
+    }
+    
+    const { message } = req.body;
+    const testMessage = message || 'Hello! Please respond with just "OK" if you can read this.';
+    
+    console.log('🧪 [API] Testando conexão LLM...');
+    console.log('  Endpoint:', config.llm.endpoint);
+    console.log('  Model:', config.llm.model);
+    console.log('  Has API Key:', !!config.llm.apiKey);
+    
+    try {
+      // Usar o método chat do LLM
+      const response = await LLM.chat([
+        { role: 'user', content: testMessage }
+      ]);
+      
+      console.log('✅ [API] Teste de LLM bem-sucedido');
+      
+      res.json({
+        success: true,
+        response: response.content,
+        model: response.model || config.llm.model,
+        endpoint: config.llm.endpoint,
+      });
+    } catch (llmError: any) {
+      console.error('❌ [API] Erro ao testar LLM:', llmError.message);
+      
+      // Retornar erro detalhado
+      res.status(500).json({
+        success: false,
+        error: llmError.message || 'Erro ao conectar com LLM',
+        details: {
+          endpoint: config.llm.endpoint,
+          model: config.llm.model,
+        }
+      });
+    }
+  } catch (error: any) {
+    console.error('❌ [API] Erro ao processar teste de LLM:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
+  }
+});
+
 // GET /api/models - Obter modelos disponíveis do LLM endpoint configurado
 app.get('/api/models', async (_req: Request, res: Response) => {
   try {
@@ -1913,7 +1972,7 @@ export const startApiServer = async () => {
       llm: {
         endpoint: 'https://api.llm7.io/v1',
         apiKey: '', // API key opcional para este endpoint
-        model: 'gpt-4-turbo-preview',
+        model: 'deepseek-v3.1', // Modelo padrão do LLM7
         temperature: 0.7,
         maxTokens: 2000,
       },

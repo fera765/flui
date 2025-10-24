@@ -8,6 +8,14 @@ import { Input } from '@/components/ui/Input'
 import { api } from '@/services/api'
 import { toast } from 'sonner'
 
+interface ModelInfo {
+  id: string
+  object: string
+  created: number
+  owned_by: string
+  modalities?: { input: string[] }
+}
+
 const llmConfigSchema = z.object({
   endpoint: z.string().url('Endpoint inválido'),
   apiKey: z.string().optional(),
@@ -22,22 +30,29 @@ export function Settings() {
   const [isSaving, setIsSaving] = useState(false)
   const [isTesting, setIsTesting] = useState(false)
   const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [availableModels, setAvailableModels] = useState<ModelInfo[]>([])
+  const [isLoadingModels, setIsLoadingModels] = useState(false)
+  const [currentEndpoint, setCurrentEndpoint] = useState('https://api.llm7.io/v1')
   
   const {
     register,
     handleSubmit,
     formState: { errors },
     setValue,
+    watch,
   } = useForm<LLMConfigData>({
     resolver: zodResolver(llmConfigSchema),
     defaultValues: {
-      endpoint: 'https://api.openai.com/v1',
+      endpoint: 'https://api.llm7.io/v1',
       apiKey: '',
-      model: 'gpt-4-turbo-preview',
+      model: 'deepseek-v3.1',
       temperature: 0.7,
       maxTokens: 2000,
     },
   })
+  
+  const endpoint = watch('endpoint')
+  const selectedModel = watch('model')
   
   // Carregar configuração atual
   useEffect(() => {
@@ -50,6 +65,7 @@ export function Settings() {
           setValue('model', config.llm.model)
           setValue('temperature', config.llm.temperature)
           setValue('maxTokens', config.llm.maxTokens)
+          setCurrentEndpoint(config.llm.endpoint)
         }
       } catch (error: any) {
         console.error('Erro ao carregar config:', error)
@@ -58,6 +74,53 @@ export function Settings() {
     
     loadConfig()
   }, [setValue])
+  
+  // 🚀 Carregar modelos disponíveis quando o endpoint mudar
+  useEffect(() => {
+    if (endpoint && endpoint !== currentEndpoint) {
+      setCurrentEndpoint(endpoint)
+      loadAvailableModels(endpoint)
+    }
+  }, [endpoint])
+  
+  // Carregar modelos na inicialização
+  useEffect(() => {
+    if (currentEndpoint) {
+      loadAvailableModels(currentEndpoint)
+    }
+  }, [])
+  
+  const loadAvailableModels = async (endpointUrl: string) => {
+    setIsLoadingModels(true)
+    try {
+      // Tentar carregar modelos do endpoint
+      const modelsUrl = endpointUrl.endsWith('/') ? `${endpointUrl}models` : `${endpointUrl}/models`
+      
+      const response = await fetch(modelsUrl, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        
+        // Suportar formato OpenAI (data.data) ou formato direto (array)
+        const models = Array.isArray(data) ? data : data.data || []
+        setAvailableModels(models)
+        
+        console.log(`✅ Loaded ${models.length} models from ${endpointUrl}`)
+      } else {
+        console.warn('Failed to load models:', response.statusText)
+        setAvailableModels([])
+      }
+    } catch (error) {
+      console.error('Error loading models:', error)
+      setAvailableModels([])
+    } finally {
+      setIsLoadingModels(false)
+    }
+  }
   
   const onSubmit = async (data: LLMConfigData) => {
     setIsSaving(true)
@@ -166,14 +229,40 @@ export function Settings() {
               <label className="block text-sm font-medium text-foreground mb-2">
                 Modelo *
               </label>
-              <Input
-                {...register('model')}
-                placeholder="gpt-4-turbo-preview"
-                error={errors.model?.message}
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Nome do modelo a ser usado (ex: gpt-4-turbo-preview, gpt-3.5-turbo, claude-3-opus)
-              </p>
+              
+              {availableModels.length > 0 ? (
+                <div>
+                  <select
+                    {...register('model')}
+                    className="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    disabled={isLoadingModels}
+                  >
+                    {availableModels.map((model) => (
+                      <option key={model.id} value={model.id}>
+                        {model.id} {model.owned_by ? `(${model.owned_by})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {availableModels.length} modelos disponíveis no endpoint
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <Input
+                    {...register('model')}
+                    placeholder="deepseek-v3.1"
+                    error={errors.model?.message}
+                    disabled={isLoadingModels}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {isLoadingModels 
+                      ? 'Carregando modelos...' 
+                      : 'Digite o nome do modelo manualmente ou configure o endpoint para carregar automáticamente'
+                    }
+                  </p>
+                </div>
+              )}
             </div>
             
             {/* Temperature */}
@@ -232,12 +321,7 @@ export function Settings() {
                 isLoading={isTesting}
                 disabled={isSaving || isTesting}
               >
-                {isTesting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Testando...
-                  </>
-                ) : testStatus === 'success' ? (
+                {testStatus === 'success' ? (
                   <>
                     <CheckCircle2 className="w-4 h-4 mr-2 text-green-500" />
                     Testado
@@ -291,9 +375,11 @@ export function Settings() {
         <div className="mt-6 p-4 bg-muted rounded-lg">
           <h3 className="font-medium text-foreground mb-2">💡 Dicas</h3>
           <ul className="text-sm text-muted-foreground space-y-1">
+            <li>• Para LLM7 (padrão): use <code className="text-xs bg-background px-1 py-0.5 rounded">https://api.llm7.io/v1</code></li>
             <li>• Para OpenAI: use <code className="text-xs bg-background px-1 py-0.5 rounded">https://api.openai.com/v1</code></li>
             <li>• Para Ollama local: use <code className="text-xs bg-background px-1 py-0.5 rounded">http://localhost:11434/v1</code></li>
             <li>• Para Azure OpenAI: use o endpoint da sua instância</li>
+            <li>• Os modelos são carregados automaticamente ao trocar o endpoint</li>
             <li>• Teste a conexão após salvar para garantir que está funcionando</li>
           </ul>
         </div>

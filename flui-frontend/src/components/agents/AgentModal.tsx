@@ -31,11 +31,22 @@ interface AgentModalProps {
 export function AgentModal({ isOpen, onClose, agent, onSubmit, isLoading }: AgentModalProps) {
   const [activeTab, setActiveTab] = useState<'general' | 'tools'>('general')
   const [selectedTools, setSelectedTools] = useState<string[]>(agent?.tools || [])
-  const [selectedMCPs, setSelectedMCPs] = useState<string[]>(agent?.mcpIds || [])
+  const [selectedMCPTools, setSelectedMCPTools] = useState<string[]>(agent?.mcpToolIds || [])
 
   const { data: models = [] } = useModels()
   const { data: tools = [] } = useTools()
   const { data: mcps = [] } = useMCPs()
+  
+  // ✅ Extract MCP tools into individual selectable items
+  const mcpToolsList = mcps.flatMap((mcp: any) => 
+    (mcp.tools || []).map((tool: any) => ({
+      ...tool,
+      mcpName: mcp.name,
+      mcpId: mcp.id,
+      id: tool.id || `${mcp.id}-${tool.name}`,
+      displayName: `${tool.name} (${mcp.name})`,
+    }))
+  )
 
   const {
     register,
@@ -58,7 +69,7 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isLoading }: Agen
     await onSubmit({
       ...data,
       tools: selectedTools,
-      mcpIds: selectedMCPs,
+      mcpToolIds: selectedMCPTools,
     })
     onClose()
   }
@@ -71,9 +82,9 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isLoading }: Agen
     )
   }
 
-  const toggleMCP = (mcpId: string) => {
-    setSelectedMCPs((prev) =>
-      prev.includes(mcpId) ? prev.filter((id) => id !== mcpId) : [...prev, mcpId]
+  const toggleMCPTool = (toolId: string) => {
+    setSelectedMCPTools((prev) =>
+      prev.includes(toolId) ? prev.filter((id) => id !== toolId) : [...prev, toolId]
     )
   }
 
@@ -227,24 +238,29 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isLoading }: Agen
               </div>
             </div>
 
-            {/* MCPs Section */}
+            {/* MCP Tools Section */}
             <div>
-              <h3 className="text-sm font-medium text-foreground mb-3">Available MCPs</h3>
+              <h3 className="text-sm font-medium text-foreground mb-3">
+                MCP Tools ({mcpToolsList.length})
+              </h3>
               <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto scrollbar-thin">
-                {mcps.map((mcp: any) => (
+                {mcpToolsList.map((tool: any) => (
                   <button
-                    key={mcp.id}
+                    key={tool.id}
                     type="button"
-                    onClick={() => toggleMCP(mcp.id)}
+                    onClick={() => toggleMCPTool(tool.id)}
                     className={`p-3 text-left border rounded-lg transition-colors ${
-                      selectedMCPs.includes(mcp.id)
+                      selectedMCPTools.includes(tool.id)
                         ? 'border-primary bg-primary/10'
                         : 'border-border hover:border-primary/50'
                     }`}
                   >
-                    <div className="font-medium text-sm">{mcp.name}</div>
+                    <div className="font-medium text-sm">{tool.displayName || tool.name}</div>
                     <div className="text-xs text-muted-foreground line-clamp-1">
-                      {mcp.description}
+                      {tool.description}
+                    </div>
+                    <div className="text-xs text-purple-500 mt-1">
+                      MCP: {tool.mcpName}
                     </div>
                   </button>
                 ))}
