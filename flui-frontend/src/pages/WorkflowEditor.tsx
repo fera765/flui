@@ -228,8 +228,20 @@ export function WorkflowEditor() {
         
         console.log('[WorkflowEditor] Loaded edges for ReactFlow:', loadedEdges)
         
+        // ✅ FIX: Sync to both ReactFlow AND Zustand store
         setNodes(loadedNodes)
         setEdges(loadedEdges)
+        
+        // ✅ CRITICAL FIX: Also update Zustand store directly
+        // This ensures that when we save, the store has the current edges
+        workflowStore.setNodes(loadedNodes)
+        workflowStore.setEdges(loadedEdges)
+        
+        console.log('[WorkflowEditor] Synced to Zustand store:', {
+          nodes: loadedNodes.length,
+          edges: loadedEdges.length
+        })
+        
         hasUnsavedChanges.current = false
         console.log('[WorkflowEditor] Automation loaded successfully')
       }
@@ -286,8 +298,15 @@ export function WorkflowEditor() {
       const latestNodes = storeState.nodes
       const latestEdges = storeState.edges
       
-      console.log('[WorkflowEditor] Saving with store nodes:', latestNodes.length, 'edges:', latestEdges.length)
-      console.log('[WorkflowEditor] Edges to save:', latestEdges.map(e => ({ id: e.id, source: e.source, target: e.target })))
+      console.log('[WorkflowEditor] 🔍 MANUAL SAVE - Store state:', {
+        nodes: latestNodes.length,
+        edges: latestEdges.length,
+        edgeDetails: latestEdges.map(e => ({ id: e.id, source: e.source, target: e.target }))
+      })
+      
+      if (latestEdges.length === 0) {
+        console.warn('[WorkflowEditor] ⚠️ WARNING: Attempting to save with ZERO edges! This will lose connections!')
+      }
       
       const automationData = {
         name: `Automation ${currentAutomationId || 'New'}`,
