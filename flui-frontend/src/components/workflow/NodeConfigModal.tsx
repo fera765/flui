@@ -25,14 +25,10 @@ export function NodeConfigModal() {
   })
 
   const [config, setConfig] = useState<Record<string, any>>({})
-  const [nodeName, setNodeName] = useState('')
-  const [nodeDescription, setNodeDescription] = useState('')
 
   useEffect(() => {
     if (selectedNode) {
       setConfig(selectedNode.data.config || {})
-      setNodeName(selectedNode.data.name || '')
-      setNodeDescription(selectedNode.data.description || '')
     }
   }, [selectedNode])
 
@@ -42,13 +38,8 @@ export function NodeConfigModal() {
   let params: any[] = []
   let itemData: any = null
   
-  if (selectedNode.data.type === 'tool' && selectedNode.data.toolId) {
-    // Tool node
-    const tool = tools.find((t: any) => t.id === selectedNode.data.toolId)
-    params = tool?.params || []
-    itemData = tool
-  } else if (selectedNode.data.type === 'agent' && selectedNode.data.agentId) {
-    // Agent node - criar parâmetros baseado nas propriedades do agente
+  if (selectedNode.data.type === 'agent' && selectedNode.data.agentId) {
+    // ✅ Agent node - apenas o input (message)
     const agent = agents.find((a: any) => a.id === selectedNode.data.agentId)
     itemData = agent
     
@@ -56,43 +47,47 @@ export function NodeConfigModal() {
       params = [
         {
           key: 'message',
-          name: 'Message',
-          description: 'Mensagem para o agente processar',
+          name: 'User Input',
+          description: 'Mensagem/input para o agente processar',
           type: 'string',
           required: true,
         },
-        {
-          key: 'model',
-          name: 'Model Override',
-          description: `Modelo a usar (padrão: ${agent.model})`,
-          type: 'string',
-          required: false,
-        },
-        {
-          key: 'temperature',
-          name: 'Temperature Override',
-          description: `Temperature (padrão: ${agent.temperature})`,
-          type: 'number',
-          required: false,
-        },
       ]
     }
-  } else if (selectedNode.data.mcpId) {
-    // MCP node
-    const mcp = mcps.find((m: any) => m.id === selectedNode.data.mcpId)
-    itemData = mcp
+  } else if (selectedNode.data.mcpToolId || selectedNode.data.mcpId) {
+    // ✅ MCP Tool node - buscar tool específica
+    const mcpId = selectedNode.data.mcpId
+    const toolId = selectedNode.data.mcpToolId
     
-    // MCPs have tools, get params from MCP tools
-    if (mcp && mcp.tools && mcp.tools.length > 0) {
-      const mcpTool = mcp.tools[0]
-      params = mcpTool.params || []
+    const mcp = mcps.find((m: any) => m.id === mcpId)
+    if (mcp && mcp.tools) {
+      const mcpTool = mcp.tools.find((t: any) => 
+        t.id === toolId || `${mcpId}-${t.name}` === toolId
+      )
+      
+      if (mcpTool) {
+        itemData = { ...mcpTool, mcpName: mcp.name }
+        params = mcpTool.inputSchema?.properties 
+          ? Object.entries(mcpTool.inputSchema.properties).map(([key, prop]: [string, any]) => ({
+              key,
+              name: prop.title || key,
+              description: prop.description,
+              type: prop.type || 'string',
+              required: mcpTool.inputSchema?.required?.includes(key) || false,
+            }))
+          : []
+      }
     }
+  } else if (selectedNode.data.toolId) {
+    // ✅ System Tool
+    const tool = tools.find((t: any) => t.id === selectedNode.data.toolId)
+    params = tool?.params || []
+    itemData = tool
   }
 
   const handleSave = () => {
+    // ✅ Salvar apenas config, nome/descrição são do agente/tool
     updateNode(selectedNode.id, {
-      name: nodeName,
-      description: nodeDescription,
       config,
     })
     closeConfigModal()
@@ -114,35 +109,27 @@ export function NodeConfigModal() {
       size="lg"
     >
       <div className="space-y-6">
-        {/* Name & Description */}
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
-            Node Name
-          </label>
-          <Input
-            value={nodeName}
-            onChange={(e) => setNodeName(e.target.value)}
-            placeholder="Enter node name"
-            data-testid="node-name-input"
-          />
+        {/* ✅ Node Info (read-only) */}
+        <div className="bg-muted p-3 rounded-lg">
+          <h4 className="text-sm font-medium text-foreground mb-1">
+            {selectedNode.data.name || selectedNode.data.type}
+          </h4>
+          <p className="text-xs text-muted-foreground">
+            {selectedNode.data.description || 'No description'}
+          </p>
+          {itemData?.mcpName && (
+            <p className="text-xs text-purple-500 mt-1">
+              MCP: {itemData.mcpName}
+            </p>
+          )}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
-            Description
-          </label>
-          <Input
-            value={nodeDescription}
-            onChange={(e) => setNodeDescription(e.target.value)}
-            placeholder="Enter description"
-            data-testid="node-description-input"
-          />
-        </div>
-
-        {/* Dynamic Parameters */}
+        {/* ✅ Input Parameters (only) */}
         {params.length > 0 && (
           <div>
-            <h3 className="text-sm font-medium text-foreground mb-3">Parameters</h3>
+            <h3 className="text-sm font-medium text-foreground mb-3">
+              {selectedNode.data.type === 'agent' ? 'Agent Input' : 'Tool Parameters'}
+            </h3>
             <div className="space-y-4">
               {params.map((param: any) => (
                 <div key={param.key}>
@@ -167,25 +154,8 @@ export function NodeConfigModal() {
           </div>
         )}
 
-        {/* Item Info */}
-        {itemData && (
-          <div className="bg-muted p-3 rounded-lg mb-4">
-            <h4 className="text-sm font-medium text-foreground mb-1">
-              {selectedNode.data.type.charAt(0).toUpperCase() + selectedNode.data.type.slice(1)} Info
-            </h4>
-            <p className="text-xs text-muted-foreground">
-              {itemData.description || 'No description available'}
-            </p>
-            {selectedNode.data.type === 'agent' && itemData.systemPrompt && (
-              <p className="text-xs text-muted-foreground mt-2">
-                <strong>System Prompt:</strong> {itemData.systemPrompt.substring(0, 100)}...
-              </p>
-            )}
-          </div>
-        )}
-        
         {/* Generic Config for other node types */}
-        {params.length === 0 && !itemData && (
+        {params.length === 0 && (
           <div>
             <h3 className="text-sm font-medium text-foreground mb-3">Configuration</h3>
             <p className="text-sm text-muted-foreground mb-4">

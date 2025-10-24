@@ -34,12 +34,35 @@ export function AddNodeModal({ isOpen, onClose, onAddNode }: AddNodeModalProps) 
     enabled: isOpen && selectedTab === 'mcps',
   })
 
+  // ✅ Extract MCP tools into individual items
+  const mcpTools = mcps.flatMap((mcp: any) => 
+    (mcp.tools || []).map((tool: any) => ({
+      ...tool,
+      mcpName: mcp.name,
+      mcpId: mcp.id,
+      // Ensure each tool has a unique ID
+      id: tool.id || `${mcp.id}-${tool.name}`,
+      displayName: `${tool.name} (${mcp.name})`,
+    }))
+  )
+
   const filteredItems = (() => {
-    const items = selectedTab === 'tools' ? tools : selectedTab === 'agents' ? agents : mcps
+    let items: any[] = []
+    
+    if (selectedTab === 'tools') {
+      items = tools
+    } else if (selectedTab === 'agents') {
+      items = agents
+    } else if (selectedTab === 'mcps') {
+      items = mcpTools // ✅ Use individual MCP tools, not MCPs
+    }
+    
     if (!search) return items
     return items.filter((item: any) => 
-      item.name.toLowerCase().includes(search.toLowerCase()) ||
-      (item.description || '').toLowerCase().includes(search.toLowerCase())
+      (item.name || '').toLowerCase().includes(search.toLowerCase()) ||
+      (item.displayName || '').toLowerCase().includes(search.toLowerCase()) ||
+      (item.description || '').toLowerCase().includes(search.toLowerCase()) ||
+      (item.mcpName || '').toLowerCase().includes(search.toLowerCase())
     )
   })()
 
@@ -58,11 +81,14 @@ export function AddNodeModal({ isOpen, onClose, onAddNode }: AddNodeModalProps) 
         agentId: item.id,
         config: {},
       })
-    } else {
+    } else if (selectedTab === 'mcps') {
+      // ✅ Add MCP tool (not the MCP itself)
       onAddNode('tool', {
-        name: item.name,
-        description: item.description,
-        mcpId: item.id,
+        name: item.displayName || item.name,
+        description: item.description || `Tool from ${item.mcpName}`,
+        mcpToolId: item.id, // Tool ID
+        mcpId: item.mcpId,  // MCP ID for reference
+        mcpName: item.mcpName,
         config: {},
       })
     }
@@ -120,7 +146,7 @@ export function AddNodeModal({ isOpen, onClose, onAddNode }: AddNodeModalProps) 
             data-testid="tab-mcps"
           >
             <Puzzle className="w-4 h-4 inline mr-2" />
-            MCPs ({mcps.length})
+            MCP Tools ({mcpTools.length})
           </button>
         </div>
 
@@ -147,7 +173,7 @@ export function AddNodeModal({ isOpen, onClose, onAddNode }: AddNodeModalProps) 
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-foreground truncate">
-                    {item.name}
+                    {item.displayName || item.name}
                   </h3>
                   <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
                     {item.description || 'No description'}
@@ -155,6 +181,11 @@ export function AddNodeModal({ isOpen, onClose, onAddNode }: AddNodeModalProps) 
                   {selectedTab === 'tools' && item.category && (
                     <span className="inline-block mt-2 px-2 py-0.5 text-xs bg-primary/10 text-primary rounded">
                       {item.category}
+                    </span>
+                  )}
+                  {selectedTab === 'mcps' && item.mcpName && (
+                    <span className="inline-block mt-2 px-2 py-0.5 text-xs bg-purple-500/10 text-purple-500 rounded">
+                      MCP: {item.mcpName}
                     </span>
                   )}
                 </div>

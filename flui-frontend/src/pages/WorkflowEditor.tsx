@@ -101,29 +101,24 @@ export function WorkflowEditor() {
     const unsubscribe = useWorkflowStore.subscribe(
       (state) => state.nodes,
       (storeNodes) => {
-        // Only update if different from current ReactFlow state
-        if (JSON.stringify(storeNodes.map(n => n.id).sort()) !== JSON.stringify(nodes.map(n => n.id).sort())) {
-          console.log('[WorkflowEditor] Syncing nodes from store:', storeNodes.length)
-          isSyncingFromStore.current = true
-          setNodes(storeNodes)
-          setTimeout(() => {
-            isSyncingFromStore.current = false
-          }, 0)
-        }
+        console.log('[WorkflowEditor] Store nodes changed:', storeNodes.length)
+        isSyncingFromStore.current = true
+        setNodes(storeNodes)
+        requestAnimationFrame(() => {
+          isSyncingFromStore.current = false
+        })
       }
     )
     
     const unsubscribeEdges = useWorkflowStore.subscribe(
       (state) => state.edges,
       (storeEdges) => {
-        if (JSON.stringify(storeEdges.map(e => e.id).sort()) !== JSON.stringify(edges.map(e => e.id).sort())) {
-          console.log('[WorkflowEditor] Syncing edges from store:', storeEdges.length)
-          isSyncingFromStore.current = true
-          setEdges(storeEdges)
-          setTimeout(() => {
-            isSyncingFromStore.current = false
-          }, 0)
-        }
+        console.log('[WorkflowEditor] Store edges changed:', storeEdges.length)
+        isSyncingFromStore.current = true
+        setEdges(storeEdges)
+        requestAnimationFrame(() => {
+          isSyncingFromStore.current = false
+        })
       }
     )
     
@@ -131,7 +126,7 @@ export function WorkflowEditor() {
       unsubscribe()
       unsubscribeEdges()
     }
-  }, [nodes, edges, setNodes, setEdges])
+  }, [setNodes, setEdges])
 
   // 🔄 AUTOSAVE: Salva automaticamente após 2 segundos de inatividade
   const triggerAutosave = useCallback(() => {
