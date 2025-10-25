@@ -352,6 +352,9 @@ app.post('/api/automations/:id/execute', async (req: Request, res: Response) => 
   }
 });
 
+// ============= WEBHOOK ENDPOINTS =============
+// (Registradas dentro de startApiServer())
+
 // ============= TOOLS ENDPOINTS (via toolApi) =============
 
 // GET /api/tools/:toolId/agents-options - Obter opções de agentes para select
@@ -2056,6 +2059,13 @@ export const startApiServer = async () => {
   const registry = getToolRegistry();
   const toolsCount = registry.list().tools.length;
   console.log(`✅ ${toolsCount} ferramentas registradas`);
+  
+  // 🔗 Registrar rotas de webhooks
+  console.log('🔗 Registrando rotas de webhooks...');
+  const { default: webhookRoutes, handleWebhookTrigger } = await import('./webhookRoutes.js');
+  app.use('/api', webhookRoutes);
+  app.all('/webhook/*', handleWebhookTrigger);
+  console.log('✅ Rotas de webhooks registradas');
   
   // Carregar MCPs e registrar suas tools
   console.log('🔌 Carregando MCPs...');

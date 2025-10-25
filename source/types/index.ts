@@ -32,6 +32,8 @@ export const ConfigSchema = z.object({
   llm: LLMConfigSchema,
   theme: ThemeSchema.default('default'),
   locale: z.string().default('pt-BR'),
+  webhooks: z.record(z.any()).optional(), // Webhooks persistidos
+  crons: z.record(z.any()).optional(), // Crons persistidos
 });
 
 export type Config = z.infer<typeof ConfigSchema>;
