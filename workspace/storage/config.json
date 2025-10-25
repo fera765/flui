@@ -6283,8 +6283,8 @@
 			"endpoint": "https://openrouter.ai/api/v1",
 			"apiKey": "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",
 			"model": "qwen/qwen3-coder:free",
-			"temperature": 0.7,
-			"maxTokens": 4000
+			"temperature": 0.9,
+			"maxTokens": 6000
 		},
 		"theme": "default",
 		"locale": "pt-BR"
