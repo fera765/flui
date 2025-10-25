@@ -477,8 +477,21 @@ app.post('/api/llm/config', async (req: Request, res: Response) => {
     
     const { endpoint, apiKey, model, temperature, maxTokens } = req.body;
     
+    // ✅ DEBUG: Mostrar o que foi recebido
+    console.log('📥 [API] Recebendo config:', {
+      endpoint,
+      apiKey: apiKey ? `${apiKey.substring(0, 10)}...` : '(vazio)',
+      model,
+      temperature,
+      maxTokens
+    });
+    
     if (!endpoint) {
       return res.status(400).json({ error: 'Endpoint é obrigatório' });
+    }
+    
+    if (!model) {
+      return res.status(400).json({ error: 'Modelo é obrigatório' });
     }
     
     const newLLMConfig = {
@@ -486,8 +499,13 @@ app.post('/api/llm/config', async (req: Request, res: Response) => {
       apiKey: apiKey || '',
       model: model || 'gpt-4-turbo-preview',
       temperature: temperature !== undefined ? temperature : 0.7,
-      maxTokens: maxTokens || 2000,
+      maxTokens: maxTokens !== undefined ? maxTokens : 2000,
     };
+    
+    console.log('💾 [API] Salvando config:', {
+      ...newLLMConfig,
+      apiKey: newLLMConfig.apiKey ? '***' : '(vazio)'
+    });
     
     // Atualizar config no storage (conf)
     const currentConfig = getConfig();
@@ -506,7 +524,14 @@ app.post('/api/llm/config', async (req: Request, res: Response) => {
     initializeLLM(endpoint, apiKey || '');
     console.log('✅ Cliente LLM reinicializado');
     
-    res.json({ success: true, message: 'Configuração LLM atualizada' });
+    res.json({ 
+      success: true, 
+      message: 'Configuração LLM atualizada',
+      config: {
+        ...newLLMConfig,
+        apiKey: newLLMConfig.apiKey ? '***' : ''
+      }
+    });
   } catch (error: any) {
     console.error('❌ Erro ao atualizar config LLM:', error);
     res.status(500).json({ error: error.message });
