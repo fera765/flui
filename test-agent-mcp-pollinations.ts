@@ -138,18 +138,18 @@ async function testAgentWithMCPPollinations() {
       
       store.updateConfig({
         llm: {
-          endpoint: 'https://api.llm7.io/v1',
-          apiKey: 'not-needed',
-          model: 'gpt-4o-mini',  // ✅ Modelo com melhor function calling
+          endpoint: 'https://openrouter.ai/api/v1',
+          apiKey: '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',
+          model: 'qwen/qwen3-coder:free',  // ✅ Qwen3 FREE com function calling
           temperature: 0.7,
-          maxTokens: 2000
+          maxTokens: 4000
         },
         theme: 'default',
         locale: 'pt-BR'
       });
       
-      console.log('✅ LLM configurado: https://api.llm7.io/v1');
-      console.log('   Modelo: gpt-3.5-turbo\n');
+      console.log('✅ LLM configurado: https://openrouter.ai/api/v1');
+      console.log('   Modelo: qwen/qwen3-coder:free (function calling REAL)\n');
     } else {
       console.log('✅ LLM já configurado');
       console.log(`   Endpoint: ${config.llm.endpoint}`);
@@ -166,17 +166,14 @@ async function testAgentWithMCPPollinations() {
       id: agentId,
       name: 'Image Generator Bot',
       description: 'Agente que gera imagens usando Pollinations AI',
-      systemPrompt: `You are an AI image generation assistant with access to the generate-image tool.
+      systemPrompt: `You are an AI image generation assistant with access to image generation tools.
 
-CRITICAL: You MUST use the generate-image tool to actually create images. Do NOT just write prompts or explain - USE THE TOOL.
+When the user asks for an image:
+1. Use the generateImageUrl function to create it
+2. Provide the URL to the user
 
-When asked to generate an image:
-1. Immediately call the generate-image function with a detailed English prompt
-2. Wait for the result
-3. Confirm the image was generated
-
-USE THE TOOL NOW!`,
-      model: 'gpt-4o-mini',  // ✅ Modelo com function calling
+Always use the available tools.`,
+      model: 'qwen/qwen3-coder:free',  // ✅ Qwen3 FREE com function calling
       temperature: 0.8,
       maxTokens: 2000,
       tools: [], // Sem FLUI tools

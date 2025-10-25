@@ -18,6 +18,14 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   const [isConnected, setIsConnected] = useState(false)
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>()
+  
+  // ✅ FIX: Usar useRef para onMessage evitar reconexão infinita
+  const onMessageRef = useRef(onMessage)
+  
+  // Atualizar ref quando onMessage mudar (sem causar reconexão)
+  useEffect(() => {
+    onMessageRef.current = onMessage
+  }, [onMessage])
 
   useEffect(() => {
     const connect = () => {
@@ -46,8 +54,9 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
           const message = JSON.parse(event.data) as WebSocketMessage
           console.log('[WebSocket] 📨 Mensagem recebida:', message.type)
           
-          if (onMessage) {
-            onMessage(message)
+          // ✅ Usar ref em vez de closure
+          if (onMessageRef.current) {
+            onMessageRef.current(message)
           }
         } catch (error) {
           console.error('[WebSocket] ❌ Erro ao parsear mensagem:', error)
@@ -85,7 +94,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
         wsRef.current.close()
       }
     }
-  }, [onMessage, reconnectDelay])
+  }, [reconnectDelay])  // ✅ FIX: Remover onMessage das dependencies
 
   return { isConnected, ws: wsRef.current }
 }

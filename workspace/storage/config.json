@@ -828,6 +828,271 @@
 				"createdAt": "2025-10-24T23:19:32.544Z",
 				"updatedAt": "2025-10-24T23:19:32.544Z"
 			}
+		},
+		{
+			"id": "9efc8145bf6b0fe6",
+			"name": "Test MCP Pollinations",
+			"description": "Teste de geração de imagem via MCP",
+			"nodes": [
+				{
+					"id": "node-1761350338517",
+					"type": "tool",
+					"name": "Manual Trigger",
+					"description": "Trigger manual",
+					"config": {},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": [],
+					"toolId": "manual-trigger"
+				},
+				{
+					"id": "node-1761350338518",
+					"type": "agent",
+					"name": "Image Generator",
+					"description": "Gera imagem via Pollinations",
+					"config": {
+						"message": "Generate an image of a cute cat looking at the moon"
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": [],
+					"agentId": "9e795bee02f08381"
+				}
+			],
+			"edges": [
+				{
+					"id": "edge-node-1761350338517-node-1761350338518",
+					"source": "node-1761350338517",
+					"target": "node-1761350338518"
+				}
+			],
+			"startNodeId": "node-1761350338517",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-24T23:58:58.528Z",
+			"updatedAt": "2025-10-24T23:58:58.528Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-24T23:58:58.517Z",
+				"updatedAt": "2025-10-24T23:58:58.517Z"
+			}
+		},
+		{
+			"id": "16fe70ee0e78a2e3",
+			"name": "Test MCP Pollinations",
+			"description": "Teste de geração de imagem via MCP",
+			"nodes": [
+				{
+					"id": "node-1761350478634",
+					"type": "tool",
+					"name": "Manual Trigger",
+					"description": "Trigger manual",
+					"config": {},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": [],
+					"toolId": "manual-trigger"
+				},
+				{
+					"id": "node-1761350478635",
+					"type": "agent",
+					"name": "Image Generator",
+					"description": "Gera imagem via Pollinations",
+					"config": {
+						"message": "Generate an image of a cute cat looking at the moon"
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": [],
+					"agentId": "b909c80016dcdd1f"
+				}
+			],
+			"edges": [
+				{
+					"id": "edge-node-1761350478634-node-1761350478635",
+					"source": "node-1761350478634",
+					"target": "node-1761350478635"
+				}
+			],
+			"startNodeId": "node-1761350478634",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-25T00:01:18.644Z",
+			"updatedAt": "2025-10-25T00:01:18.644Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-25T00:01:18.634Z",
+				"updatedAt": "2025-10-25T00:01:18.634Z"
+			}
+		},
+		{
+			"id": "5b7a8b905f1dd49c",
+			"name": "Test MCP Pollinations",
+			"description": "Teste de geração de imagem via MCP",
+			"nodes": [
+				{
+					"id": "node-1761350498838",
+					"type": "tool",
+					"name": "Manual Trigger",
+					"description": "Trigger manual",
+					"config": {},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": [],
+					"toolId": "manual-trigger"
+				},
+				{
+					"id": "node-1761350498839",
+					"type": "agent",
+					"name": "Image Generator",
+					"description": "Gera imagem via Pollinations",
+					"config": {
+						"message": "Generate an image of a cute cat looking at the moon"
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": [],
+					"agentId": "e5496be01f0527be"
+				}
+			],
+			"edges": [
+				{
+					"id": "edge-node-1761350498838-node-1761350498839",
+					"source": "node-1761350498838",
+					"target": "node-1761350498839"
+				}
+			],
+			"startNodeId": "node-1761350498838",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-25T00:01:38.848Z",
+			"updatedAt": "2025-10-25T00:01:38.848Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-25T00:01:38.838Z",
+				"updatedAt": "2025-10-25T00:01:38.838Z"
+			}
+		},
+		{
+			"id": "5bd23706f172c9b9",
+			"name": "Test MCP Pollinations",
+			"description": "Teste de geração de imagem via MCP",
+			"nodes": [
+				{
+					"id": "node-1761350527593",
+					"type": "tool",
+					"name": "Manual Trigger",
+					"description": "Trigger manual",
+					"config": {},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": [],
+					"toolId": "manual-trigger"
+				},
+				{
+					"id": "node-1761350527594",
+					"type": "agent",
+					"name": "Image Generator",
+					"description": "Gera imagem via Pollinations",
+					"config": {
+						"message": "Generate an image of a cute cat looking at the moon"
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": [],
+					"agentId": "8a6eb12ccc616e1c"
+				}
+			],
+			"edges": [
+				{
+					"id": "edge-node-1761350527593-node-1761350527594",
+					"source": "node-1761350527593",
+					"target": "node-1761350527594"
+				}
+			],
+			"startNodeId": "node-1761350527593",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-25T00:02:07.605Z",
+			"updatedAt": "2025-10-25T00:02:07.605Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-25T00:02:07.593Z",
+				"updatedAt": "2025-10-25T00:02:07.593Z"
+			}
+		},
+		{
+			"id": "47c9d0429d3376b1",
+			"name": "Test MCP Pollinations",
+			"description": "Teste de geração de imagem via MCP",
+			"nodes": [
+				{
+					"id": "node-1761350559959",
+					"type": "tool",
+					"name": "Manual Trigger",
+					"description": "Trigger manual",
+					"config": {},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": [],
+					"toolId": "manual-trigger"
+				},
+				{
+					"id": "node-1761350559960",
+					"type": "agent",
+					"name": "Image Generator",
+					"description": "Gera imagem via Pollinations",
+					"config": {
+						"message": "Generate an image of a cute cat looking at the moon"
+					},
+					"position": {
+						"x": 400,
+						"y": 100
+					},
+					"nextNodes": [],
+					"agentId": "5a1bba767a341ca1"
+				}
+			],
+			"edges": [
+				{
+					"id": "edge-node-1761350559959-node-1761350559960",
+					"source": "node-1761350559959",
+					"target": "node-1761350559960"
+				}
+			],
+			"startNodeId": "node-1761350559959",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-25T00:02:39.970Z",
+			"updatedAt": "2025-10-25T00:02:39.970Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-25T00:02:39.959Z",
+				"updatedAt": "2025-10-25T00:02:39.959Z"
+			}
 		}
 	],
 	"executions": [],
@@ -1235,6 +1500,111 @@
 			"metadata": {
 				"createdAt": "2025-10-24T23:19:32.540Z",
 				"updatedAt": "2025-10-24T23:19:32.540Z",
+				"executionCount": 0
+			}
+		},
+		{
+			"id": "9e795bee02f08381",
+			"name": "Image Generator Bot",
+			"description": "Agente que gera imagens usando Pollinations AI",
+			"systemPrompt": "You are an AI image generation assistant with access to image generation tools.\n\nWhen the user asks for an image:\n1. Use the generateImageUrl function to create it\n2. Provide the URL to the user\n\nAlways use the available tools.",
+			"model": "qwen/qwen-2.5-coder-32b-instruct",
+			"temperature": 0.8,
+			"maxTokens": 2000,
+			"tools": [],
+			"mcpIds": [
+				"68cb3f99ccd166cc"
+			],
+			"enabled": true,
+			"createdAt": "2025-10-24T23:58:58.513Z",
+			"updatedAt": "2025-10-24T23:58:58.513Z",
+			"metadata": {
+				"createdAt": "2025-10-24T23:58:58.513Z",
+				"updatedAt": "2025-10-24T23:58:58.513Z",
+				"executionCount": 0
+			}
+		},
+		{
+			"id": "b909c80016dcdd1f",
+			"name": "Image Generator Bot",
+			"description": "Agente que gera imagens usando Pollinations AI",
+			"systemPrompt": "You are an AI image generation assistant with access to image generation tools.\n\nWhen the user asks for an image:\n1. Use the generateImageUrl function to create it\n2. Provide the URL to the user\n\nAlways use the available tools.",
+			"model": "qwen/qwen-2.5-coder-32b-instruct",
+			"temperature": 0.8,
+			"maxTokens": 2000,
+			"tools": [],
+			"mcpIds": [
+				"c19fd1796716f1b8"
+			],
+			"enabled": true,
+			"createdAt": "2025-10-25T00:01:18.629Z",
+			"updatedAt": "2025-10-25T00:01:18.629Z",
+			"metadata": {
+				"createdAt": "2025-10-25T00:01:18.629Z",
+				"updatedAt": "2025-10-25T00:01:18.629Z",
+				"executionCount": 0
+			}
+		},
+		{
+			"id": "e5496be01f0527be",
+			"name": "Image Generator Bot",
+			"description": "Agente que gera imagens usando Pollinations AI",
+			"systemPrompt": "You are an AI image generation assistant with access to image generation tools.\n\nWhen the user asks for an image:\n1. Use the generateImageUrl function to create it\n2. Provide the URL to the user\n\nAlways use the available tools.",
+			"model": "qwen/qwen-2.5-coder-32b-instruct",
+			"temperature": 0.8,
+			"maxTokens": 2000,
+			"tools": [],
+			"mcpIds": [
+				"a07fd6c78deb05cf"
+			],
+			"enabled": true,
+			"createdAt": "2025-10-25T00:01:38.832Z",
+			"updatedAt": "2025-10-25T00:01:38.832Z",
+			"metadata": {
+				"createdAt": "2025-10-25T00:01:38.832Z",
+				"updatedAt": "2025-10-25T00:01:38.832Z",
+				"executionCount": 0
+			}
+		},
+		{
+			"id": "8a6eb12ccc616e1c",
+			"name": "Image Generator Bot",
+			"description": "Agente que gera imagens usando Pollinations AI",
+			"systemPrompt": "You are an AI image generation assistant with access to image generation tools.\n\nWhen the user asks for an image:\n1. Use the generateImageUrl function to create it\n2. Provide the URL to the user\n\nAlways use the available tools.",
+			"model": "qwen/qwen3-coder:free",
+			"temperature": 0.8,
+			"maxTokens": 2000,
+			"tools": [],
+			"mcpIds": [
+				"1a2e28e847cc9ce8"
+			],
+			"enabled": true,
+			"createdAt": "2025-10-25T00:02:07.587Z",
+			"updatedAt": "2025-10-25T00:02:07.587Z",
+			"metadata": {
+				"createdAt": "2025-10-25T00:02:07.587Z",
+				"updatedAt": "2025-10-25T00:02:07.587Z",
+				"executionCount": 0
+			}
+		},
+		{
+			"id": "5a1bba767a341ca1",
+			"name": "Image Generator Bot",
+			"description": "Agente que gera imagens usando Pollinations AI",
+			"systemPrompt": "You are an AI image generation assistant with access to image generation tools.\n\nWhen the user asks for an image:\n1. Use the generateImageUrl function to create it\n2. Provide the URL to the user\n\nAlways use the available tools.",
+			"model": "qwen/qwen3-coder:free",
+			"temperature": 0.8,
+			"maxTokens": 2000,
+			"tools": [],
+			"mcpIds": [
+				"e45c1fd82696e7e0"
+			],
+			"enabled": true,
+			"createdAt": "2025-10-25T00:02:39.953Z",
+			"updatedAt": "2025-10-25T00:02:39.953Z",
+			"metadata": {
+				"createdAt": "2025-10-25T00:02:39.953Z",
+				"updatedAt": "2025-10-25T00:02:39.953Z",
 				"executionCount": 0
 			}
 		}
@@ -4192,6 +4562,1711 @@
 				"installType": "npx",
 				"importedFrom": "test"
 			}
+		},
+		{
+			"id": "68cb3f99ccd166cc",
+			"name": "Pollinations",
+			"description": "AI Image Generation via Pollinations",
+			"version": "1.0.0",
+			"server": "@pollinations/model-context-protocol",
+			"installType": "npx",
+			"envVars": {},
+			"tools": [
+				{
+					"id": "generateImageUrl",
+					"name": "generateImageUrl",
+					"description": "Generate an image URL from a text prompt",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"prompt": {
+								"type": "string",
+								"description": "The text description of the image to generate"
+							},
+							"options": {
+								"type": "object",
+								"properties": {
+									"model": {
+										"type": "string",
+										"description": "Model name to use for generation"
+									},
+									"seed": {
+										"type": "number",
+										"description": "Seed for reproducible results"
+									},
+									"width": {
+										"type": "number",
+										"description": "Width of the generated image"
+									},
+									"height": {
+										"type": "number",
+										"description": "Height of the generated image"
+									}
+								},
+								"additionalProperties": false,
+								"description": "Additional options for image generation"
+							}
+						},
+						"required": [
+							"prompt"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "generateImageUrl"
+				},
+				{
+					"id": "generateImage",
+					"name": "generateImage",
+					"description": "Generate an image and return the base64-encoded data",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"prompt": {
+								"type": "string",
+								"description": "The text description of the image to generate"
+							},
+							"options": {
+								"type": "object",
+								"properties": {
+									"model": {
+										"type": "string",
+										"description": "Model name to use for generation"
+									},
+									"seed": {
+										"type": "number",
+										"description": "Seed for reproducible results"
+									},
+									"width": {
+										"type": "number",
+										"description": "Width of the generated image"
+									},
+									"height": {
+										"type": "number",
+										"description": "Height of the generated image"
+									}
+								},
+								"additionalProperties": false,
+								"description": "Additional options for image generation"
+							}
+						},
+						"required": [
+							"prompt"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "generateImage"
+				},
+				{
+					"id": "listImageModels",
+					"name": "listImageModels",
+					"description": "List available image models",
+					"parameters": {
+						"type": "object",
+						"properties": {},
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "listImageModels"
+				},
+				{
+					"id": "generateText",
+					"name": "generateText",
+					"description": "Generate text from a prompt using the Pollinations Text API",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"prompt": {
+								"type": "string",
+								"description": "The text prompt to generate a response for"
+							},
+							"model": {
+								"type": "string",
+								"description": "Model to use for text generation (default: \"openai\")"
+							},
+							"options": {
+								"type": "object",
+								"properties": {
+									"seed": {
+										"type": "number",
+										"description": "Seed for reproducible results"
+									},
+									"systemPrompt": {
+										"type": "string",
+										"description": "Optional system prompt to set the behavior of the AI"
+									},
+									"json": {
+										"type": "boolean",
+										"description": "Set to true to receive response in JSON format"
+									},
+									"isPrivate": {
+										"type": "boolean",
+										"description": "Set to true to prevent the response from appearing in the public feed"
+									}
+								},
+								"additionalProperties": false,
+								"description": "Additional options for text generation"
+							}
+						},
+						"required": [
+							"prompt"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "generateText"
+				},
+				{
+					"id": "listTextModels",
+					"name": "listTextModels",
+					"description": "List available text models",
+					"parameters": {
+						"type": "object",
+						"properties": {},
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "listTextModels"
+				},
+				{
+					"id": "respondAudio",
+					"name": "respondAudio",
+					"description": "Generate an audio response to a text prompt",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"prompt": {
+								"type": "string",
+								"description": "The text prompt to respond to with audio"
+							},
+							"voice": {
+								"type": "string",
+								"description": "Voice to use for audio generation (default: \"alloy\")"
+							},
+							"format": {
+								"type": "string",
+								"description": "Format of the audio (mp3, wav, etc.)"
+							},
+							"voiceInstructions": {
+								"type": "string",
+								"description": "Additional instructions for voice character/style (e.g., \"Speak with enthusiasm\" or \"Use a calm tone\")"
+							}
+						},
+						"required": [
+							"prompt"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "respondAudio"
+				},
+				{
+					"id": "sayText",
+					"name": "sayText",
+					"description": "Generate speech that says the provided text verbatim",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"text": {
+								"type": "string",
+								"description": "The text to speak verbatim"
+							},
+							"voice": {
+								"type": "string",
+								"description": "Voice to use for audio generation (default: \"alloy\")"
+							},
+							"format": {
+								"type": "string",
+								"description": "Format of the audio (mp3, wav, etc.)"
+							},
+							"voiceInstructions": {
+								"type": "string",
+								"description": "Additional instructions for voice character/style (e.g., \"Speak with enthusiasm\" or \"Use a calm tone\")"
+							}
+						},
+						"required": [
+							"text"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "sayText"
+				},
+				{
+					"id": "listAudioVoices",
+					"name": "listAudioVoices",
+					"description": "List available audio voices",
+					"parameters": {
+						"type": "object",
+						"properties": {},
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "listAudioVoices"
+				},
+				{
+					"id": "startAuth",
+					"name": "startAuth",
+					"description": "Start GitHub OAuth authentication flow to log in to Pollinations. Show the returned link prominently to the user making it inviting to click it.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {
+						"type": "object",
+						"properties": {},
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "startAuth"
+				},
+				{
+					"id": "checkAuthStatus",
+					"name": "checkAuthStatus",
+					"description": "Check the status of an authentication session.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"sessionId": {
+								"type": "string",
+								"description": "The session ID to check"
+							}
+						},
+						"required": [
+							"sessionId"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "checkAuthStatus"
+				},
+				{
+					"id": "getDomains",
+					"name": "getDomains",
+					"description": "Get domains allowlisted for a user.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"userId": {
+								"type": "string",
+								"description": "The GitHub user ID"
+							},
+							"sessionId": {
+								"type": "string",
+								"description": "The session ID for authentication"
+							}
+						},
+						"required": [
+							"userId",
+							"sessionId"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "getDomains"
+				},
+				{
+					"id": "updateDomains",
+					"name": "updateDomains",
+					"description": "Update domains allowlisted for a user",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"userId": {
+								"type": "string",
+								"description": "The GitHub user ID"
+							},
+							"domains": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								},
+								"description": "The domains to allowlist"
+							},
+							"sessionId": {
+								"type": "string",
+								"description": "The session ID for authentication"
+							}
+						},
+						"required": [
+							"userId",
+							"domains",
+							"sessionId"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "updateDomains"
+				}
+			],
+			"enabled": true,
+			"metadata": {
+				"createdAt": "2025-10-24T23:58:57.346Z",
+				"updatedAt": "2025-10-24T23:58:57.346Z",
+				"installType": "npx",
+				"importedFrom": "test"
+			}
+		},
+		{
+			"id": "c19fd1796716f1b8",
+			"name": "Pollinations",
+			"description": "AI Image Generation via Pollinations",
+			"version": "1.0.0",
+			"server": "@pollinations/model-context-protocol",
+			"installType": "npx",
+			"envVars": {},
+			"tools": [
+				{
+					"id": "generateImageUrl",
+					"name": "generateImageUrl",
+					"description": "Generate an image URL from a text prompt",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"prompt": {
+								"type": "string",
+								"description": "The text description of the image to generate"
+							},
+							"options": {
+								"type": "object",
+								"properties": {
+									"model": {
+										"type": "string",
+										"description": "Model name to use for generation"
+									},
+									"seed": {
+										"type": "number",
+										"description": "Seed for reproducible results"
+									},
+									"width": {
+										"type": "number",
+										"description": "Width of the generated image"
+									},
+									"height": {
+										"type": "number",
+										"description": "Height of the generated image"
+									}
+								},
+								"additionalProperties": false,
+								"description": "Additional options for image generation"
+							}
+						},
+						"required": [
+							"prompt"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "generateImageUrl"
+				},
+				{
+					"id": "generateImage",
+					"name": "generateImage",
+					"description": "Generate an image and return the base64-encoded data",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"prompt": {
+								"type": "string",
+								"description": "The text description of the image to generate"
+							},
+							"options": {
+								"type": "object",
+								"properties": {
+									"model": {
+										"type": "string",
+										"description": "Model name to use for generation"
+									},
+									"seed": {
+										"type": "number",
+										"description": "Seed for reproducible results"
+									},
+									"width": {
+										"type": "number",
+										"description": "Width of the generated image"
+									},
+									"height": {
+										"type": "number",
+										"description": "Height of the generated image"
+									}
+								},
+								"additionalProperties": false,
+								"description": "Additional options for image generation"
+							}
+						},
+						"required": [
+							"prompt"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "generateImage"
+				},
+				{
+					"id": "listImageModels",
+					"name": "listImageModels",
+					"description": "List available image models",
+					"parameters": {
+						"type": "object",
+						"properties": {},
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "listImageModels"
+				},
+				{
+					"id": "generateText",
+					"name": "generateText",
+					"description": "Generate text from a prompt using the Pollinations Text API",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"prompt": {
+								"type": "string",
+								"description": "The text prompt to generate a response for"
+							},
+							"model": {
+								"type": "string",
+								"description": "Model to use for text generation (default: \"openai\")"
+							},
+							"options": {
+								"type": "object",
+								"properties": {
+									"seed": {
+										"type": "number",
+										"description": "Seed for reproducible results"
+									},
+									"systemPrompt": {
+										"type": "string",
+										"description": "Optional system prompt to set the behavior of the AI"
+									},
+									"json": {
+										"type": "boolean",
+										"description": "Set to true to receive response in JSON format"
+									},
+									"isPrivate": {
+										"type": "boolean",
+										"description": "Set to true to prevent the response from appearing in the public feed"
+									}
+								},
+								"additionalProperties": false,
+								"description": "Additional options for text generation"
+							}
+						},
+						"required": [
+							"prompt"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "generateText"
+				},
+				{
+					"id": "listTextModels",
+					"name": "listTextModels",
+					"description": "List available text models",
+					"parameters": {
+						"type": "object",
+						"properties": {},
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "listTextModels"
+				},
+				{
+					"id": "respondAudio",
+					"name": "respondAudio",
+					"description": "Generate an audio response to a text prompt",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"prompt": {
+								"type": "string",
+								"description": "The text prompt to respond to with audio"
+							},
+							"voice": {
+								"type": "string",
+								"description": "Voice to use for audio generation (default: \"alloy\")"
+							},
+							"format": {
+								"type": "string",
+								"description": "Format of the audio (mp3, wav, etc.)"
+							},
+							"voiceInstructions": {
+								"type": "string",
+								"description": "Additional instructions for voice character/style (e.g., \"Speak with enthusiasm\" or \"Use a calm tone\")"
+							}
+						},
+						"required": [
+							"prompt"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "respondAudio"
+				},
+				{
+					"id": "sayText",
+					"name": "sayText",
+					"description": "Generate speech that says the provided text verbatim",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"text": {
+								"type": "string",
+								"description": "The text to speak verbatim"
+							},
+							"voice": {
+								"type": "string",
+								"description": "Voice to use for audio generation (default: \"alloy\")"
+							},
+							"format": {
+								"type": "string",
+								"description": "Format of the audio (mp3, wav, etc.)"
+							},
+							"voiceInstructions": {
+								"type": "string",
+								"description": "Additional instructions for voice character/style (e.g., \"Speak with enthusiasm\" or \"Use a calm tone\")"
+							}
+						},
+						"required": [
+							"text"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "sayText"
+				},
+				{
+					"id": "listAudioVoices",
+					"name": "listAudioVoices",
+					"description": "List available audio voices",
+					"parameters": {
+						"type": "object",
+						"properties": {},
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "listAudioVoices"
+				},
+				{
+					"id": "startAuth",
+					"name": "startAuth",
+					"description": "Start GitHub OAuth authentication flow to log in to Pollinations. Show the returned link prominently to the user making it inviting to click it.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {
+						"type": "object",
+						"properties": {},
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "startAuth"
+				},
+				{
+					"id": "checkAuthStatus",
+					"name": "checkAuthStatus",
+					"description": "Check the status of an authentication session.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"sessionId": {
+								"type": "string",
+								"description": "The session ID to check"
+							}
+						},
+						"required": [
+							"sessionId"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "checkAuthStatus"
+				},
+				{
+					"id": "getDomains",
+					"name": "getDomains",
+					"description": "Get domains allowlisted for a user.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"userId": {
+								"type": "string",
+								"description": "The GitHub user ID"
+							},
+							"sessionId": {
+								"type": "string",
+								"description": "The session ID for authentication"
+							}
+						},
+						"required": [
+							"userId",
+							"sessionId"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "getDomains"
+				},
+				{
+					"id": "updateDomains",
+					"name": "updateDomains",
+					"description": "Update domains allowlisted for a user",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"userId": {
+								"type": "string",
+								"description": "The GitHub user ID"
+							},
+							"domains": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								},
+								"description": "The domains to allowlist"
+							},
+							"sessionId": {
+								"type": "string",
+								"description": "The session ID for authentication"
+							}
+						},
+						"required": [
+							"userId",
+							"domains",
+							"sessionId"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "updateDomains"
+				}
+			],
+			"enabled": true,
+			"metadata": {
+				"createdAt": "2025-10-25T00:01:17.873Z",
+				"updatedAt": "2025-10-25T00:01:17.873Z",
+				"installType": "npx",
+				"importedFrom": "test"
+			}
+		},
+		{
+			"id": "a07fd6c78deb05cf",
+			"name": "Pollinations",
+			"description": "AI Image Generation via Pollinations",
+			"version": "1.0.0",
+			"server": "@pollinations/model-context-protocol",
+			"installType": "npx",
+			"envVars": {},
+			"tools": [
+				{
+					"id": "generateImageUrl",
+					"name": "generateImageUrl",
+					"description": "Generate an image URL from a text prompt",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"prompt": {
+								"type": "string",
+								"description": "The text description of the image to generate"
+							},
+							"options": {
+								"type": "object",
+								"properties": {
+									"model": {
+										"type": "string",
+										"description": "Model name to use for generation"
+									},
+									"seed": {
+										"type": "number",
+										"description": "Seed for reproducible results"
+									},
+									"width": {
+										"type": "number",
+										"description": "Width of the generated image"
+									},
+									"height": {
+										"type": "number",
+										"description": "Height of the generated image"
+									}
+								},
+								"additionalProperties": false,
+								"description": "Additional options for image generation"
+							}
+						},
+						"required": [
+							"prompt"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "generateImageUrl"
+				},
+				{
+					"id": "generateImage",
+					"name": "generateImage",
+					"description": "Generate an image and return the base64-encoded data",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"prompt": {
+								"type": "string",
+								"description": "The text description of the image to generate"
+							},
+							"options": {
+								"type": "object",
+								"properties": {
+									"model": {
+										"type": "string",
+										"description": "Model name to use for generation"
+									},
+									"seed": {
+										"type": "number",
+										"description": "Seed for reproducible results"
+									},
+									"width": {
+										"type": "number",
+										"description": "Width of the generated image"
+									},
+									"height": {
+										"type": "number",
+										"description": "Height of the generated image"
+									}
+								},
+								"additionalProperties": false,
+								"description": "Additional options for image generation"
+							}
+						},
+						"required": [
+							"prompt"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "generateImage"
+				},
+				{
+					"id": "listImageModels",
+					"name": "listImageModels",
+					"description": "List available image models",
+					"parameters": {
+						"type": "object",
+						"properties": {},
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "listImageModels"
+				},
+				{
+					"id": "generateText",
+					"name": "generateText",
+					"description": "Generate text from a prompt using the Pollinations Text API",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"prompt": {
+								"type": "string",
+								"description": "The text prompt to generate a response for"
+							},
+							"model": {
+								"type": "string",
+								"description": "Model to use for text generation (default: \"openai\")"
+							},
+							"options": {
+								"type": "object",
+								"properties": {
+									"seed": {
+										"type": "number",
+										"description": "Seed for reproducible results"
+									},
+									"systemPrompt": {
+										"type": "string",
+										"description": "Optional system prompt to set the behavior of the AI"
+									},
+									"json": {
+										"type": "boolean",
+										"description": "Set to true to receive response in JSON format"
+									},
+									"isPrivate": {
+										"type": "boolean",
+										"description": "Set to true to prevent the response from appearing in the public feed"
+									}
+								},
+								"additionalProperties": false,
+								"description": "Additional options for text generation"
+							}
+						},
+						"required": [
+							"prompt"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "generateText"
+				},
+				{
+					"id": "listTextModels",
+					"name": "listTextModels",
+					"description": "List available text models",
+					"parameters": {
+						"type": "object",
+						"properties": {},
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "listTextModels"
+				},
+				{
+					"id": "respondAudio",
+					"name": "respondAudio",
+					"description": "Generate an audio response to a text prompt",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"prompt": {
+								"type": "string",
+								"description": "The text prompt to respond to with audio"
+							},
+							"voice": {
+								"type": "string",
+								"description": "Voice to use for audio generation (default: \"alloy\")"
+							},
+							"format": {
+								"type": "string",
+								"description": "Format of the audio (mp3, wav, etc.)"
+							},
+							"voiceInstructions": {
+								"type": "string",
+								"description": "Additional instructions for voice character/style (e.g., \"Speak with enthusiasm\" or \"Use a calm tone\")"
+							}
+						},
+						"required": [
+							"prompt"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "respondAudio"
+				},
+				{
+					"id": "sayText",
+					"name": "sayText",
+					"description": "Generate speech that says the provided text verbatim",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"text": {
+								"type": "string",
+								"description": "The text to speak verbatim"
+							},
+							"voice": {
+								"type": "string",
+								"description": "Voice to use for audio generation (default: \"alloy\")"
+							},
+							"format": {
+								"type": "string",
+								"description": "Format of the audio (mp3, wav, etc.)"
+							},
+							"voiceInstructions": {
+								"type": "string",
+								"description": "Additional instructions for voice character/style (e.g., \"Speak with enthusiasm\" or \"Use a calm tone\")"
+							}
+						},
+						"required": [
+							"text"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "sayText"
+				},
+				{
+					"id": "listAudioVoices",
+					"name": "listAudioVoices",
+					"description": "List available audio voices",
+					"parameters": {
+						"type": "object",
+						"properties": {},
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "listAudioVoices"
+				},
+				{
+					"id": "startAuth",
+					"name": "startAuth",
+					"description": "Start GitHub OAuth authentication flow to log in to Pollinations. Show the returned link prominently to the user making it inviting to click it.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {
+						"type": "object",
+						"properties": {},
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "startAuth"
+				},
+				{
+					"id": "checkAuthStatus",
+					"name": "checkAuthStatus",
+					"description": "Check the status of an authentication session.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"sessionId": {
+								"type": "string",
+								"description": "The session ID to check"
+							}
+						},
+						"required": [
+							"sessionId"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "checkAuthStatus"
+				},
+				{
+					"id": "getDomains",
+					"name": "getDomains",
+					"description": "Get domains allowlisted for a user.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"userId": {
+								"type": "string",
+								"description": "The GitHub user ID"
+							},
+							"sessionId": {
+								"type": "string",
+								"description": "The session ID for authentication"
+							}
+						},
+						"required": [
+							"userId",
+							"sessionId"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "getDomains"
+				},
+				{
+					"id": "updateDomains",
+					"name": "updateDomains",
+					"description": "Update domains allowlisted for a user",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"userId": {
+								"type": "string",
+								"description": "The GitHub user ID"
+							},
+							"domains": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								},
+								"description": "The domains to allowlist"
+							},
+							"sessionId": {
+								"type": "string",
+								"description": "The session ID for authentication"
+							}
+						},
+						"required": [
+							"userId",
+							"domains",
+							"sessionId"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "updateDomains"
+				}
+			],
+			"enabled": true,
+			"metadata": {
+				"createdAt": "2025-10-25T00:01:38.187Z",
+				"updatedAt": "2025-10-25T00:01:38.187Z",
+				"installType": "npx",
+				"importedFrom": "test"
+			}
+		},
+		{
+			"id": "1a2e28e847cc9ce8",
+			"name": "Pollinations",
+			"description": "AI Image Generation via Pollinations",
+			"version": "1.0.0",
+			"server": "@pollinations/model-context-protocol",
+			"installType": "npx",
+			"envVars": {},
+			"tools": [
+				{
+					"id": "generateImageUrl",
+					"name": "generateImageUrl",
+					"description": "Generate an image URL from a text prompt",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"prompt": {
+								"type": "string",
+								"description": "The text description of the image to generate"
+							},
+							"options": {
+								"type": "object",
+								"properties": {
+									"model": {
+										"type": "string",
+										"description": "Model name to use for generation"
+									},
+									"seed": {
+										"type": "number",
+										"description": "Seed for reproducible results"
+									},
+									"width": {
+										"type": "number",
+										"description": "Width of the generated image"
+									},
+									"height": {
+										"type": "number",
+										"description": "Height of the generated image"
+									}
+								},
+								"additionalProperties": false,
+								"description": "Additional options for image generation"
+							}
+						},
+						"required": [
+							"prompt"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "generateImageUrl"
+				},
+				{
+					"id": "generateImage",
+					"name": "generateImage",
+					"description": "Generate an image and return the base64-encoded data",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"prompt": {
+								"type": "string",
+								"description": "The text description of the image to generate"
+							},
+							"options": {
+								"type": "object",
+								"properties": {
+									"model": {
+										"type": "string",
+										"description": "Model name to use for generation"
+									},
+									"seed": {
+										"type": "number",
+										"description": "Seed for reproducible results"
+									},
+									"width": {
+										"type": "number",
+										"description": "Width of the generated image"
+									},
+									"height": {
+										"type": "number",
+										"description": "Height of the generated image"
+									}
+								},
+								"additionalProperties": false,
+								"description": "Additional options for image generation"
+							}
+						},
+						"required": [
+							"prompt"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "generateImage"
+				},
+				{
+					"id": "listImageModels",
+					"name": "listImageModels",
+					"description": "List available image models",
+					"parameters": {
+						"type": "object",
+						"properties": {},
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "listImageModels"
+				},
+				{
+					"id": "generateText",
+					"name": "generateText",
+					"description": "Generate text from a prompt using the Pollinations Text API",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"prompt": {
+								"type": "string",
+								"description": "The text prompt to generate a response for"
+							},
+							"model": {
+								"type": "string",
+								"description": "Model to use for text generation (default: \"openai\")"
+							},
+							"options": {
+								"type": "object",
+								"properties": {
+									"seed": {
+										"type": "number",
+										"description": "Seed for reproducible results"
+									},
+									"systemPrompt": {
+										"type": "string",
+										"description": "Optional system prompt to set the behavior of the AI"
+									},
+									"json": {
+										"type": "boolean",
+										"description": "Set to true to receive response in JSON format"
+									},
+									"isPrivate": {
+										"type": "boolean",
+										"description": "Set to true to prevent the response from appearing in the public feed"
+									}
+								},
+								"additionalProperties": false,
+								"description": "Additional options for text generation"
+							}
+						},
+						"required": [
+							"prompt"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "generateText"
+				},
+				{
+					"id": "listTextModels",
+					"name": "listTextModels",
+					"description": "List available text models",
+					"parameters": {
+						"type": "object",
+						"properties": {},
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "listTextModels"
+				},
+				{
+					"id": "respondAudio",
+					"name": "respondAudio",
+					"description": "Generate an audio response to a text prompt",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"prompt": {
+								"type": "string",
+								"description": "The text prompt to respond to with audio"
+							},
+							"voice": {
+								"type": "string",
+								"description": "Voice to use for audio generation (default: \"alloy\")"
+							},
+							"format": {
+								"type": "string",
+								"description": "Format of the audio (mp3, wav, etc.)"
+							},
+							"voiceInstructions": {
+								"type": "string",
+								"description": "Additional instructions for voice character/style (e.g., \"Speak with enthusiasm\" or \"Use a calm tone\")"
+							}
+						},
+						"required": [
+							"prompt"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "respondAudio"
+				},
+				{
+					"id": "sayText",
+					"name": "sayText",
+					"description": "Generate speech that says the provided text verbatim",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"text": {
+								"type": "string",
+								"description": "The text to speak verbatim"
+							},
+							"voice": {
+								"type": "string",
+								"description": "Voice to use for audio generation (default: \"alloy\")"
+							},
+							"format": {
+								"type": "string",
+								"description": "Format of the audio (mp3, wav, etc.)"
+							},
+							"voiceInstructions": {
+								"type": "string",
+								"description": "Additional instructions for voice character/style (e.g., \"Speak with enthusiasm\" or \"Use a calm tone\")"
+							}
+						},
+						"required": [
+							"text"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "sayText"
+				},
+				{
+					"id": "listAudioVoices",
+					"name": "listAudioVoices",
+					"description": "List available audio voices",
+					"parameters": {
+						"type": "object",
+						"properties": {},
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "listAudioVoices"
+				},
+				{
+					"id": "startAuth",
+					"name": "startAuth",
+					"description": "Start GitHub OAuth authentication flow to log in to Pollinations. Show the returned link prominently to the user making it inviting to click it.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {
+						"type": "object",
+						"properties": {},
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "startAuth"
+				},
+				{
+					"id": "checkAuthStatus",
+					"name": "checkAuthStatus",
+					"description": "Check the status of an authentication session.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"sessionId": {
+								"type": "string",
+								"description": "The session ID to check"
+							}
+						},
+						"required": [
+							"sessionId"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "checkAuthStatus"
+				},
+				{
+					"id": "getDomains",
+					"name": "getDomains",
+					"description": "Get domains allowlisted for a user.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"userId": {
+								"type": "string",
+								"description": "The GitHub user ID"
+							},
+							"sessionId": {
+								"type": "string",
+								"description": "The session ID for authentication"
+							}
+						},
+						"required": [
+							"userId",
+							"sessionId"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "getDomains"
+				},
+				{
+					"id": "updateDomains",
+					"name": "updateDomains",
+					"description": "Update domains allowlisted for a user",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"userId": {
+								"type": "string",
+								"description": "The GitHub user ID"
+							},
+							"domains": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								},
+								"description": "The domains to allowlist"
+							},
+							"sessionId": {
+								"type": "string",
+								"description": "The session ID for authentication"
+							}
+						},
+						"required": [
+							"userId",
+							"domains",
+							"sessionId"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "updateDomains"
+				}
+			],
+			"enabled": true,
+			"metadata": {
+				"createdAt": "2025-10-25T00:02:06.907Z",
+				"updatedAt": "2025-10-25T00:02:06.907Z",
+				"installType": "npx",
+				"importedFrom": "test"
+			}
+		},
+		{
+			"id": "e45c1fd82696e7e0",
+			"name": "Pollinations",
+			"description": "AI Image Generation via Pollinations",
+			"version": "1.0.0",
+			"server": "@pollinations/model-context-protocol",
+			"installType": "npx",
+			"envVars": {},
+			"tools": [
+				{
+					"id": "generateImageUrl",
+					"name": "generateImageUrl",
+					"description": "Generate an image URL from a text prompt",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"prompt": {
+								"type": "string",
+								"description": "The text description of the image to generate"
+							},
+							"options": {
+								"type": "object",
+								"properties": {
+									"model": {
+										"type": "string",
+										"description": "Model name to use for generation"
+									},
+									"seed": {
+										"type": "number",
+										"description": "Seed for reproducible results"
+									},
+									"width": {
+										"type": "number",
+										"description": "Width of the generated image"
+									},
+									"height": {
+										"type": "number",
+										"description": "Height of the generated image"
+									}
+								},
+								"additionalProperties": false,
+								"description": "Additional options for image generation"
+							}
+						},
+						"required": [
+							"prompt"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "generateImageUrl"
+				},
+				{
+					"id": "generateImage",
+					"name": "generateImage",
+					"description": "Generate an image and return the base64-encoded data",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"prompt": {
+								"type": "string",
+								"description": "The text description of the image to generate"
+							},
+							"options": {
+								"type": "object",
+								"properties": {
+									"model": {
+										"type": "string",
+										"description": "Model name to use for generation"
+									},
+									"seed": {
+										"type": "number",
+										"description": "Seed for reproducible results"
+									},
+									"width": {
+										"type": "number",
+										"description": "Width of the generated image"
+									},
+									"height": {
+										"type": "number",
+										"description": "Height of the generated image"
+									}
+								},
+								"additionalProperties": false,
+								"description": "Additional options for image generation"
+							}
+						},
+						"required": [
+							"prompt"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "generateImage"
+				},
+				{
+					"id": "listImageModels",
+					"name": "listImageModels",
+					"description": "List available image models",
+					"parameters": {
+						"type": "object",
+						"properties": {},
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "listImageModels"
+				},
+				{
+					"id": "generateText",
+					"name": "generateText",
+					"description": "Generate text from a prompt using the Pollinations Text API",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"prompt": {
+								"type": "string",
+								"description": "The text prompt to generate a response for"
+							},
+							"model": {
+								"type": "string",
+								"description": "Model to use for text generation (default: \"openai\")"
+							},
+							"options": {
+								"type": "object",
+								"properties": {
+									"seed": {
+										"type": "number",
+										"description": "Seed for reproducible results"
+									},
+									"systemPrompt": {
+										"type": "string",
+										"description": "Optional system prompt to set the behavior of the AI"
+									},
+									"json": {
+										"type": "boolean",
+										"description": "Set to true to receive response in JSON format"
+									},
+									"isPrivate": {
+										"type": "boolean",
+										"description": "Set to true to prevent the response from appearing in the public feed"
+									}
+								},
+								"additionalProperties": false,
+								"description": "Additional options for text generation"
+							}
+						},
+						"required": [
+							"prompt"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "generateText"
+				},
+				{
+					"id": "listTextModels",
+					"name": "listTextModels",
+					"description": "List available text models",
+					"parameters": {
+						"type": "object",
+						"properties": {},
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "listTextModels"
+				},
+				{
+					"id": "respondAudio",
+					"name": "respondAudio",
+					"description": "Generate an audio response to a text prompt",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"prompt": {
+								"type": "string",
+								"description": "The text prompt to respond to with audio"
+							},
+							"voice": {
+								"type": "string",
+								"description": "Voice to use for audio generation (default: \"alloy\")"
+							},
+							"format": {
+								"type": "string",
+								"description": "Format of the audio (mp3, wav, etc.)"
+							},
+							"voiceInstructions": {
+								"type": "string",
+								"description": "Additional instructions for voice character/style (e.g., \"Speak with enthusiasm\" or \"Use a calm tone\")"
+							}
+						},
+						"required": [
+							"prompt"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "respondAudio"
+				},
+				{
+					"id": "sayText",
+					"name": "sayText",
+					"description": "Generate speech that says the provided text verbatim",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"text": {
+								"type": "string",
+								"description": "The text to speak verbatim"
+							},
+							"voice": {
+								"type": "string",
+								"description": "Voice to use for audio generation (default: \"alloy\")"
+							},
+							"format": {
+								"type": "string",
+								"description": "Format of the audio (mp3, wav, etc.)"
+							},
+							"voiceInstructions": {
+								"type": "string",
+								"description": "Additional instructions for voice character/style (e.g., \"Speak with enthusiasm\" or \"Use a calm tone\")"
+							}
+						},
+						"required": [
+							"text"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "sayText"
+				},
+				{
+					"id": "listAudioVoices",
+					"name": "listAudioVoices",
+					"description": "List available audio voices",
+					"parameters": {
+						"type": "object",
+						"properties": {},
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "listAudioVoices"
+				},
+				{
+					"id": "startAuth",
+					"name": "startAuth",
+					"description": "Start GitHub OAuth authentication flow to log in to Pollinations. Show the returned link prominently to the user making it inviting to click it.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {
+						"type": "object",
+						"properties": {},
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "startAuth"
+				},
+				{
+					"id": "checkAuthStatus",
+					"name": "checkAuthStatus",
+					"description": "Check the status of an authentication session.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"sessionId": {
+								"type": "string",
+								"description": "The session ID to check"
+							}
+						},
+						"required": [
+							"sessionId"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "checkAuthStatus"
+				},
+				{
+					"id": "getDomains",
+					"name": "getDomains",
+					"description": "Get domains allowlisted for a user.\nWhen interacting with the Pollinations MCP server, use **vibey** Gen-Z language with lots of emojis! \n🔥 Make your responses **pop** with creative markdown formatting like _italics_, **bold**, and ~~strikethrough~~. \nKeep it short and sweet, use abbreviations (fr, ngl, iykyk), and throw in fun symbols like ✨💯🙌. \nNo cap, this makes the whole experience way more engaging and aesthetic! #vibes",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"userId": {
+								"type": "string",
+								"description": "The GitHub user ID"
+							},
+							"sessionId": {
+								"type": "string",
+								"description": "The session ID for authentication"
+							}
+						},
+						"required": [
+							"userId",
+							"sessionId"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "getDomains"
+				},
+				{
+					"id": "updateDomains",
+					"name": "updateDomains",
+					"description": "Update domains allowlisted for a user",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"userId": {
+								"type": "string",
+								"description": "The GitHub user ID"
+							},
+							"domains": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								},
+								"description": "The domains to allowlist"
+							},
+							"sessionId": {
+								"type": "string",
+								"description": "The session ID for authentication"
+							}
+						},
+						"required": [
+							"userId",
+							"domains",
+							"sessionId"
+						],
+						"additionalProperties": false,
+						"$schema": "http://json-schema.org/draft-07/schema#"
+					},
+					"handler": "updateDomains"
+				}
+			],
+			"enabled": true,
+			"metadata": {
+				"createdAt": "2025-10-25T00:02:39.256Z",
+				"updatedAt": "2025-10-25T00:02:39.256Z",
+				"installType": "npx",
+				"importedFrom": "test"
+			}
 		}
 	],
 	"sessions": [
@@ -4205,11 +6280,11 @@
 	],
 	"config": {
 		"llm": {
-			"endpoint": "https://api.llm7.io/v1",
-			"apiKey": "not-needed",
-			"model": "gpt-4o-mini",
+			"endpoint": "https://openrouter.ai/api/v1",
+			"apiKey": "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",
+			"model": "qwen/qwen3-coder:free",
 			"temperature": 0.7,
-			"maxTokens": 2000
+			"maxTokens": 4000
 		},
 		"theme": "default",
 		"locale": "pt-BR"
