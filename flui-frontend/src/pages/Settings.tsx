@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { Save, TestTube, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { ModelCombobox } from '@/components/ui/ModelCombobox'
 import { api } from '@/services/api'
 import { toast } from 'sonner'
 
@@ -30,8 +31,7 @@ export function Settings() {
   const [isSaving, setIsSaving] = useState(false)
   const [isTesting, setIsTesting] = useState(false)
   const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle')
-  const [availableModels, setAvailableModels] = useState<ModelInfo[]>([])
-  const [isLoadingModels, setIsLoadingModels] = useState(false)
+  // Removido: availableModels e isLoadingModels - agora gerenciados pelo ModelCombobox
   const [currentEndpoint, setCurrentEndpoint] = useState('https://api.llm7.io/v1')
   
   const {
@@ -58,30 +58,52 @@ export function Settings() {
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const config = await api.get('/api/llm/config')
-        if (config.llm) {
-          setValue('endpoint', config.llm.endpoint)
-          setValue('apiKey', config.llm.apiKey || '')
-          setValue('model', config.llm.model)
-          setValue('temperature', config.llm.temperature)
-          setValue('maxTokens', config.llm.maxTokens)
-          setCurrentEndpoint(config.llm.endpoint)
+        const config: any = await api.get('/api/llm/config')
+        console.log('✅ Config carregada do backend:', config)
+        
+        if (config && config.llm) {
+          const endpoint = config.llm.endpoint || 'https://api.llm7.io/v1'
+          const apiKey = config.llm.apiKey === '***' ? '' : (config.llm.apiKey || '')
+          const model = config.llm.model || 'deepseek-v3.1'
+          const temp = config.llm.temperature ?? 0.7
+          const tokens = config.llm.maxTokens || 2000
+          
+          console.log('📝 Preenchendo formulário:', { endpoint, model, temp, tokens, hasApiKey: !!apiKey })
+          
+          setValue('endpoint', endpoint)
+          setValue('apiKey', apiKey)
+          setValue('model', model)
+          setValue('temperature', temp)
+          setValue('maxTokens', tokens)
+          setCurrentEndpoint(endpoint)
+          
+          console.log('✅ Formulário preenchido com sucesso')
         }
       } catch (error: any) {
-        console.error('Erro ao carregar config:', error)
+        console.error('❌ Erro ao carregar config:', error)
+        toast.error('Erro ao carregar configuração', {
+          description: error.message
+        })
       }
     }
     
     loadConfig()
   }, [setValue])
   
-  // 🚀 Carregar modelos disponíveis quando o endpoint mudar
+  // 🚀 Carregar modelos disponíveis quando endpoint OU apiKey mudarem
   useEffect(() => {
+    const apiKey = watch('apiKey')
+    
     if (endpoint && endpoint !== currentEndpoint) {
       setCurrentEndpoint(endpoint)
-      loadAvailableModels(endpoint)
+      // ✅ Delay para garantir que API key foi preenchida
+      const timer = setTimeout(() => {
+        loadAvailableModels(endpoint)
+      }, 500)
+      
+      return () => clearTimeout(timer)
     }
-  }, [endpoint])
+  }, [endpoint, watch('apiKey')])
   
   // Carregar modelos na inicialização
   useEffect(() => {
@@ -90,51 +112,42 @@ export function Settings() {
     }
   }, [])
   
+  // Removido: loadAvailableModels - agora gerenciado pelo ModelCombobox
   const loadAvailableModels = async (endpointUrl: string) => {
-    setIsLoadingModels(true)
-    try {
-      // Tentar carregar modelos do endpoint
-      const modelsUrl = endpointUrl.endsWith('/') ? `${endpointUrl}models` : `${endpointUrl}/models`
-      
-      const response = await fetch(modelsUrl, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        
-        // Suportar formato OpenAI (data.data) ou formato direto (array)
-        const models = Array.isArray(data) ? data : data.data || []
-        setAvailableModels(models)
-        
-        console.log(`✅ Loaded ${models.length} models from ${endpointUrl}`)
-      } else {
-        console.warn('Failed to load models:', response.statusText)
-        setAvailableModels([])
-      }
-    } catch (error) {
-      console.error('Error loading models:', error)
-      setAvailableModels([])
-    } finally {
-      setIsLoadingModels(false)
-    }
+    // Função mantida vazia para compatibilidade (não é mais usada)
   }
   
   const onSubmit = async (data: LLMConfigData) => {
     setIsSaving(true)
     try {
-      await api.post('/api/llm/config', data)
+      console.log('📤 Enviando config para salvar:', {
+        endpoint: data.endpoint,
+        apiKey: data.apiKey ? `${data.apiKey.substring(0, 15)}... (${data.apiKey.length} chars)` : '(vazio)',
+        model: data.model,
+        temperature: data.temperature,
+        maxTokens: data.maxTokens,
+      })
+      
+      const response: any = await api.post('/api/llm/config', data)
+      
+      console.log('✅ Config salva com sucesso:', response)
       
       toast.success('Configuração salva!', {
-        description: 'As configurações do LLM foram atualizadas'
+        description: `Modelo: ${data.model}`
       })
+      
+      // ✅ Recarregar config para confirmar que foi salva
+      setTimeout(async () => {
+        const savedConfig: any = await api.get('/api/llm/config')
+        console.log('🔍 Verificando config salva:', savedConfig)
+      }, 500)
       
       setTestStatus('idle')
     } catch (error: any) {
+      console.error('❌ Erro ao salvar config:', error)
+      
       toast.error('Erro ao salvar', {
-        description: error.message
+        description: error.response?.data?.error || error.message
       })
     } finally {
       setIsSaving(false)
@@ -146,7 +159,7 @@ export function Settings() {
     setTestStatus('idle')
     
     try {
-      const response = await api.post('/api/llm/test', {
+      const response: any = await api.post('/api/llm/test', {
         message: 'Hello! Please respond with a simple greeting.',
       })
       
@@ -230,39 +243,15 @@ export function Settings() {
                 Modelo *
               </label>
               
-              {availableModels.length > 0 ? (
-                <div>
-                  <select
-                    {...register('model')}
-                    className="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    disabled={isLoadingModels}
-                  >
-                    {availableModels.map((model) => (
-                      <option key={model.id} value={model.id}>
-                        {model.id} {model.owned_by ? `(${model.owned_by})` : ''}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {availableModels.length} modelos disponíveis no endpoint
-                  </p>
-                </div>
-              ) : (
-                <div>
-                  <Input
-                    {...register('model')}
-                    placeholder="deepseek-v3.1"
-                    error={errors.model?.message}
-                    disabled={isLoadingModels}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {isLoadingModels 
-                      ? 'Carregando modelos...' 
-                      : 'Digite o nome do modelo manualmente ou configure o endpoint para carregar automáticamente'
-                    }
-                  </p>
-                </div>
-              )}
+              <ModelCombobox
+                value={watch('model') || ''}
+                onChange={(value) => setValue('model', value)}
+                endpoint={watch('endpoint') || ''}
+                apiKey={watch('apiKey') || ''}
+                placeholder="Digite ou selecione um modelo (ex: qwen/qwen3-coder:free)"
+                error={errors.model?.message}
+                disabled={isSaving}
+              />
             </div>
             
             {/* Temperature */}

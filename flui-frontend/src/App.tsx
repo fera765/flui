@@ -10,6 +10,7 @@ import { MCPs } from './pages/MCPs'
 import { Automations } from './pages/Automations'
 import { WorkflowEditor } from './pages/WorkflowEditor'
 import { Tools } from './pages/Tools'
+import { Executions } from './pages/Executions'
 import { Settings } from './pages/Settings'
 import './styles/globals.css'
 import './styles/themes.css'
@@ -51,6 +52,7 @@ function App() {
             <Route path="automations/new" element={<WorkflowEditor />} />
             <Route path="automations/:id/edit" element={<WorkflowEditor />} />
             <Route path="tools" element={<Tools />} />
+            <Route path="executions" element={<Executions />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>

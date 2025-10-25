@@ -54,6 +54,94 @@ export interface MCPExecutionResult {
  * Classe principal para executar MCPs
  */
 export class MCPExecutor {
+  // Cache de clients MCP ativos
+  private static clients: Map<string, MCPClient> = new Map();
+  
+  /**
+   * ✅ NOVO: Executa uma tool de um MCP
+   */
+  static async executeMCPTool(
+    mcpId: string,
+    toolName: string,
+    args: Record<string, any>,
+    context?: any
+  ): Promise<{ success: boolean; result?: any; error?: string }> {
+    try {
+      console.log(`📦 [MCPExecutor] Executando tool ${toolName} do MCP ${mcpId}`);
+      
+      // Buscar MCP no store
+      const { useStore } = await import('../store/store.js');
+      const store = useStore.getState();
+      const mcp = store.mcps.find(m => m.id === mcpId);
+      
+      if (!mcp) {
+        return {
+          success: false,
+          error: `MCP não encontrado: ${mcpId}`
+        };
+      }
+      
+      // Verificar se a tool existe no MCP
+      const tool = mcp.tools.find(t => t.name === toolName);
+      if (!tool) {
+        return {
+          success: false,
+          error: `Tool ${toolName} não encontrada no MCP ${mcp.name}`
+        };
+      }
+      
+      // Obter ou criar client MCP
+      let client = this.clients.get(mcpId);
+      
+      if (!client) {
+        console.log(`🔌 [MCPExecutor] Criando novo client para MCP ${mcp.name}`);
+        client = new MCPClient();
+        
+        // Determinar comando de execução baseado no installType
+        let command: string;
+        let cmdArgs: string[] = [];
+        
+        if (mcp.installType === 'npx' && mcp.server) {
+          command = 'npx';
+          cmdArgs = ['-y', mcp.server];
+        } else if (mcp.server) {
+          command = mcp.server;
+        } else {
+          return {
+            success: false,
+            error: `MCP ${mcp.name} não tem servidor configurado`
+          };
+        }
+        
+        // Adicionar env vars se houver
+        if (mcp.metadata?.args) {
+          cmdArgs.push(...mcp.metadata.args);
+        }
+        
+        // Conectar ao MCP
+        await client.connect(command, cmdArgs);
+        this.clients.set(mcpId, client);
+      }
+      
+      // Executar a tool
+      console.log(`🔧 [MCPExecutor] Executando tool com args:`, args);
+      const result = await client.callTool(toolName, args);
+      
+      console.log(`✅ [MCPExecutor] Tool executada com sucesso`);
+      
+      return {
+        success: true,
+        result: result
+      };
+    } catch (error: any) {
+      console.error(`❌ [MCPExecutor] Erro ao executar tool:`, error);
+      return {
+        success: false,
+        error: error.message || 'Erro ao executar tool MCP'
+      };
+    }
+  }
+  
   /**
    * Instala e inicializa um MCP
    */

@@ -40,6 +40,11 @@ export const AutomationNodeSchema = z.object({
     y: z.number(),
   }).optional(),
   nextNodes: z.array(z.string()).default([]),
+  // ✅ FIX: Node identifiers for configuration
+  agentId: z.string().optional(),
+  toolId: z.string().optional(),
+  mcpId: z.string().optional(),
+  mcpToolId: z.string().optional(),
 });
 
 export type AutomationNode = z.infer<typeof AutomationNodeSchema>;

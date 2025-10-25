@@ -1,11 +1,15 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { ModelCombobox } from '@/components/ui/ModelCombobox'
 import { useModels, useTools, useMCPs } from '@/hooks/useAgents'
+import { RefreshCw, AlertCircle } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { api } from '@/services/api'
 import type { Agent } from '@/types/api'
 
 const agentSchema = z.object({
@@ -31,11 +35,33 @@ interface AgentModalProps {
 export function AgentModal({ isOpen, onClose, agent, onSubmit, isLoading }: AgentModalProps) {
   const [activeTab, setActiveTab] = useState<'general' | 'tools'>('general')
   const [selectedTools, setSelectedTools] = useState<string[]>(agent?.tools || [])
-  const [selectedMCPTools, setSelectedMCPTools] = useState<string[]>(agent?.mcpToolIds || [])
+  const [selectedMCPTools, setSelectedMCPTools] = useState<string[]>((agent as any)?.mcpToolIds || [])
+  const [llmEndpoint, setLlmEndpoint] = useState('')
+  const [llmApiKey, setLlmApiKey] = useState('')
 
-  const { data: models = [] } = useModels()
+  const queryClient = useQueryClient()
+  const { data: models = [], isLoading: isLoadingModels, error: modelsError, refetch: refetchModels } = useModels()
   const { data: tools = [] } = useTools()
   const { data: mcps = [] } = useMCPs()
+  
+  // Carregar config LLM para o ModelCombobox
+  useEffect(() => {
+    const loadLLMConfig = async () => {
+      try {
+        const response: any = await api.get('/api/llm/config')
+        if (response.llm) {
+          setLlmEndpoint(response.llm.endpoint || '')
+          setLlmApiKey(response.llm.apiKey || '')
+        }
+      } catch (error) {
+        console.error('Erro ao carregar config LLM:', error)
+      }
+    }
+    
+    if (isOpen) {
+      loadLLMConfig()
+    }
+  }, [isOpen])
   
   // ✅ Extract MCP tools into individual selectable items
   const mcpToolsList = mcps.flatMap((mcp: any) => 
@@ -51,6 +77,8 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isLoading }: Agen
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<AgentFormData>({
     resolver: zodResolver(agentSchema),
@@ -70,7 +98,7 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isLoading }: Agen
       ...data,
       tools: selectedTools,
       mcpToolIds: selectedMCPTools,
-    })
+    } as any)
     onClose()
   }
 
@@ -154,22 +182,48 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isLoading }: Agen
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Model *
-              </label>
-              <select
-                {...register('model')}
-                className="w-full h-10 px-3 border border-input bg-background rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <option value="">Select a model</option>
-                {((models as any)?.data || models || []).map((model: any) => (
-                  <option key={model.id} value={model.id}>
-                    {model.id}
-                  </option>
-                ))}
-              </select>
-              {errors.model && (
-                <p className="mt-1 text-sm text-destructive">{errors.model.message}</p>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-foreground">
+                  Model *
+                </label>
+                <button
+                  type="button"
+                  onClick={() => refetchModels()}
+                  disabled={isLoadingModels}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+                  title="Refresh models from LLM endpoint"
+                >
+                  <RefreshCw className={`w-3 h-3 ${isLoadingModels ? 'animate-spin' : ''}`} />
+                  Refresh
+                </button>
+              </div>
+              
+              {modelsError && (
+                <div className="mb-2 p-2 bg-destructive/10 border border-destructive/20 rounded-lg flex items-start gap-2 text-xs">
+                  <AlertCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-destructive">Failed to load models</p>
+                    <p className="text-muted-foreground mt-0.5">
+                      Configure LLM in Settings first, or using mock models
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              <ModelCombobox
+                value={watch('model') || ''}
+                onChange={(value) => setValue('model', value)}
+                endpoint={llmEndpoint}
+                apiKey={llmApiKey}
+                placeholder="Digite ou selecione um modelo (ex: qwen/qwen3-coder:free)"
+                error={errors.model?.message}
+                disabled={isLoading}
+              />
+              
+              {modelsError && (
+                <p className="mt-1 text-xs text-amber-600">
+                  Configure LLM em Settings para carregar modelos automaticamente
+                </p>
               )}
             </div>
 

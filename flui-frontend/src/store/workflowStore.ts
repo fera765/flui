@@ -42,11 +42,14 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   })),
 
   updateNode: (id, data) => {
+    console.log('[WorkflowStore] Updating node:', id, 'with data:', data)
     set((state) => {
+      const node = state.nodes.find(n => n.id === id)
       const updatedNodes = state.nodes.map((node) =>
         node.id === id ? { ...node, data: { ...node.data, ...data } } : node
       )
-      console.log('[WorkflowStore] Node updated:', id, data)
+      const updatedNode = updatedNodes.find(n => n.id === id)
+      console.log('[WorkflowStore] Node updated. Before:', node?.data.config, 'After:', updatedNode?.data.config)
       return { nodes: updatedNodes }
     })
   },
@@ -90,6 +93,11 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     if (!selectedNode || !linkerTargetField) return
 
     const linkedValue = `{{${nodeId}.${outputPath}}}`
+    console.log('[WorkflowStore] Linking output:', { 
+      nodeId: selectedNode.id, 
+      field: linkerTargetField, 
+      value: linkedValue 
+    })
     
     set((state) => ({
       nodes: state.nodes.map((node) =>
@@ -109,5 +117,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       isLinkerModalOpen: false,
       linkerTargetField: null,
     }))
+    
+    console.log('[WorkflowStore] Node updated with link:', get().nodes.find(n => n.id === selectedNode.id)?.data.config)
   },
 }))

@@ -7,12 +7,19 @@ import { useTools, useMCPs } from '@/hooks/useAgents'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/services/api'
 import { DynamicConfigInput } from './DynamicConfigInput'
+import { WebhookTriggerModal } from '@/components/triggers/WebhookTriggerModal'
+import { CronTriggerModal } from '@/components/triggers/CronTriggerModal'
+import { useParams } from 'react-router-dom'
 
 export function NodeConfigModal() {
+  const { id: automationId } = useParams()
+  
   const {
     isConfigModalOpen,
     closeConfigModal,
-    selectedNode,
+    selectedNode: storeSelectedNode,
+    selectedNodeId,
+    nodes,
     updateNode,
     openLinkerModal,
   } = useWorkflowStore()
@@ -25,18 +32,60 @@ export function NodeConfigModal() {
   })
 
   const [config, setConfig] = useState<Record<string, any>>({})
+  const [showWebhookModal, setShowWebhookModal] = useState(false)
+  const [showCronModal, setShowCronModal] = useState(false)
 
+  // ✅ FIX: Always get fresh node from store to catch updates from linking
+  const selectedNode = selectedNodeId 
+    ? nodes.find(n => n.id === selectedNodeId) || storeSelectedNode
+    : storeSelectedNode
+
+  // ✅ FIX: Sync local state with store changes (for linking)
   useEffect(() => {
     if (selectedNode) {
+      console.log('[NodeConfigModal] Syncing config from node:', selectedNode.data.config)
       setConfig(selectedNode.data.config || {})
     }
-  }, [selectedNode])
+  }, [selectedNodeId, nodes, selectedNode?.data.config])
+
+  // ✅ DETECTAR TRIGGERS e abrir modal específico
+  useEffect(() => {
+    if (isConfigModalOpen && selectedNode && automationId) {
+      const toolId = selectedNode.data.toolId
+      
+      console.log('[NodeConfigModal] Checking for trigger:', {
+        toolId,
+        isWebhook: toolId === 'webhook-trigger',
+        isCron: toolId === 'cron-trigger',
+        automationId,
+      })
+      
+      if (toolId === 'webhook-trigger') {
+        console.log('[NodeConfigModal] 🔗 Abrindo WebhookTriggerModal')
+        setShowWebhookModal(true)
+        closeConfigModal() // Fechar modal genérico
+      } else if (toolId === 'cron-trigger') {
+        console.log('[NodeConfigModal] ⏰ Abrindo CronTriggerModal')
+        setShowCronModal(true)
+        closeConfigModal() // Fechar modal genérico
+      }
+    }
+  }, [isConfigModalOpen, selectedNode?.data.toolId, automationId])
 
   if (!selectedNode) return null
 
   // Get parameters based on node type
   let params: any[] = []
   let itemData: any = null
+  
+  console.log('[NodeConfigModal] Selected node:', {
+    id: selectedNode.id,
+    type: selectedNode.data.type,
+    agentId: selectedNode.data.agentId,
+    toolId: selectedNode.data.toolId,
+    mcpId: selectedNode.data.mcpId,
+    mcpToolId: selectedNode.data.mcpToolId,
+  })
   
   if (selectedNode.data.type === 'agent' && selectedNode.data.agentId) {
     // ✅ Agent node - apenas o input (message)
@@ -84,10 +133,22 @@ export function NodeConfigModal() {
     const tool = tools.find((t: any) => t.id === selectedNode.data.toolId)
     params = tool?.params || []
     itemData = tool
+    
+    if (!tool) {
+      console.warn('[NodeConfigModal] Tool not found for toolId:', selectedNode.data.toolId)
+    }
   }
+  
+  // Log final de params
+  console.log('[NodeConfigModal] Resolved params:', {
+    count: params.length,
+    params: params.map(p => p.key),
+    hasItemData: !!itemData,
+  })
 
   const handleSave = () => {
-    // ✅ Salvar apenas config, nome/descrição são do agente/tool
+    // ✅ Salvar config do node
+    console.log('[NodeConfigModal] Saving config:', config)
     updateNode(selectedNode.id, {
       config,
     })
@@ -103,6 +164,7 @@ export function NodeConfigModal() {
   }
 
   return (
+    <>
     <Modal
       isOpen={isConfigModalOpen}
       onClose={closeConfigModal}
@@ -176,5 +238,29 @@ export function NodeConfigModal() {
         </div>
       </div>
     </Modal>
+    
+    {/* Modais de Triggers - Renderizados condicionalmente */}
+    {showWebhookModal && automationId && (
+      <WebhookTriggerModal
+        isOpen={showWebhookModal}
+        onClose={() => {
+          setShowWebhookModal(false)
+          // Não reabrir NodeConfigModal
+        }}
+        automationId={automationId}
+      />
+    )}
+    
+    {showCronModal && automationId && (
+      <CronTriggerModal
+        isOpen={showCronModal}
+        onClose={() => {
+          setShowCronModal(false)
+          // Não reabrir NodeConfigModal
+        }}
+        automationId={automationId}
+      />
+    )}
+    </>
   )
 }

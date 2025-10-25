@@ -26,7 +26,7 @@ console.log('✅ [AutomationStorage] Storage inicializado');
  * Garante que todos os campos obrigatórios existem com defaults apropriados
  */
 function validateAndNormalizeAutomation(automation: any): Automation {
-  console.log('🔍 [Storage] Validando automação:', automation.id || 'nova');
+  // ✅ FIX: Reduzir logging verboso
   
   // Garantir campos básicos
   const normalized: any = {
@@ -61,12 +61,17 @@ function validateAndNormalizeAutomation(automation: any): Automation {
     
     return {
       id: node.id || generateId(),
-      type: nodeType,  // Aceitar tipo conforme enviado
+      type: nodeType,
       name: node.name || 'Node',
       description: node.description || '',
       config: node.config || {},
       position: node.position || { x: 0, y: 0 },
       nextNodes: Array.isArray(node.nextNodes) ? node.nextNodes : [],
+      // ✅ FIX: Preserve node identifiers needed for configuration
+      ...(node.agentId && { agentId: node.agentId }),
+      ...(node.toolId && { toolId: node.toolId }),
+      ...(node.mcpId && { mcpId: node.mcpId }),
+      ...(node.mcpToolId && { mcpToolId: node.mcpToolId }),
     };
   });
   
@@ -92,13 +97,14 @@ function validateAndNormalizeAutomation(automation: any): Automation {
  * Migra automação de schema antigo para novo
  * Garante compatibilidade com versões anteriores
  */
-function migrateAutomation(automation: any): Automation {
-  console.log('🔄 [Storage] Migrando automação:', automation.id);
-  
-  // Se já está na versão 2.0.0, apenas normaliza
+function migrateAutomation(automation: any): any {
+  // ✅ FIX: Se já está na versão 2.0.0, retornar sem validar novamente
+  // validateAndNormalizeAutomation será chamada depois se necessário
   if (automation.version === '2.0.0') {
-    return validateAndNormalizeAutomation(automation);
+    return automation;
   }
+  
+  console.log('🔄 [Storage] Migrando automação:', automation.id, 'de versão', automation.version || '1.x', '→ 2.0.0');
   
   // Migration de versão 1.x para 2.0
   let edges = automation.edges || [];
@@ -127,8 +133,8 @@ function migrateAutomation(automation: any): Automation {
   // Remover campo 'connections' se existir
   delete migrated.connections;
   
-  console.log('✅ [Storage] Migração concluída', { edgesCount: edges.length });
-  return validateAndNormalizeAutomation(migrated);
+  console.log('✅ [Storage] Migração concluída', { version: '2.0.0', edgesCount: edges.length });
+  return migrated;
 }
 
 // ============= AUTOMATIONS =============
@@ -153,32 +159,44 @@ export const getAutomation = (id: string): Automation | null => {
   const automation = automations.find((a) => a.id === id);
   if (!automation) return null;
   
-  // Migrar ao carregar
-  return migrateAutomation(automation);
+  console.log(`📖 [Storage] Loading automation ${id} - ${automation.nodes?.length || 0} nodes, ${automation.edges?.length || 0} edges`);
+  
+  // ✅ FIX: Migrar apenas se necessário
+  let result = automation;
+  if (automation.version !== '2.0.0') {
+    result = migrateAutomation(automation);
+  }
+  
+  // ✅ FIX: Validar UMA ÚNICA VEZ
+  const validated = validateAndNormalizeAutomation(result);
+  
+  return validated;
 };
 
 export const saveAutomation = (automation: any): Automation => {
-  console.log('💾 [Storage] Salvando automação:', automation.id || 'nova');
+  console.log('💾 [Storage] Salvando automação:', automation.id || 'nova', '- Edges:', automation.edges?.length || 0);
   
-  // Migrar PRIMEIRO (se necessário) para converter schemas antigos
-  const migrated = automation.version !== '2.0.0' ? migrateAutomation(automation) : automation;
+  // ✅ FIX: Migrar apenas se necessário (versão antiga)
+  let toSave = automation;
+  if (automation.version !== '2.0.0') {
+    toSave = migrateAutomation(automation);
+  }
   
-  // Depois validar e normalizar
-  const validated = validateAndNormalizeAutomation(migrated);
+  // ✅ FIX: Validar e normalizar UMA ÚNICA VEZ
+  const validated = validateAndNormalizeAutomation(toSave);
   
   const automations = (config.get('automations') as any[]) || [];
   const index = automations.findIndex((a) => a.id === validated.id);
   
   if (index >= 0) {
-    console.log('📝 [Storage] Atualizando automação existente');
+    console.log('✅ [Storage] Automação atualizada');
     automations[index] = validated;
   } else {
-    console.log('✨ [Storage] Criando nova automação');
+    console.log('✅ [Storage] Automação criada');
     automations.push(validated);
   }
   
   config.set('automations', automations);
-  console.log('✅ [Storage] Automação salva com sucesso');
   
   return validated;
 };

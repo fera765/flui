@@ -1,0 +1,573 @@
+import { useState, useEffect, useRef } from 'react'
+import { Modal } from '@/components/ui/Modal'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { 
+  Download, Send, FileText, Image as ImageIcon, Video, Link as LinkIcon, 
+  CheckCircle2, XCircle, Loader2, Play, Clock, Zap, AlertCircle 
+} from 'lucide-react'
+import { api } from '@/services/api'
+import { toast } from 'sonner'
+import { useWebSocket, WebSocketMessage } from '@/hooks/useWebSocket'
+
+interface ExecutionLog {
+  timestamp: string
+  level: 'info' | 'warn' | 'error' | 'success'
+  nodeId: string
+  nodeName: string
+  message: string
+  input?: any
+  output?: any
+}
+
+interface ExecutionFile {
+  name: string
+  type: string
+  url?: string
+  content?: string
+  size?: number
+}
+
+interface ExecutionNode {
+  id: string
+  name: string
+  type: string
+  status: 'pending' | 'running' | 'success' | 'error' | 'skipped'
+  startTime?: number
+  endTime?: number
+  duration?: number
+  input?: any
+  output?: any
+  error?: string
+}
+
+interface ExecutionContext {
+  automationName: string
+  automationId: string
+  status: 'running' | 'completed' | 'failed'
+  nodesExecuted: number
+  files: ExecutionFile[]
+  logs: ExecutionLog[]
+  duration?: number
+  error?: string
+  nodes?: ExecutionNode[]
+}
+
+interface ExecutionModalProps {
+  isOpen: boolean
+  onClose: () => void
+  context: ExecutionContext
+}
+
+export function ExecutionModalV2({ isOpen, onClose, context }: ExecutionModalProps) {
+  const [activeTab, setActiveTab] = useState<'timeline' | 'logs'>('timeline')
+  const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant' | 'system'; content: string; files?: ExecutionFile[] }>>([])
+  const [inputMessage, setInputMessage] = useState('')
+  const [isSending, setIsSending] = useState(false)
+  const chatEndRef = useRef<HTMLDivElement>(null)
+  const [executionNodes, setExecutionNodes] = useState<ExecutionNode[]>([])
+  const [executionContext, setExecutionContext] = useState<string>('')
+  
+  // ✅ WebSocket para atualizações em tempo real
+  useWebSocket({
+    onMessage: (message: WebSocketMessage) => {
+      if (message.automationId !== context.automationId) return
+
+      if (message.type === 'execution-log' && message.log) {
+        const log = message.log
+        
+        console.log('[ExecutionModalV2] 📨 Log recebido:', log)
+        
+        // Atualizar nodes baseado no log
+        setExecutionNodes(prev => {
+          const updated = [...prev]
+          const nodeIndex = updated.findIndex(n => n.id === log.nodeId)
+          
+          if (nodeIndex >= 0) {
+            const node = updated[nodeIndex]
+            
+            // Mapear status para level
+            let level = log.level
+            if (log.status === 'completed') level = 'success'
+            else if (log.status === 'failed') level = 'error'
+            else if (log.status === 'running') level = 'running'
+            
+            if (level === 'running') {
+              node.status = 'running'
+            } else if (level === 'success') {
+              node.status = 'success'
+              node.output = log.data?.output || log.output
+              node.duration = log.data?.duration
+            } else if (level === 'error') {
+              node.status = 'error'
+              node.error = log.message || log.error
+            }
+            
+            updated[nodeIndex] = { ...node }
+          }
+          
+          return updated
+        })
+      } else if (message.type === 'execution-complete' && message.result) {
+        console.log('[ExecutionModalV2] ✅ Execução completa')
+        // Já será tratado pelo WorkflowEditor
+      }
+    }
+  })
+  
+  // Auto-scroll chat
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [chatMessages])
+  
+  // ✅ Initialize nodes from context (já vêm com status 'pending')
+  // Atualizações em tempo real vêm via WebSocket
+  useEffect(() => {
+    if (context.nodes && context.nodes.length > 0) {
+      console.log('[ExecutionModalV2] 🔄 Inicializando nodes:', context.nodes)
+      setExecutionNodes(context.nodes)
+    }
+  }, [context.automationId]) // Apenas quando muda automationId (nova execução)
+  
+  // Add initial welcome message
+  useEffect(() => {
+    if (context.status === 'running' && chatMessages.length === 0) {
+      setChatMessages([{
+        role: 'system',
+        content: `🚀 Iniciando execução da automação **${context.automationName}**\n\nAcompanhe o progresso na timeline ao lado.`
+      }])
+    }
+  }, [context.status, context.automationName])
+  
+  // Update chat with node execution status
+  useEffect(() => {
+    if (context.logs.length > 0) {
+      const latestLog = context.logs[context.logs.length - 1]
+      
+      // Processar todos os logs não processados
+      const currentMessageCount = chatMessages.filter(m => m.role === 'system' && !m.content.includes('Iniciando')).length
+      const newLogs = context.logs.slice(currentMessageCount)
+      
+      newLogs.forEach(log => {
+        if (log.level === 'success') {
+          const newMessage: any = {
+            role: 'system',
+            content: `✅ **${log.nodeName}** executado com sucesso`
+          }
+          
+          // Check for files in output
+          if (log.output?.files) {
+            newMessage.files = log.output.files
+            newMessage.content += `\n📁 ${log.output.files.length} arquivo(s) gerado(s)`
+          }
+          
+          // Check for links in output
+          if (log.output?.links || log.output?.url) {
+            const links = log.output.links || [log.output.url]
+            newMessage.content += `\n🔗 ${links.length} link(s) gerado(s)`
+          }
+          
+          setChatMessages(prev => [...prev, newMessage])
+        } else if (log.level === 'error') {
+          setChatMessages(prev => [...prev, {
+            role: 'system' as const,
+            content: `❌ **${log.nodeName}** falhou\n\n${log.message || 'Erro desconhecido'}`
+          }])
+        } else if (log.level === 'warn') {
+          setChatMessages(prev => [...prev, {
+            role: 'system' as const,
+            content: `⚠️ **${log.nodeName}**: ${log.message}`
+          }])
+        } else if (log.message && (log.message.includes('Executando') || log.message.includes('Iniciando'))) {
+          setChatMessages(prev => [...prev, {
+            role: 'system' as const,
+            content: `⚡ **${log.nodeName}**: ${log.message}`
+          }])
+        }
+      })
+    }
+  }, [context.logs])
+  
+  // ✅ Mensagem final (máximo 4 palavras)
+  useEffect(() => {
+    if (context.status === 'completed') {
+      const allFiles = context.files || []
+      
+      setChatMessages(prev => {
+        // Evitar duplicatas
+        if (prev.some(m => m.content.includes('✅ Concluído'))) return prev
+        
+        return [{
+          role: 'system' as const,
+          content: allFiles.length > 0 
+            ? `✅ Concluído com arquivos` 
+            : `✅ Concluído com sucesso`,
+          files: allFiles.length > 0 ? allFiles : undefined
+        }]
+      })
+    } else if (context.status === 'failed') {
+      setChatMessages(prev => {
+        if (prev.some(m => m.content.includes('❌ Falhou'))) return prev
+        
+        return [{
+          role: 'system' as const,
+          content: `❌ Execução falhou`
+        }]
+      })
+    }
+  }, [context.status])
+  
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim() || isSending) return
+    
+    const userMessage = inputMessage.trim()
+    setInputMessage('')
+    setChatMessages(prev => [...prev, { role: 'user', content: userMessage }])
+    setIsSending(true)
+    
+    try {
+      const contextToSend = executionContext || JSON.stringify({
+        status: context.status,
+        duration: context.duration,
+        nodesExecuted: context.nodesExecuted,
+        files: context.files,
+        logs: context.logs,
+        nodes: executionNodes,
+      })
+      
+      const response: any = await api.post(`/api/automations/${context.automationId}/chat`, {
+        message: userMessage,
+        // ✅ Enviar contexto COMPLETO com todos inputs/outputs
+        executionContext: contextToSend,
+      })
+      
+      setChatMessages(prev => [...prev, {
+        role: 'assistant',
+        content: response.response || response.fallback || 'Desculpe, não consegui processar sua mensagem.'
+      }])
+    } catch (error: any) {
+      toast.error('Erro ao enviar mensagem')
+      setChatMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'Desculpe, ocorreu um erro. Verifique a configuração do LLM.'
+      }])
+    } finally {
+      setIsSending(false)
+    }
+  }
+  
+  const downloadFile = (file: ExecutionFile) => {
+    try {
+      const blob = new Blob([file.content || ''], { type: file.type })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = file.name
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      toast.success(`Download iniciado: ${file.name}`)
+    } catch (error) {
+      toast.error('Erro ao baixar arquivo')
+    }
+  }
+  
+  const getStatusColor = (status: ExecutionNode['status']) => {
+    switch (status) {
+      case 'success': return 'text-green-500 border-green-500 bg-green-500/10'
+      case 'error': return 'text-red-500 border-red-500 bg-red-500/10'
+      case 'running': return 'text-blue-500 border-blue-500 bg-blue-500/10 animate-pulse'
+      case 'pending': return 'text-gray-400 border-gray-400 bg-gray-400/10'
+      case 'skipped': return 'text-yellow-500 border-yellow-500 bg-yellow-500/10'
+    }
+  }
+  
+  const getStatusIcon = (status: ExecutionNode['status']) => {
+    switch (status) {
+      case 'success': return <CheckCircle2 className="w-5 h-5" />
+      case 'error': return <XCircle className="w-5 h-5" />
+      case 'running': return <Loader2 className="w-5 h-5 animate-spin" />
+      case 'pending': return <Clock className="w-5 h-5" />
+      case 'skipped': return <AlertCircle className="w-5 h-5" />
+    }
+  }
+  
+  const getFileIcon = (type: string) => {
+    if (type.includes('image')) return <ImageIcon className="w-4 h-4" />
+    if (type.includes('video')) return <Video className="w-4 h-4" />
+    return <FileText className="w-4 h-4" />
+  }
+  
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title={context.automationName} size="lg">
+      <div className="flex flex-col h-[85vh] max-h-[700px]">
+        {/* Header com Status */}
+        <div className={`mb-4 p-4 rounded-xl border-2 transition-all ${
+          context.status === 'running' 
+            ? 'border-blue-500 bg-gradient-to-r from-blue-500/10 to-blue-600/10' 
+            : context.status === 'completed' 
+            ? 'border-green-500 bg-gradient-to-r from-green-500/10 to-green-600/10' 
+            : 'border-red-500 bg-gradient-to-r from-red-500/10 to-red-600/10'
+        }`}>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-3">
+              {context.status === 'running' && <Loader2 className="w-5 h-5 animate-spin text-blue-500" />}
+              {context.status === 'completed' && <CheckCircle2 className="w-5 h-5 text-green-500" />}
+              {context.status === 'failed' && <XCircle className="w-5 h-5 text-red-500" />}
+              <div>
+                <div className="font-bold text-sm">
+                  {context.status === 'running' ? 'Executando...' : context.status === 'completed' ? '✓ Concluído' : '✗ Falhou'}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {executionNodes.filter(n => n.status === 'success').length} / {executionNodes.length} nós
+                  {context.duration && ` • ${(context.duration / 1000).toFixed(2)}s`}
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex gap-2">
+              <button
+                onClick={() => setActiveTab('timeline')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  activeTab === 'timeline'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                }`}
+              >
+                💬 Chat
+              </button>
+              <button
+                onClick={() => setActiveTab('logs')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  activeTab === 'logs'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                }`}
+              >
+                📋 Logs
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto mb-4">
+          {activeTab === 'timeline' ? (
+            <div className="space-y-3">
+              {/* Timeline Cards integrados no chat */}
+              {executionNodes.map((node, idx) => {
+                const isFirst = idx === 0
+                const isLast = idx === executionNodes.length - 1
+                const isPending = node.status === 'pending'
+                
+                return (
+                  <div key={node.id} className={`relative ${isPending ? 'opacity-60' : ''}`}>
+                    {/* Connection line */}
+                    {!isFirst && (
+                      <div className="absolute left-4 -top-3 w-0.5 h-3 bg-gradient-to-b from-gray-300 to-transparent" />
+                    )}
+                    
+                    <div className="flex gap-3">
+                      {/* Node Icon */}
+                      <div className={`flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${getStatusColor(node.status)}`}>
+                        {getStatusIcon(node.status)}
+                      </div>
+                      
+                      {/* Node Card */}
+                      <div className={`flex-1 p-3 rounded-xl border transition-all duration-300 ${
+                        node.status === 'running' 
+                          ? 'border-blue-500 bg-blue-500/10 shadow-lg shadow-blue-500/20 scale-[1.02]' 
+                          : node.status === 'success'
+                          ? 'border-green-500/30 bg-green-500/5'
+                          : node.status === 'error'
+                          ? 'border-red-500/30 bg-red-500/5'
+                          : 'border-border bg-muted/30'
+                      }`}>
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <div className="font-semibold text-sm">{node.name}</div>
+                          {node.duration && (
+                            <div className="text-xs text-muted-foreground font-mono">
+                              {node.duration}ms
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="text-xs text-muted-foreground">
+                          {node.status === 'success' && '✓ Concluído'}
+                          {node.status === 'error' && '✗ Falhou'}
+                          {node.status === 'running' && (
+                            <span className="flex items-center gap-1">
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                              Executando...
+                            </span>
+                          )}
+                          {node.status === 'pending' && '⏳ Aguardando...'}
+                          {node.status === 'skipped' && '⊘ Pulado'}
+                        </div>
+                        
+                        {/* Error message */}
+                        {node.error && (
+                          <div className="mt-2 text-xs text-red-600 bg-red-500/10 border border-red-500/20 p-2 rounded font-medium">
+                            💥 {node.error}
+                          </div>
+                        )}
+                        
+                        {/* Output preview for success */}
+                        {node.status === 'success' && node.output && (
+                          <div className="mt-2">
+                            <details className="text-xs">
+                              <summary className="cursor-pointer text-green-600 hover:text-green-700 font-medium">
+                                ✓ Ver output
+                              </summary>
+                              <pre className="mt-1 p-2 bg-background/50 rounded text-[10px] overflow-auto max-h-24">
+                                {JSON.stringify(node.output, null, 2)}
+                              </pre>
+                            </details>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+              
+              {/* Chat Messages */}
+              {chatMessages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[90%] sm:max-w-[85%] p-3 sm:p-4 rounded-2xl ${
+                      msg.role === 'user'
+                        ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-lg'
+                        : msg.role === 'system'
+                        ? 'bg-gradient-to-br from-gray-800 to-gray-900 text-gray-100 text-sm'
+                        : 'bg-gradient-to-br from-purple-600 to-purple-700 text-white shadow-lg'
+                    }`}
+                  >
+                    <div className="whitespace-pre-wrap text-sm sm:text-base">{msg.content}</div>
+                    
+                    {/* Files */}
+                    {msg.files && msg.files.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {msg.files.map((file, fileIdx) => (
+                          <div
+                            key={fileIdx}
+                            className="flex items-center gap-2 p-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20"
+                          >
+                            {getFileIcon(file.type)}
+                            <span className="flex-1 text-xs sm:text-sm truncate">{file.name}</span>
+                            {file.size && (
+                              <span className="text-xs opacity-75 hidden sm:inline">
+                                {(file.size / 1024).toFixed(1)}KB
+                              </span>
+                            )}
+                            <button
+                              className="p-1.5 hover:bg-white/20 rounded transition-colors"
+                              onClick={() => downloadFile(file)}
+                            >
+                              <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+              
+              {isSending && (
+                <div className="flex justify-start">
+                  <div className="bg-gradient-to-br from-purple-600 to-purple-700 text-white p-3 sm:p-4 rounded-2xl flex items-center gap-2 shadow-lg">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="text-sm">Pensando...</span>
+                  </div>
+                </div>
+              )}
+              
+              <div ref={chatEndRef} />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {context.logs.map((log, idx) => (
+                <div
+                  key={idx}
+                  className={`p-3 rounded-lg border text-xs ${
+                    log.level === 'error'
+                      ? 'bg-red-500/10 border-red-500/20'
+                      : log.level === 'success'
+                      ? 'bg-green-500/10 border-green-500/20'
+                      : 'bg-muted border-border'
+                  }`}
+                >
+                  <div className="flex items-start gap-2 mb-1">
+                    {log.level === 'error' && <XCircle className="w-3 h-3 text-red-500 flex-shrink-0 mt-0.5" />}
+                    {log.level === 'success' && <CheckCircle2 className="w-3 h-3 text-green-500 flex-shrink-0 mt-0.5" />}
+                    <span className="font-medium">{log.nodeName}</span>
+                  </div>
+                  <p className="text-muted-foreground mb-2">{log.message}</p>
+                  
+                  {(log.input || log.output) && (
+                    <div className="space-y-1">
+                      {log.input && (
+                        <details className="cursor-pointer">
+                          <summary className="font-medium text-blue-600 hover:text-blue-700 text-xs">📥 Input</summary>
+                          <pre className="mt-2 p-2 bg-background/50 border border-border/50 rounded text-[10px] overflow-auto max-h-32">
+                            {typeof log.input === 'string' ? log.input : JSON.stringify(log.input, null, 2)}
+                          </pre>
+                        </details>
+                      )}
+                      {log.output && (
+                        <details className="cursor-pointer" open>
+                          <summary className="font-medium text-green-600 hover:text-green-700 text-xs">📤 Output</summary>
+                          <pre className="mt-2 p-2 bg-background/50 border border-border/50 rounded text-[10px] overflow-auto max-h-32">
+                            {typeof log.output === 'string' ? log.output : JSON.stringify(log.output, null, 2)}
+                          </pre>
+                        </details>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        {/* Chat Input */}
+        {activeTab === 'timeline' && (
+          <div className="border-t border-border pt-3">
+            <div className="flex gap-2">
+              <Input
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    handleSendMessage()
+                  }
+                }}
+                placeholder={context.status === 'running' ? 'Aguarde conclusão...' : 'Pergunte sobre a execução...'}
+                disabled={isSending || context.status === 'running'}
+                className="flex-1 text-sm"
+              />
+              <Button
+                onClick={handleSendMessage}
+                disabled={!inputMessage.trim() || isSending || context.status === 'running'}
+                className="px-4"
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              {context.status === 'running' 
+                ? '⏳ Aguarde a conclusão para fazer perguntas'
+                : '💡 Pergunte sobre resultados, erros, arquivos gerados, etc.'}
+            </p>
+          </div>
+        )}
+      </div>
+    </Modal>
+  )
+}

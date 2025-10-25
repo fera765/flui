@@ -137,6 +137,21 @@ class ApiClient {
     });
   }
   
+  // Generic PUT method
+  async put<T>(endpoint: string, data?: any): Promise<T> {
+    return this.fetch<T>(endpoint, {
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+  
+  // Generic DELETE method
+  async delete<T>(endpoint: string): Promise<T> {
+    return this.fetch<T>(endpoint, {
+      method: 'DELETE',
+    });
+  }
+  
   async getAutomation(id: string) {
     return this.fetch<any>(`/api/automations/${id}`);
   }

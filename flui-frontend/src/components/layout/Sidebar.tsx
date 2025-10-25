@@ -8,6 +8,7 @@ import {
   Workflow,
   Settings,
   Zap,
+  ListChecks,
 } from 'lucide-react'
 
 const navigation = [
@@ -16,6 +17,7 @@ const navigation = [
   { name: 'MCPs', href: '/mcps', icon: Puzzle },
   { name: 'Automations', href: '/automations', icon: Workflow },
   { name: 'Tools', href: '/tools', icon: Zap },
+  { name: 'Executions', href: '/executions', icon: ListChecks },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
 

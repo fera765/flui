@@ -19,7 +19,7 @@ import { NodeConfigModal } from '@/components/workflow/NodeConfigModal'
 import { TypedLinkerModal } from '@/components/workflow/TypedLinkerModal'
 import { AddNodeModal } from '@/components/workflow/AddNodeModal'
 import { DeleteEdgeButton } from '@/components/workflow/DeleteEdgeButton'
-import { ExecutionModal } from '@/components/automations/ExecutionModal'
+import { ExecutionModalV2 } from '@/components/automations/ExecutionModalV2'
 import { useWorkflowStore } from '@/store/workflowStore'
 import { useAutomations } from '@/hooks/useAutomations'
 import { api } from '@/services/api'
@@ -80,10 +80,13 @@ export function WorkflowEditor() {
   // ✅ BIDIRECTIONAL SYNC: ReactFlow ↔ Zustand Store
   // Sync ReactFlow → Store
   useEffect(() => {
-    if (!isSyncingFromStore.current) {
+    if (!isSyncingFromStore.current && nodes.length > 0) {
       workflowStore.setNodes(nodes)
       hasUnsavedChanges.current = true
-      triggerAutosave()
+      // ✅ FIX: Só dispara autosave se não for automação nova
+      if (currentAutomationId && currentAutomationId !== 'new') {
+        triggerAutosave()
+      }
     }
   }, [nodes])
 
@@ -91,44 +94,32 @@ export function WorkflowEditor() {
     if (!isSyncingFromStore.current) {
       workflowStore.setEdges(edges)
       hasUnsavedChanges.current = true
-      triggerAutosave()
+      // ✅ FIX: Só dispara autosave se não for automação nova
+      if (currentAutomationId && currentAutomationId !== 'new') {
+        triggerAutosave()
+      }
     }
   }, [edges])
   
   // ✅ BIDIRECTIONAL SYNC: Store → ReactFlow
   // Subscribe to store changes (for delete operations)
   useEffect(() => {
-    const unsubscribe = useWorkflowStore.subscribe(
-      (state) => state.nodes,
-      (storeNodes) => {
-        console.log('[WorkflowEditor] Store nodes changed:', storeNodes.length)
-        isSyncingFromStore.current = true
-        setNodes(storeNodes)
-        requestAnimationFrame(() => {
-          isSyncingFromStore.current = false
-        })
-      }
-    )
-    
-    const unsubscribeEdges = useWorkflowStore.subscribe(
-      (state) => state.edges,
-      (storeEdges) => {
-        console.log('[WorkflowEditor] Store edges changed:', storeEdges.length)
-        isSyncingFromStore.current = true
-        setEdges(storeEdges)
-        requestAnimationFrame(() => {
-          isSyncingFromStore.current = false
-        })
-      }
-    )
+    const unsubscribe = useWorkflowStore.subscribe((state) => {
+      // ✅ FIX: Reduzir logging verboso
+      isSyncingFromStore.current = true
+      setNodes(state.nodes)
+      setEdges(state.edges)
+      requestAnimationFrame(() => {
+        isSyncingFromStore.current = false
+      })
+    })
     
     return () => {
       unsubscribe()
-      unsubscribeEdges()
     }
   }, [setNodes, setEdges])
 
-  // 🔄 AUTOSAVE: Salva automaticamente após 2 segundos de inatividade
+  // 🔄 AUTOSAVE: Salva automaticamente após 5 segundos de inatividade
   const triggerAutosave = useCallback(() => {
     if (!currentAutomationId || currentAutomationId === 'new') return
     
@@ -136,21 +127,31 @@ export function WorkflowEditor() {
       clearTimeout(autosaveTimeoutRef.current)
     }
     
+    // ✅ FIX: Aumentar delay para 5 segundos e evitar saves desnecessários
     autosaveTimeoutRef.current = setTimeout(() => {
       if (hasUnsavedChanges.current) {
+        console.log('[WorkflowEditor] 💾 Autosave triggered after 5s of inactivity')
         performSilentSave()
       }
-    }, 2000)
+    }, 5000) // Aumentado de 2s para 5s
   }, [currentAutomationId])
 
   // 💾 Silent Save: Salva sem mostrar toast
   const performSilentSave = async () => {
     if (!currentAutomationId || currentAutomationId === 'new') return
     
+    // ✅ FIX: Evitar múltiplos saves simultâneos
+    if (isSaving) {
+      console.log('[WorkflowEditor] ⏭️ Skipping autosave - save already in progress')
+      return
+    }
+    
     try {
       const storeState = useWorkflowStore.getState()
       const latestNodes = storeState.nodes
       const latestEdges = storeState.edges
+      
+      console.log('[WorkflowEditor] 💾 Autosave:', latestNodes.length, 'nodes,', latestEdges.length, 'edges')
       
       const automationData = {
         name: `Automation ${currentAutomationId}`,
@@ -160,8 +161,13 @@ export function WorkflowEditor() {
           type: node.data.type,
           name: node.data.name,
           description: node.data.description,
-          config: node.data.config,
+          config: node.data.config || {},
           position: node.position,
+          // ✅ FIX: Preserve node identifiers needed for configuration
+          ...(node.data.agentId && { agentId: node.data.agentId }),
+          ...(node.data.toolId && { toolId: node.data.toolId }),
+          ...(node.data.mcpId && { mcpId: node.data.mcpId }),
+          ...(node.data.mcpToolId && { mcpToolId: node.data.mcpToolId }),
         })),
         edges: latestEdges.map((edge) => ({
           id: edge.id,
@@ -173,7 +179,7 @@ export function WorkflowEditor() {
       
       await updateAutomation({ id: currentAutomationId, data: automationData })
       hasUnsavedChanges.current = false
-      console.log('✅ Autosave concluído')
+      console.log('[WorkflowEditor] ✅ Autosave completed')
     } catch (error) {
       console.error('❌ Erro no autosave:', error)
     }
@@ -202,29 +208,58 @@ export function WorkflowEditor() {
     try {
       const automation = await api.getAutomation(automationId)
       if (automation && automation.nodes && automation.edges) {
-        const loadedNodes = automation.nodes.map((node: any) => ({
-          id: node.id,
-          type: 'custom',
-          position: node.position || { x: 0, y: 0 },
-          data: {
-            type: node.type,
-            name: node.name,
-            description: node.description,
-            config: node.config,
-          },
-        }))
+        console.log('[WorkflowEditor] Loading automation:', automationId, 'with', automation.nodes.length, 'nodes', automation.edges.length, 'edges')
+        console.log('[WorkflowEditor] Raw edges from API:', JSON.stringify(automation.edges, null, 2))
         
-        const loadedEdges = automation.edges.map((edge: any) => ({
-          id: edge.id,
-          source: edge.source,
-          target: edge.target,
-          animated: true,
-          style: { stroke: 'hsl(var(--primary))' },
-        }))
+        const loadedNodes = automation.nodes.map((node: any) => {
+          console.log('[WorkflowEditor] Loading node:', node.id, 'config:', node.config)
+          return {
+            id: node.id,
+            type: 'custom',
+            position: node.position || { x: 0, y: 0 },
+            data: {
+              type: node.type,
+              name: node.name,
+              description: node.description,
+              config: node.config || {},
+              // ✅ FIX: Preserve additional node data (agentId, toolId, mcpId, mcpToolId)
+              ...(node.agentId && { agentId: node.agentId }),
+              ...(node.toolId && { toolId: node.toolId }),
+              ...(node.mcpId && { mcpId: node.mcpId }),
+              ...(node.mcpToolId && { mcpToolId: node.mcpToolId }),
+            },
+          }
+        })
         
+        const loadedEdges = automation.edges.map((edge: any) => {
+          console.log('[WorkflowEditor] Processing edge:', edge)
+          return {
+            id: edge.id,
+            source: edge.source,
+            target: edge.target,
+            animated: true,
+            style: { stroke: 'hsl(var(--primary))' },
+          }
+        })
+        
+        console.log('[WorkflowEditor] Loaded edges for ReactFlow:', loadedEdges)
+        
+        // ✅ FIX: Sync to both ReactFlow AND Zustand store
         setNodes(loadedNodes)
         setEdges(loadedEdges)
+        
+        // ✅ CRITICAL FIX: Also update Zustand store directly
+        // This ensures that when we save, the store has the current edges
+        workflowStore.setNodes(loadedNodes)
+        workflowStore.setEdges(loadedEdges)
+        
+        console.log('[WorkflowEditor] Synced to Zustand store:', {
+          nodes: loadedNodes.length,
+          edges: loadedEdges.length
+        })
+        
         hasUnsavedChanges.current = false
+        console.log('[WorkflowEditor] Automation loaded successfully')
       }
     } catch (error: any) {
       console.error('Erro ao carregar automação:', error)
@@ -279,7 +314,15 @@ export function WorkflowEditor() {
       const latestNodes = storeState.nodes
       const latestEdges = storeState.edges
       
-      console.log('[WorkflowEditor] Saving with store nodes:', latestNodes.length)
+      console.log('[WorkflowEditor] 🔍 MANUAL SAVE - Store state:', {
+        nodes: latestNodes.length,
+        edges: latestEdges.length,
+        edgeDetails: latestEdges.map(e => ({ id: e.id, source: e.source, target: e.target }))
+      })
+      
+      if (latestEdges.length === 0) {
+        console.warn('[WorkflowEditor] ⚠️ WARNING: Attempting to save with ZERO edges! This will lose connections!')
+      }
       
       const automationData = {
         name: `Automation ${currentAutomationId || 'New'}`,
@@ -289,8 +332,13 @@ export function WorkflowEditor() {
           type: node.data.type,
           name: node.data.name,
           description: node.data.description,
-          config: node.data.config,
+          config: node.data.config || {},
           position: node.position,
+          // ✅ FIX: Preserve node identifiers needed for configuration
+          ...(node.data.agentId && { agentId: node.data.agentId }),
+          ...(node.data.toolId && { toolId: node.data.toolId }),
+          ...(node.data.mcpId && { mcpId: node.data.mcpId }),
+          ...(node.data.mcpToolId && { mcpToolId: node.data.mcpToolId }),
         })),
         edges: latestEdges.map((edge) => ({
           id: edge.id,
@@ -343,10 +391,16 @@ export function WorkflowEditor() {
     setIsExecuting(true)
     
     try {
-      // Iniciar execução
-      const execution = await executeAutomation({ id: automationIdToRun })
+      // Preparar nodes para timeline
+      const storeState = useWorkflowStore.getState()
+      const executionNodes = storeState.nodes.map(node => ({
+        id: node.id,
+        name: node.data.name || node.data.type,
+        type: node.data.type,
+        status: 'pending' as const,
+      }))
       
-      // Abrir modal de execução com contexto
+      // Abrir modal de execução com contexto inicial
       setExecutionContext({
         automationName: `Automation ${automationIdToRun}`,
         automationId: automationIdToRun,
@@ -354,23 +408,101 @@ export function WorkflowEditor() {
         nodesExecuted: 0,
         files: [],
         logs: [],
+        nodes: executionNodes,
       })
       
-      // Simular progresso (em produção, isso viria via WebSocket ou polling)
-      setTimeout(() => {
-        setExecutionContext((prev: any) => ({
-          ...prev,
-          status: 'completed',
-          nodesExecuted: nodes.length,
-          duration: 1234,
-        }))
-      }, 3000)
+      // Iniciar execução real no backend
+      console.log('[WorkflowEditor] 🚀 Starting execution...')
+      const execution = await executeAutomation({ id: automationIdToRun })
+      
+      console.log('[WorkflowEditor] 📊 Execution result:', execution)
+      
+      // Processar logs do backend
+      const backendLogs = execution.logs || []
+      
+      console.log('[WorkflowEditor] 📋 Backend logs:', backendLogs)
+      
+      const processedLogs = backendLogs.map((log: any) => {
+        // ✅ FIX: Mapear status do backend para level do frontend
+        let level = 'info'
+        if (log.status === 'completed') {
+          level = 'success'
+        } else if (log.status === 'failed') {
+          level = 'error'
+        } else if (log.status === 'running') {
+          level = 'info'
+        }
+        
+        return {
+          timestamp: log.timestamp || new Date().toISOString(),
+          level: log.level || level,  // Usar level se existir, senão usar mapeado
+          nodeId: log.nodeId || '',
+          nodeName: log.nodeName || log.message || '',
+          message: log.message || '',
+          input: log.data?.input || log.input,
+          output: log.data?.output || log.output || log.data,
+        }
+      })
+      
+      console.log('[WorkflowEditor] 📋 Processed logs:', processedLogs)
+      
+      // Detectar arquivos nos outputs
+      const allFiles: any[] = []
+      backendLogs.forEach((log: any) => {
+        if (log.output?.files) {
+          allFiles.push(...log.output.files)
+        }
+      })
+      
+      // ✅ NÃO atualizar nodes aqui - eles são atualizados em tempo real via WebSocket no ExecutionModalV2
+      // Apenas atualizar status final, logs, files, etc.
+      setExecutionContext((prev: any) => ({
+        ...prev,
+        status: execution.status === 'completed' ? 'completed' : 'failed',
+        nodesExecuted: prev.nodes?.filter((n: any) => n.status === 'success').length || 0,
+        // nodes: NÃO sobrescrever - deixar WebSocket gerenciar
+        logs: processedLogs,
+        files: allFiles,
+        duration: execution.completedAt 
+          ? new Date(execution.completedAt).getTime() - new Date(execution.startedAt).getTime()
+          : 0,
+        error: execution.error,
+      }))
+      
+      // Mostrar resultado
+      if (execution.status === 'completed') {
+        toast.success('Automação executada com sucesso!')
+      } else {
+        toast.error('Automação falhou', {
+          description: execution.error || 'Verifique os logs para mais detalhes'
+        })
+      }
       
     } catch (error: any) {
+      console.error('[WorkflowEditor] ❌ Execution error:', error)
       toast.error('Erro ao executar automação', {
         description: error.message
       })
-      setExecutionContext(null)
+      
+      setExecutionContext((prev: any) => {
+        if (!prev) return null
+        
+        return {
+          ...prev,
+          status: 'failed',
+          error: error.message,
+          logs: [
+            ...prev.logs,
+            {
+              timestamp: new Date().toISOString(),
+              level: 'error',
+              nodeId: '',
+              nodeName: 'System',
+              message: `Erro: ${error.message}`,
+            }
+          ]
+        }
+      })
     } finally {
       setIsExecuting(false)
     }
@@ -482,7 +614,7 @@ export function WorkflowEditor() {
       
       {/* Execution Modal */}
       {executionContext && (
-        <ExecutionModal
+        <ExecutionModalV2
           isOpen={!!executionContext}
           onClose={() => setExecutionContext(null)}
           context={executionContext}
