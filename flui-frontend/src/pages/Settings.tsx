@@ -157,10 +157,10 @@ export function Settings() {
     try {
       console.log('📤 Enviando config para salvar:', {
         endpoint: data.endpoint,
+        apiKey: data.apiKey ? `${data.apiKey.substring(0, 15)}... (${data.apiKey.length} chars)` : '(vazio)',
         model: data.model,
         temperature: data.temperature,
         maxTokens: data.maxTokens,
-        hasApiKey: !!data.apiKey
       })
       
       const response: any = await api.post('/api/llm/config', data)
