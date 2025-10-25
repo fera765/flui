@@ -135,9 +135,10 @@ export function ExecutionModal({ isOpen, onClose, context, onNodeStatusChange }:
       })
       
       // Adicionar resposta do assistente
+      const apiResponse: any = response
       setChatMessages(prev => [...prev, {
         role: 'assistant',
-        content: response.response || response.fallback || 'Desculpe, não consegui processar sua mensagem.'
+        content: apiResponse.response || apiResponse.fallback || 'Desculpe, não consegui processar sua mensagem.'
       }])
       
     } catch (error: any) {

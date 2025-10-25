@@ -58,17 +58,22 @@ export function Settings() {
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const config = await api.get('/api/llm/config')
-        if (config.llm) {
-          setValue('endpoint', config.llm.endpoint)
-          setValue('apiKey', config.llm.apiKey || '')
-          setValue('model', config.llm.model)
-          setValue('temperature', config.llm.temperature)
-          setValue('maxTokens', config.llm.maxTokens)
-          setCurrentEndpoint(config.llm.endpoint)
+        const config: any = await api.get('/api/llm/config')
+        console.log('✅ Config carregada:', config)
+        
+        if (config && config.llm) {
+          setValue('endpoint', config.llm.endpoint || 'https://api.llm7.io/v1')
+          setValue('apiKey', config.llm.apiKey === '***' ? '' : (config.llm.apiKey || ''))
+          setValue('model', config.llm.model || 'deepseek-v3.1')
+          setValue('temperature', config.llm.temperature ?? 0.7)
+          setValue('maxTokens', config.llm.maxTokens || 2000)
+          setCurrentEndpoint(config.llm.endpoint || 'https://api.llm7.io/v1')
         }
       } catch (error: any) {
-        console.error('Erro ao carregar config:', error)
+        console.error('❌ Erro ao carregar config:', error)
+        toast.error('Erro ao carregar configuração', {
+          description: error.message
+        })
       }
     }
     
@@ -125,7 +130,11 @@ export function Settings() {
   const onSubmit = async (data: LLMConfigData) => {
     setIsSaving(true)
     try {
-      await api.post('/api/llm/config', data)
+      console.log('📤 Enviando config:', data)
+      
+      const response = await api.post('/api/llm/config', data)
+      
+      console.log('✅ Config salva:', response)
       
       toast.success('Configuração salva!', {
         description: 'As configurações do LLM foram atualizadas'
@@ -133,8 +142,10 @@ export function Settings() {
       
       setTestStatus('idle')
     } catch (error: any) {
+      console.error('❌ Erro ao salvar config:', error)
+      
       toast.error('Erro ao salvar', {
-        description: error.message
+        description: error.response?.data?.error || error.message
       })
     } finally {
       setIsSaving(false)
@@ -146,7 +157,7 @@ export function Settings() {
     setTestStatus('idle')
     
     try {
-      const response = await api.post('/api/llm/test', {
+      const response: any = await api.post('/api/llm/test', {
         message: 'Hello! Please respond with a simple greeting.',
       })
       

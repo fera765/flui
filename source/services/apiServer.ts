@@ -453,14 +453,16 @@ app.get('/api/llm/config', async (_req: Request, res: Response) => {
       return res.status(404).json({ error: 'Configuração LLM não encontrada' });
     }
     
-    // Retornar sem expor API key completa
+    // ✅ FIX: Retornar config completo com estrutura esperada pelo frontend
     res.json({
-      endpoint: config.llm.endpoint,
-      apiKey: config.llm.apiKey ? '***' : '',
+      llm: {
+        endpoint: config.llm.endpoint,
+        apiKey: config.llm.apiKey ? '***' : '',  // Não expor API key completa
+        model: config.llm.model,
+        temperature: config.llm.temperature,
+        maxTokens: config.llm.maxTokens,
+      },
       hasApiKey: !!config.llm.apiKey,
-      model: config.llm.model,
-      temperature: config.llm.temperature,
-      maxTokens: config.llm.maxTokens,
     });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
