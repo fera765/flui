@@ -8,10 +8,23 @@ import { ExecutionContext } from '../core/types.js';
 let openaiClient: OpenAI | null = null;
 
 export const initializeLLM = (endpoint: string, apiKey: string): void => {
+  console.log('🔧 [LLM] Inicializando cliente:', {
+    endpoint,
+    hasApiKey: !!apiKey,
+    apiKeyLength: apiKey?.length || 0
+  });
+  
   openaiClient = new OpenAI({
     baseURL: endpoint,
     apiKey: apiKey,
+    // ✅ Headers obrigatórios para OpenRouter
+    defaultHeaders: {
+      'HTTP-Referer': 'https://flui.app',
+      'X-Title': 'FLUI Platform',
+    },
   });
+  
+  console.log('✅ [LLM] Cliente inicializado com sucesso');
 };
 
 export const getLLMClient = (): OpenAI | null => {
