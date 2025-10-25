@@ -243,8 +243,7 @@ class CronManager {
           await this.executeCronTask(id, onTrigger);
         },
         {
-          scheduled: true,
-          timezone: cronConfig.timezone,
+          timezone: cronConfig.timezone as any, // node-cron types podem ser limitados
         }
       );
 

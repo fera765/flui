@@ -2067,6 +2067,78 @@ export const startApiServer = async () => {
   app.all('/webhook/*', handleWebhookTrigger);
   console.log('✅ Rotas de webhooks registradas');
   
+  // ⏰ Registrar rotas de crons
+  console.log('⏰ Registrando rotas de crons...');
+  const { default: cronRoutes, reloadAllCrons } = await import('./cronRoutes.js');
+  app.use('/api', cronRoutes);
+  console.log('✅ Rotas de crons registradas');
+  
+  // 🔄 Recarregar crons habilitados
+  console.log('🔄 Recarregando crons habilitados...');
+  const cronsLoaded = reloadAllCrons();
+  console.log(`✅ ${cronsLoaded} cron(s) recarregado(s)`);
+  
+  // 📊 Registrar rotas de execution queue
+  console.log('📊 Registrando rotas de execution queue...');
+  const { default: executionQueueRoutes } = await import('./executionQueueRoutes.js');
+  app.use('/api', executionQueueRoutes);
+  console.log('✅ Rotas de execution queue registradas');
+  
+  // 🔗 Conectar ExecutionQueue ao WebSocket para real-time updates
+  console.log('🔗 Conectando ExecutionQueue ao WebSocket...');
+  const { getExecutionQueue } = await import('./executionQueue.js');
+  const queue = getExecutionQueue();
+  
+  // Broadcast eventos da fila via WebSocket
+  queue.on('started', (execution) => {
+    broadcast({
+      type: 'execution-started',
+      execution: {
+        id: execution.id,
+        automationId: execution.automationId,
+        status: execution.status,
+        startedAt: execution.startedAt,
+      },
+    });
+  });
+  
+  queue.on('log', (executionId, log) => {
+    broadcast({
+      type: 'execution-log',
+      executionId,
+      automationId: log.nodeId, // Será extraído do contexto
+      log,
+    });
+  });
+  
+  queue.on('completed', (execution) => {
+    broadcast({
+      type: 'execution-completed',
+      execution: {
+        id: execution.id,
+        automationId: execution.automationId,
+        status: execution.status,
+        completedAt: execution.completedAt,
+        result: execution.result?.status,
+      },
+    });
+  });
+  
+  queue.on('failed', (execution) => {
+    broadcast({
+      type: 'execution-failed',
+      execution: {
+        id: execution.id,
+        automationId: execution.automationId,
+        status: execution.status,
+        error: execution.error,
+        completedAt: execution.completedAt,
+      },
+    });
+  });
+  
+  console.log('✅ ExecutionQueue conectada ao WebSocket');
+  
   // Carregar MCPs e registrar suas tools
   console.log('🔌 Carregando MCPs...');
   try {

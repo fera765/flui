@@ -253,33 +253,18 @@ export function handleWebhookTrigger(req: Request, res: Response): void {
         return res.status(404).json({ error: 'Automação não encontrada' });
       }
       
-      // Resposta imediata (não aguarda execução)
-      if (webhook.responseMode === 'immediate') {
-        res.json({
-          success: true,
-          message: 'Webhook recebido e automação iniciada',
-          webhookId: webhook.id,
-          automationId: webhook.automationId,
-          timestamp: new Date().toISOString(),
-        });
-        
-        // Executar automação em background (não aguarda)
-        executeAutomationInBackground(automation, payload, webhook.id).catch((error) => {
-          console.error(`❌ [Webhook] Erro ao executar automação:`, error);
-        });
-      } else {
-        // Aguardar execução
-        const result = await executeAutomationInBackground(automation, payload, webhook.id);
-        
-        res.json({
-          success: true,
-          message: 'Automação executada',
-          webhookId: webhook.id,
-          automationId: webhook.automationId,
-          result: result.status,
-          timestamp: new Date().toISOString(),
-        });
-      }
+      // Executar via fila (sempre em background)
+      const result = await executeAutomationInBackground(automation, payload, webhook.id);
+      
+      res.json({
+        success: true,
+        message: 'Webhook recebido e automação enfileirada',
+        webhookId: webhook.id,
+        automationId: webhook.automationId,
+        executionId: result.executionId,
+        executionStatus: result.status,
+        timestamp: new Date().toISOString(),
+      });
     } catch (error: any) {
       console.error('❌ [Webhook] Erro ao processar webhook:', error);
       res.status(500).json({ error: error.message });
@@ -288,61 +273,34 @@ export function handleWebhookTrigger(req: Request, res: Response): void {
 }
 
 /**
- * Executa automação em background
+ * Executa automação via fila (em background)
  */
 async function executeAutomationInBackground(automation: any, triggerData: any, webhookId: string) {
   try {
-    console.log(`🚀 [Webhook] Executando automação ${automation.id}...`);
+    const { getExecutionQueue } = await import('./executionQueue.js');
+    const queue = getExecutionQueue();
     
-    const { getSandboxManager } = await import('./sandboxManager.js');
-    const sandboxManager = getSandboxManager();
-    
-    // Criar sandbox único para esta execução
-    const executionId = `exec-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-    const sandboxPath = await sandboxManager.createSandbox({
-      automationId: executionId, // ✅ Usar executionId ao invés de automationId
-      mcpEnvVars: {},
-      customEnvVars: {},
+    // Adicionar à fila
+    const executionId = await queue.enqueue({
+      automationId: automation.id,
+      automationName: automation.name,
+      triggerType: 'webhook',
+      triggerData: {
+        webhookId,
+        webhookData: triggerData,
+      },
+      priority: 5, // Webhooks têm prioridade média-alta
     });
     
-    console.log(`📦 [Webhook] Sandbox criado: ${sandboxPath}`);
+    console.log(`✅ [Webhook] Automação ${automation.id} enfileirada: ${executionId}`);
     
-    // Mapear nodes
-    const executionFlow = {
-      id: automation.id,
-      name: automation.name,
-      description: automation.description || '',
-      version: automation.version || '1.0',
-      nodes: automation.nodes.map((node: any) => ({
-        id: node.id,
-        type: node.toolId || node.type || 'tool',
-        name: node.name,
-        config: node.config || {},
-        position: node.position,
-        ...(node.agentId && { agentId: node.agentId }),
-        ...(node.toolId && { toolId: node.toolId }),
-        ...(node.mcpId && { mcpId: node.mcpId }),
-        ...(node.mcpToolId && { mcpToolId: node.mcpToolId }),
-      })),
-      edges: automation.edges || [],
-      startNodeId: automation.startNodeId || automation.nodes[0]?.id,
+    // Retornar informação de enfileiramento
+    return {
+      status: 'queued',
+      executionId,
     };
-    
-    const engine = new FlowEngineV2(executionFlow);
-    
-    // Executar com dados do webhook
-    const result = await engine.execute({
-      webhookId,
-      webhookData: triggerData,
-      triggeredBy: 'webhook',
-      timestamp: new Date().toISOString(),
-    });
-    
-    console.log(`✅ [Webhook] Automação ${automation.id} executada:`, result.status);
-    
-    return result;
   } catch (error: any) {
-    console.error(`❌ [Webhook] Erro na execução:`, error);
+    console.error(`❌ [Webhook] Erro ao enfileirar:`, error);
     throw error;
   }
 }
