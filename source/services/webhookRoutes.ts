@@ -23,7 +23,7 @@ router.post('/webhooks', async (req: Request, res: Response) => {
     
     // Verificar se automação existe
     const automations = getAutomations();
-    const automation = automations[automationId];
+    const automation = automations.find((a: any) => a.id === automationId);
     if (!automation) {
       return res.status(404).json({ error: `Automação ${automationId} não encontrada` });
     }
@@ -199,7 +199,9 @@ router.delete('/webhooks/:id', async (req: Request, res: Response) => {
 export function handleWebhookTrigger(req: Request, res: Response): void {
   (async () => {
     try {
-      const path = req.path; // Ex: /webhook/xxx ou /webhook/my-custom-path
+      // req.path vem como /xxx quando registrado com app.use('/webhook', ...)
+      // Reconstruir path completo
+      const path = `/webhook${req.path}`;
       console.log(`🔗 [Webhook] Recebida requisição: ${req.method} ${path}`);
       
       const manager = getWebhookManager();

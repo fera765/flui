@@ -1093,6 +1093,37 @@
 				"createdAt": "2025-10-25T00:02:39.959Z",
 				"updatedAt": "2025-10-25T00:02:39.959Z"
 			}
+		},
+		{
+			"id": "d3e67d9f0946da3f",
+			"name": "Test Webhook Automation",
+			"description": "Test automation for webhook",
+			"nodes": [
+				{
+					"id": "node-1",
+					"type": "tool",
+					"name": "Node",
+					"description": "",
+					"config": {},
+					"position": {
+						"x": 100,
+						"y": 100
+					},
+					"nextNodes": []
+				}
+			],
+			"edges": [],
+			"startNodeId": "node-1",
+			"enabled": true,
+			"continuousExecution": false,
+			"version": "2.0.0",
+			"createdAt": "2025-10-25T08:29:50.648Z",
+			"updatedAt": "2025-10-25T08:29:50.648Z",
+			"runCount": 0,
+			"metadata": {
+				"createdAt": "2025-10-25T08:29:50.648Z",
+				"updatedAt": "2025-10-25T08:29:50.648Z"
+			}
 		}
 	],
 	"executions": [],
@@ -6287,7 +6318,31 @@
 			"maxTokens": 2000
 		},
 		"theme": "default",
-		"locale": "pt-BR"
+		"locale": "pt-BR",
+		"webhooks": {
+			"webhook-3c6be5acdda77830": {
+				"id": "webhook-3c6be5acdda77830",
+				"automationId": "d3e67d9f0946da3f",
+				"path": "/webhook/webhook-3c6be5acdda77830",
+				"method": "POST",
+				"secretToken": "32a03083bd01dead1085a6340e06e402501740a2e709beb069d892fa3c1dc579",
+				"enabled": true,
+				"createdAt": "2025-10-25T08:32:46.517Z",
+				"triggerCount": 0,
+				"responseMode": "immediate"
+			},
+			"webhook-88c3e535c40004bb": {
+				"id": "webhook-88c3e535c40004bb",
+				"automationId": "d3e67d9f0946da3f",
+				"path": "/webhook/webhook-88c3e535c40004bb",
+				"method": "POST",
+				"secretToken": "c2f9709b53be26d401e28d5a1546fbbdbbef6c29007e14c805de412b07608b27",
+				"enabled": true,
+				"createdAt": "2025-10-25T08:33:26.971Z",
+				"triggerCount": 0,
+				"responseMode": "immediate"
+			}
+		}
 	},
 	"activeSessionId": "8613298984342f50"
 }

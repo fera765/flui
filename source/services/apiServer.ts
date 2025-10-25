@@ -2060,12 +2060,13 @@ export const startApiServer = async () => {
   const toolsCount = registry.list().tools.length;
   console.log(`✅ ${toolsCount} ferramentas registradas`);
   
-  // 🔗 Registrar rotas de webhooks
-  console.log('🔗 Registrando rotas de webhooks...');
-  const { default: webhookRoutes, handleWebhookTrigger } = await import('./webhookRoutes.js');
-  app.use('/api', webhookRoutes);
-  app.all('/webhook/*', handleWebhookTrigger);
-  console.log('✅ Rotas de webhooks registradas');
+    // 🔗 Registrar rotas de webhooks
+    console.log('🔗 Registrando rotas de webhooks...');
+    const { default: webhookRoutes, handleWebhookTrigger } = await import('./webhookRoutes.js');
+    app.use('/api', webhookRoutes);
+    // Rota dinâmica para webhooks: captura qualquer caminho após /webhook/
+    app.use('/webhook', handleWebhookTrigger);
+    console.log('✅ Rotas de webhooks registradas');
   
   // ⏰ Registrar rotas de crons
   console.log('⏰ Registrando rotas de crons...');
