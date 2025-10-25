@@ -1118,11 +1118,12 @@
 			"continuousExecution": false,
 			"version": "2.0.0",
 			"createdAt": "2025-10-25T08:29:50.648Z",
-			"updatedAt": "2025-10-25T08:29:50.648Z",
-			"runCount": 0,
+			"updatedAt": "2025-10-25T09:38:40.291Z",
+			"runCount": 1,
 			"metadata": {
 				"createdAt": "2025-10-25T08:29:50.648Z",
-				"updatedAt": "2025-10-25T08:29:50.648Z"
+				"updatedAt": "2025-10-25T09:38:40.290Z",
+				"lastRunAt": "2025-10-25T09:38:40.291Z"
 			}
 		}
 	],

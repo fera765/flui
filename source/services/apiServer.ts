@@ -216,7 +216,7 @@ app.delete('/api/automations/:id', (req: Request, res: Response) => {
 });
 
 app.post('/api/automations/:id/execute', async (req: Request, res: Response) => {
-  console.log('🚀🚀🚀 [API] POST /api/automations/:id/execute - USANDO EXECUTIONENGINE V3!', req.params.id);
+  console.log('🚀 [API] POST /api/automations/:id/execute - USANDO EXECUTION QUEUE!', req.params.id);
   
   try {
     const automations = getAutomations();
@@ -226,93 +226,25 @@ app.post('/api/automations/:id/execute', async (req: Request, res: Response) => 
       return res.status(404).json({ error: 'Automação não encontrada' });
     }
 
-    // Criar sandbox único para esta automação
-    const { getSandboxManager } = await import('./sandboxManager.js');
-    const sandboxManager = getSandboxManager();
+    // ✅ USAR EXECUTION QUEUE para execução em background
+    const { getExecutionQueue } = await import('./executionQueue.js');
+    const queue = getExecutionQueue();
     
-    // Coletar env vars dos MCPs usados
-    const store = useStore.getState();
-    const mcpEnvVars: Record<string, Record<string, string>> = {};
-    
-    for (const mcp of store.mcps) {
-      if (mcp.envVars && Object.keys(mcp.envVars).length > 0) {
-        mcpEnvVars[mcp.id] = mcp.envVars;
-      }
-    }
-    
-    const sandboxPath = await sandboxManager.createSandbox({
+    const executionId = await queue.enqueue({
       automationId: automation.id,
-      mcpEnvVars,
-      customEnvVars: {},
-    });
-    
-    console.log(`📦 [API] Sandbox criado: ${sandboxPath}`);
-
-    console.log('✨ [API] Using FlowEngineV2 for execution...');
-    
-    const executionFlow = {
-      id: automation.id,
-      name: automation.name,
-      description: automation.description || '',
-      version: automation.version || '1.0',
-      nodes: automation.nodes.map(node => {
-        // ✅ FIX: Usar toolId do node, não do config
-        // E preservar agentId, mcpId para execução correta
-        return {
-          id: node.id,
-          type: (node.toolId || node.type || 'tool') as any,  // Cast to any para FlowEngine
-          name: node.name,
-          config: node.config || {},
-          position: node.position,
-          // ✅ FIX: Passar IDs necessários para execução
-          ...(node.agentId && { agentId: node.agentId }),
-          ...(node.toolId && { toolId: node.toolId }),
-          ...(node.mcpId && { mcpId: node.mcpId }),
-          ...(node.mcpToolId && { mcpToolId: node.mcpToolId }),
-        };
-      }),
-      edges: automation.edges || [],
-      startNodeId: automation.startNodeId || automation.nodes[0]?.id,
-    } as any;  // Cast to any para evitar erro de tipo
-
-    console.log('📊 [API] Execução iniciada:', { 
-      flowId: executionFlow.id,
-      nodesCount: executionFlow.nodes.length,
-      nodes: executionFlow.nodes.map((n: any) => ({ 
-        id: n.id, 
-        type: n.type, 
-        agentId: n.agentId,
-        toolId: n.toolId,
-      }))
+      automationName: automation.name,
+      triggerType: 'manual',
+      triggerData: req.body.initialData || {},
+      priority: 10,
     });
 
-    // Coletar logs e atualizações de nodes em tempo real
-    const allLogs: any[] = [];
-
-    const engine = new FlowEngineV2(
-      executionFlow,
-      (log: FlowExecutionLog) => {
-        allLogs.push(log);
-        // Broadcast em tempo real via WebSocket
-        broadcast({
-          type: 'execution-log',
-          automationId: automation.id,
-          log,
-        });
-      }
-    );
-
-    // Executar automação
-    const result = await engine.execute(req.body.initialData || {});
-
-    console.log('✅ [API] Execução concluída:', {
-      status: result.status,
-      logsCount: result.logs.length,
-      hasError: result.error ? true : false,
-      errorMessage: result.error,
+    console.log('📥 [API] Automação enfileirada:', {
+      executionId,
+      automationId: automation.id,
+      automationName: automation.name,
     });
 
-    // Atualizar runCount e metadata
+    // Atualizar runCount
     saveAutomation({
       ...automation,
       runCount: (automation.runCount || 0) + 1,
@@ -323,27 +255,20 @@ app.post('/api/automations/:id/execute', async (req: Request, res: Response) => 
       },
     });
 
-    // Broadcast conclusão
-    broadcast({
-      type: 'execution-complete',
-      automationId: automation.id,
-      result,
-    });
-
-    // Responder com resultado detalhado
+    // Responder com dados da execução enfileirada
     res.json({
-      success: result.status === 'completed',
-      executionId: result.id,
-      status: result.status,
-      startedAt: result.startedAt,
-      completedAt: result.completedAt,
-      logs: allLogs,
-      nodeResults: result.nodeResults,
-      result: result.result,
-      error: result.error,
+      success: true,
+      executionId,
+      status: 'queued',
+      automationId: automation.id,
+      automationName: automation.name,
+      triggerType: 'manual',
+      priority: 10,
+      createdAt: new Date().toISOString(),
+      message: 'Automação enfileirada e será executada em background',
     });
   } catch (error: any) {
-    console.error('❌ [API] Erro na execução:', error);
+    console.error('❌ [API] Erro ao enfileirar automação:', error);
     res.status(500).json({ 
       success: false,
       error: error.message,
