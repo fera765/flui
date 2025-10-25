@@ -48,6 +48,30 @@ export function NodeConfigModal() {
     }
   }, [selectedNodeId, nodes, selectedNode?.data.config])
 
+  // ✅ DETECTAR TRIGGERS e abrir modal específico
+  useEffect(() => {
+    if (isConfigModalOpen && selectedNode && automationId) {
+      const toolId = selectedNode.data.toolId
+      
+      console.log('[NodeConfigModal] Checking for trigger:', {
+        toolId,
+        isWebhook: toolId === 'webhook-trigger',
+        isCron: toolId === 'cron-trigger',
+        automationId,
+      })
+      
+      if (toolId === 'webhook-trigger') {
+        console.log('[NodeConfigModal] 🔗 Abrindo WebhookTriggerModal')
+        setShowWebhookModal(true)
+        closeConfigModal() // Fechar modal genérico
+      } else if (toolId === 'cron-trigger') {
+        console.log('[NodeConfigModal] ⏰ Abrindo CronTriggerModal')
+        setShowCronModal(true)
+        closeConfigModal() // Fechar modal genérico
+      }
+    }
+  }, [isConfigModalOpen, selectedNode?.data.toolId, automationId])
+
   if (!selectedNode) return null
 
   // Get parameters based on node type
@@ -140,6 +164,7 @@ export function NodeConfigModal() {
   }
 
   return (
+    <>
     <Modal
       isOpen={isConfigModalOpen}
       onClose={closeConfigModal}
@@ -213,44 +238,29 @@ export function NodeConfigModal() {
         </div>
       </div>
     </Modal>
-  )
-}
-
-export function NodeConfigModalWrapper() {
-  const { selectedNode } = useWorkflowStore()
-  const { id: automationId } = useParams()
-  const [showWebhookModal, setShowWebhookModal] = useState(false)
-  const [showCronModal, setShowCronModal] = useState(false)
-  
-  useEffect(() => {
-    if (selectedNode?.data.toolId === 'webhook-trigger') {
-      setShowWebhookModal(true)
-    } else if (selectedNode?.data.toolId === 'cron-trigger') {
-      setShowCronModal(true)
-    }
-  }, [selectedNode])
-  
-  return (
-    <>
-      <NodeConfigModal />
-      
-      {/* Webhook Trigger Modal */}
-      {showWebhookModal && automationId && (
-        <WebhookTriggerModal
-          isOpen={showWebhookModal}
-          onClose={() => setShowWebhookModal(false)}
-          automationId={automationId}
-        />
-      )}
-      
-      {/* Cron Trigger Modal */}
-      {showCronModal && automationId && (
-        <CronTriggerModal
-          isOpen={showCronModal}
-          onClose={() => setShowCronModal(false)}
-          automationId={automationId}
-        />
-      )}
+    
+    {/* Modais de Triggers - Renderizados condicionalmente */}
+    {showWebhookModal && automationId && (
+      <WebhookTriggerModal
+        isOpen={showWebhookModal}
+        onClose={() => {
+          setShowWebhookModal(false)
+          // Não reabrir NodeConfigModal
+        }}
+        automationId={automationId}
+      />
+    )}
+    
+    {showCronModal && automationId && (
+      <CronTriggerModal
+        isOpen={showCronModal}
+        onClose={() => {
+          setShowCronModal(false)
+          // Não reabrir NodeConfigModal
+        }}
+        automationId={automationId}
+      />
+    )}
     </>
   )
 }
