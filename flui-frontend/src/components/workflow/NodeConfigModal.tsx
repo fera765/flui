@@ -123,18 +123,7 @@ export function NodeConfigModal() {
   })
 
   const handleSave = () => {
-    // ✅ Verificar se é webhook ou cron trigger
-    if (selectedNode.data.toolId === 'webhook-trigger') {
-      setShowWebhookModal(true)
-      return
-    }
-    
-    if (selectedNode.data.toolId === 'cron-trigger') {
-      setShowCronModal(true)
-      return
-    }
-    
-    // ✅ Salvar apenas config, nome/descrição são do agente/tool
+    // ✅ Salvar config do node
     console.log('[NodeConfigModal] Saving config:', config)
     updateNode(selectedNode.id, {
       config,
