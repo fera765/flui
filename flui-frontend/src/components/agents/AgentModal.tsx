@@ -1,13 +1,15 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { ModelCombobox } from '@/components/ui/ModelCombobox'
 import { useModels, useTools, useMCPs } from '@/hooks/useAgents'
 import { RefreshCw, AlertCircle } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
+import { api } from '@/services/api'
 import type { Agent } from '@/types/api'
 
 const agentSchema = z.object({
@@ -34,11 +36,32 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isLoading }: Agen
   const [activeTab, setActiveTab] = useState<'general' | 'tools'>('general')
   const [selectedTools, setSelectedTools] = useState<string[]>(agent?.tools || [])
   const [selectedMCPTools, setSelectedMCPTools] = useState<string[]>((agent as any)?.mcpToolIds || [])
+  const [llmEndpoint, setLlmEndpoint] = useState('')
+  const [llmApiKey, setLlmApiKey] = useState('')
 
   const queryClient = useQueryClient()
   const { data: models = [], isLoading: isLoadingModels, error: modelsError, refetch: refetchModels } = useModels()
   const { data: tools = [] } = useTools()
   const { data: mcps = [] } = useMCPs()
+  
+  // Carregar config LLM para o ModelCombobox
+  useEffect(() => {
+    const loadLLMConfig = async () => {
+      try {
+        const response: any = await api.get('/api/llm/config')
+        if (response.llm) {
+          setLlmEndpoint(response.llm.endpoint || '')
+          setLlmApiKey(response.llm.apiKey || '')
+        }
+      } catch (error) {
+        console.error('Erro ao carregar config LLM:', error)
+      }
+    }
+    
+    if (isOpen) {
+      loadLLMConfig()
+    }
+  }, [isOpen])
   
   // ✅ Extract MCP tools into individual selectable items
   const mcpToolsList = mcps.flatMap((mcp: any) => 
@@ -54,6 +77,8 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isLoading }: Agen
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<AgentFormData>({
     resolver: zodResolver(agentSchema),
@@ -185,29 +210,20 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isLoading }: Agen
                 </div>
               )}
               
-              <select
-                {...register('model')}
-                disabled={isLoadingModels}
-                className="w-full h-10 px-3 border border-input bg-background rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-              >
-                <option value="">
-                  {isLoadingModels ? 'Loading models...' : 'Select a model'}
-                </option>
-                {((models as any)?.data || models || []).map((model: any) => (
-                  <option key={model.id} value={model.id}>
-                    {model.id}
-                  </option>
-                ))}
-              </select>
+              <ModelCombobox
+                value={watch('model') || ''}
+                onChange={(value) => setValue('model', value)}
+                endpoint={llmEndpoint}
+                apiKey={llmApiKey}
+                placeholder="Digite ou selecione um modelo (ex: qwen/qwen3-coder:free)"
+                error={errors.model?.message}
+                disabled={isLoading}
+              />
               
-              {!isLoadingModels && !modelsError && (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {((models as any)?.data || models || []).length} model(s) available
+              {modelsError && (
+                <p className="mt-1 text-xs text-amber-600">
+                  Configure LLM em Settings para carregar modelos automaticamente
                 </p>
-              )}
-              
-              {errors.model && (
-                <p className="mt-1 text-sm text-destructive">{errors.model.message}</p>
               )}
             </div>
 

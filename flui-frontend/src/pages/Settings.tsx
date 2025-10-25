@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { Save, TestTube, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { ModelCombobox } from '@/components/ui/ModelCombobox'
 import { api } from '@/services/api'
 import { toast } from 'sonner'
 
@@ -30,8 +31,7 @@ export function Settings() {
   const [isSaving, setIsSaving] = useState(false)
   const [isTesting, setIsTesting] = useState(false)
   const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle')
-  const [availableModels, setAvailableModels] = useState<ModelInfo[]>([])
-  const [isLoadingModels, setIsLoadingModels] = useState(false)
+  // Removido: availableModels e isLoadingModels - agora gerenciados pelo ModelCombobox
   const [currentEndpoint, setCurrentEndpoint] = useState('https://api.llm7.io/v1')
   
   const {
@@ -112,44 +112,9 @@ export function Settings() {
     }
   }, [])
   
+  // Removido: loadAvailableModels - agora gerenciado pelo ModelCombobox
   const loadAvailableModels = async (endpointUrl: string) => {
-    setIsLoadingModels(true)
-    setAvailableModels([])  // ✅ Limpar modelos enquanto carrega
-    
-    try {
-      console.log('🔍 Carregando modelos de:', endpointUrl)
-      
-      // Tentar carregar modelos do endpoint
-      const modelsUrl = endpointUrl.endsWith('/') ? `${endpointUrl}models` : `${endpointUrl}/models`
-      
-      // ✅ Pegar API key do formulário atual
-      const currentApiKey = watch('apiKey')
-      
-      const response = await fetch(modelsUrl, {
-        headers: {
-          ...(currentApiKey && { 'Authorization': `Bearer ${currentApiKey}` }),
-          'Content-Type': 'application/json',
-        },
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        
-        // Suportar formato OpenAI (data.data) ou formato direto (array)
-        const models = Array.isArray(data) ? data : data.data || []
-        setAvailableModels(models)
-        
-        console.log(`✅ Loaded ${models.length} models from ${endpointUrl}`)
-      } else {
-        console.warn('Failed to load models:', response.statusText)
-        setAvailableModels([])
-      }
-    } catch (error) {
-      console.error('Error loading models:', error)
-      setAvailableModels([])
-    } finally {
-      setIsLoadingModels(false)
-    }
+    // Função mantida vazia para compatibilidade (não é mais usada)
   }
   
   const onSubmit = async (data: LLMConfigData) => {
@@ -278,39 +243,15 @@ export function Settings() {
                 Modelo *
               </label>
               
-              {availableModels.length > 0 ? (
-                <div>
-                  <select
-                    {...register('model')}
-                    className="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    disabled={isLoadingModels}
-                  >
-                    {availableModels.map((model) => (
-                      <option key={model.id} value={model.id}>
-                        {model.id} {model.owned_by ? `(${model.owned_by})` : ''}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {availableModels.length} modelos disponíveis no endpoint
-                  </p>
-                </div>
-              ) : (
-                <div>
-                  <Input
-                    {...register('model')}
-                    placeholder="deepseek-v3.1"
-                    error={errors.model?.message}
-                    disabled={isLoadingModels}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {isLoadingModels 
-                      ? 'Carregando modelos...' 
-                      : 'Digite o nome do modelo manualmente ou configure o endpoint para carregar automáticamente'
-                    }
-                  </p>
-                </div>
-              )}
+              <ModelCombobox
+                value={watch('model') || ''}
+                onChange={(value) => setValue('model', value)}
+                endpoint={watch('endpoint') || ''}
+                apiKey={watch('apiKey') || ''}
+                placeholder="Digite ou selecione um modelo (ex: qwen/qwen3-coder:free)"
+                error={errors.model?.message}
+                disabled={isSaving}
+              />
             </div>
             
             {/* Temperature */}

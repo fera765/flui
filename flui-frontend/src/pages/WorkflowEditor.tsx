@@ -446,26 +446,6 @@ export function WorkflowEditor() {
       
       console.log('[WorkflowEditor] 📋 Processed logs:', processedLogs)
       
-      // Atualizar nodes baseado nos logs
-      const updatedNodes = executionNodes.map(node => {
-        const nodeLogs = processedLogs.filter((log: any) => log.nodeId === node.id)
-        
-        if (nodeLogs.length === 0) {
-          return { ...node, status: 'pending' as const }
-        }
-        
-        const lastLog = nodeLogs[nodeLogs.length - 1]
-        const hasError = nodeLogs.some((log: any) => log.level === 'error')
-        const hasSuccess = nodeLogs.some((log: any) => log.level === 'success')
-        
-        return {
-          ...node,
-          status: hasError ? 'error' as const : hasSuccess ? 'success' as const : 'pending' as const,
-          output: lastLog.output,
-          error: hasError ? lastLog.message : undefined,
-        }
-      })
-      
       // Detectar arquivos nos outputs
       const allFiles: any[] = []
       backendLogs.forEach((log: any) => {
@@ -474,12 +454,13 @@ export function WorkflowEditor() {
         }
       })
       
-      // Atualizar contexto com resultado real
+      // ✅ NÃO atualizar nodes aqui - eles são atualizados em tempo real via WebSocket no ExecutionModalV2
+      // Apenas atualizar status final, logs, files, etc.
       setExecutionContext((prev: any) => ({
         ...prev,
         status: execution.status === 'completed' ? 'completed' : 'failed',
-        nodesExecuted: updatedNodes.filter(n => n.status === 'success').length,
-        nodes: updatedNodes,
+        nodesExecuted: prev.nodes?.filter((n: any) => n.status === 'success').length || 0,
+        // nodes: NÃO sobrescrever - deixar WebSocket gerenciar
         logs: processedLogs,
         files: allFiles,
         duration: execution.completedAt 

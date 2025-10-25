@@ -120,39 +120,14 @@ export function ExecutionModalV2({ isOpen, onClose, context }: ExecutionModalPro
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [chatMessages])
   
-  // Initialize nodes from context or create from logs
+  // ✅ Initialize nodes from context (já vêm com status 'pending')
+  // Atualizações em tempo real vêm via WebSocket
   useEffect(() => {
-    if (context.nodes) {
+    if (context.nodes && context.nodes.length > 0) {
+      console.log('[ExecutionModalV2] 🔄 Inicializando nodes:', context.nodes)
       setExecutionNodes(context.nodes)
-    } else {
-      // Extract unique nodes from logs
-      const nodeMap = new Map<string, ExecutionNode>()
-      context.logs.forEach(log => {
-        if (!nodeMap.has(log.nodeId)) {
-          nodeMap.set(log.nodeId, {
-            id: log.nodeId,
-            name: log.nodeName,
-            type: 'unknown',
-            status: 'pending',
-          })
-        }
-        
-        const node = nodeMap.get(log.nodeId)!
-        if (log.level === 'success') {
-          node.status = 'success'
-          node.output = log.output
-        } else if (log.level === 'error') {
-          node.status = 'error'
-          node.error = log.message
-        } else if (log.message.includes('Executando')) {
-          node.status = 'running'
-          node.input = log.input
-        }
-      })
-      
-      setExecutionNodes(Array.from(nodeMap.values()))
     }
-  }, [context.logs, context.nodes])
+  }, [context.automationId]) // Apenas quando muda automationId (nova execução)
   
   // Add initial welcome message
   useEffect(() => {
