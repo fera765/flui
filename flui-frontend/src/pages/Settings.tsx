@@ -59,15 +59,25 @@ export function Settings() {
     const loadConfig = async () => {
       try {
         const config: any = await api.get('/api/llm/config')
-        console.log('✅ Config carregada:', config)
+        console.log('✅ Config carregada do backend:', config)
         
         if (config && config.llm) {
-          setValue('endpoint', config.llm.endpoint || 'https://api.llm7.io/v1')
-          setValue('apiKey', config.llm.apiKey === '***' ? '' : (config.llm.apiKey || ''))
-          setValue('model', config.llm.model || 'deepseek-v3.1')
-          setValue('temperature', config.llm.temperature ?? 0.7)
-          setValue('maxTokens', config.llm.maxTokens || 2000)
-          setCurrentEndpoint(config.llm.endpoint || 'https://api.llm7.io/v1')
+          const endpoint = config.llm.endpoint || 'https://api.llm7.io/v1'
+          const apiKey = config.llm.apiKey === '***' ? '' : (config.llm.apiKey || '')
+          const model = config.llm.model || 'deepseek-v3.1'
+          const temp = config.llm.temperature ?? 0.7
+          const tokens = config.llm.maxTokens || 2000
+          
+          console.log('📝 Preenchendo formulário:', { endpoint, model, temp, tokens, hasApiKey: !!apiKey })
+          
+          setValue('endpoint', endpoint)
+          setValue('apiKey', apiKey)
+          setValue('model', model)
+          setValue('temperature', temp)
+          setValue('maxTokens', tokens)
+          setCurrentEndpoint(endpoint)
+          
+          console.log('✅ Formulário preenchido com sucesso')
         }
       } catch (error: any) {
         console.error('❌ Erro ao carregar config:', error)
@@ -80,13 +90,20 @@ export function Settings() {
     loadConfig()
   }, [setValue])
   
-  // 🚀 Carregar modelos disponíveis quando o endpoint mudar
+  // 🚀 Carregar modelos disponíveis quando endpoint OU apiKey mudarem
   useEffect(() => {
+    const apiKey = watch('apiKey')
+    
     if (endpoint && endpoint !== currentEndpoint) {
       setCurrentEndpoint(endpoint)
-      loadAvailableModels(endpoint)
+      // ✅ Delay para garantir que API key foi preenchida
+      const timer = setTimeout(() => {
+        loadAvailableModels(endpoint)
+      }, 500)
+      
+      return () => clearTimeout(timer)
     }
-  }, [endpoint])
+  }, [endpoint, watch('apiKey')])
   
   // Carregar modelos na inicialização
   useEffect(() => {
@@ -97,12 +114,20 @@ export function Settings() {
   
   const loadAvailableModels = async (endpointUrl: string) => {
     setIsLoadingModels(true)
+    setAvailableModels([])  // ✅ Limpar modelos enquanto carrega
+    
     try {
+      console.log('🔍 Carregando modelos de:', endpointUrl)
+      
       // Tentar carregar modelos do endpoint
       const modelsUrl = endpointUrl.endsWith('/') ? `${endpointUrl}models` : `${endpointUrl}/models`
       
+      // ✅ Pegar API key do formulário atual
+      const currentApiKey = watch('apiKey')
+      
       const response = await fetch(modelsUrl, {
         headers: {
+          ...(currentApiKey && { 'Authorization': `Bearer ${currentApiKey}` }),
           'Content-Type': 'application/json',
         },
       })
@@ -130,15 +155,27 @@ export function Settings() {
   const onSubmit = async (data: LLMConfigData) => {
     setIsSaving(true)
     try {
-      console.log('📤 Enviando config:', data)
+      console.log('📤 Enviando config para salvar:', {
+        endpoint: data.endpoint,
+        model: data.model,
+        temperature: data.temperature,
+        maxTokens: data.maxTokens,
+        hasApiKey: !!data.apiKey
+      })
       
-      const response = await api.post('/api/llm/config', data)
+      const response: any = await api.post('/api/llm/config', data)
       
-      console.log('✅ Config salva:', response)
+      console.log('✅ Config salva com sucesso:', response)
       
       toast.success('Configuração salva!', {
-        description: 'As configurações do LLM foram atualizadas'
+        description: `Modelo: ${data.model}`
       })
+      
+      // ✅ Recarregar config para confirmar que foi salva
+      setTimeout(async () => {
+        const savedConfig: any = await api.get('/api/llm/config')
+        console.log('🔍 Verificando config salva:', savedConfig)
+      }, 500)
       
       setTestStatus('idle')
     } catch (error: any) {

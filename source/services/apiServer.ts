@@ -546,6 +546,15 @@ app.post('/api/llm/test', async (req: Request, res: Response) => {
     
     const config = getConfig();
     
+    console.log('🧪 [API] Testando conexão LLM...');
+    console.log('📋 [API] Config atual:', {
+      endpoint: config?.llm?.endpoint,
+      model: config?.llm?.model,
+      hasApiKey: !!config?.llm?.apiKey,
+      temperature: config?.llm?.temperature,
+      maxTokens: config?.llm?.maxTokens,
+    });
+    
     if (!config || !config.llm || !config.llm.endpoint) {
       return res.status(400).json({ 
         success: false,
